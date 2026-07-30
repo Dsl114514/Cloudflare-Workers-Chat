@@ -50,6 +50,11 @@ ADMIN_KEY = "7a7be27563c45956c313005973b4902a15b7a1008c207c05"
 AI_BASE_URL = "https://api.deepseek.com/v1"
 AI_MODEL = "deepseek-v4-flash"
 AI_SYSTEM_PROMPT = "你是一个友好的助手，请用中文回答。"
+# 注意：新 fork 部署时如果报 "Cannot apply delete-class migration to class 'RateLimiter'",
+# 说明 RateLimiter 在你的仓库中不存在，请把以下所有 migrations 替换为一行:
+#   [[migrations]]
+#   tag = "v1"
+#   new_sqlite_classes = ["ChatRoom", "RoomRegistry", "VersionArchive", "FileBucket"]
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["ChatRoom"]
