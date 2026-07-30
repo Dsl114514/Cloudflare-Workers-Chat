@@ -235,10 +235,17 @@ export async function handleCommand(text) {
 
     case "/zifu": {
       if (!arg) { showError("用法: /zifu <文字>"); break; }
+      if (arg.length > 15) { showError("文字太长，最多15个字符"); break; }
+      try {
+        let art = renderTextToAsciiCanvas(arg);
+        if (state.currentWebSocket) state.currentWebSocket.send(JSON.stringify({type: "zifu", message: art}));
+      } catch (e) { addChatMessage(null, "* 字符画生成失败: " + e.message); }
+      break;
+    }
 
     case "/redpacket":
     case "/rp": {
-      let p = text.split(/s+/);
+      let p = text.split(/\s+/);
       let total = parseInt(p[1], 10);
       let count = parseInt(p[2], 10);
       let mode = p[3] === "fixed" ? "fixed" : "random";
@@ -249,13 +256,6 @@ export async function handleCommand(text) {
       if (!state.currentWebSocket) { showError("未连接到聊天室"); break; }
       state.currentWebSocket.send(JSON.stringify({type: "redpacket", action: "create", total, count, mode}));
       addChatMessage(null, "* 🧧 红包已发出，等待领取...");
-      break;
-    }
-      if (arg.length > 15) { showError("文字太长，最多15个字符"); break; }
-      try {
-        let art = renderTextToAsciiCanvas(arg);
-        if (state.currentWebSocket) state.currentWebSocket.send(JSON.stringify({type: "zifu", message: art}));
-      } catch (e) { addChatMessage(null, "* 字符画生成失败: " + e.message); }
       break;
     }
 
