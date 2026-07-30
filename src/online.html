@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线用户 - CloudChat</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#4a6cf7">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f0f2f5; color: #1a1a2e; padding: 20px; max-width: 720px; margin: 0 auto;
+  min-height: 100vh;
+}
+.header { text-align: center; padding: 30px 0 16px; }
+.header h1 { font-size: 26px; font-weight: 700; color: #4a6cf7; margin-bottom: 4px; }
+.header p { color: #888; font-size: 14px; }
+.header .back-link {
+  display: inline-block; margin-top: 10px; color: #4a6cf7; text-decoration: none;
+  font-size: 14px; padding: 6px 16px; border: 1px solid #4a6cf7; border-radius: 20px;
+  transition: all 0.2s;
+}
+.header .back-link:hover { background: #4a6cf7; color: #fff; }
+.total-bar {
+  text-align: center; padding: 16px; margin: 12px 0 16px;
+  background: linear-gradient(135deg, #4a6cf7, #6c5ce7); border-radius: 14px; color: #fff;
+}
+.total-bar .total-num { font-size: 36px; font-weight: 800; }
+.total-bar .total-label { font-size: 13px; opacity: 0.85; }
+.loading { text-align: center; padding: 60px 20px; color: #999; font-size: 15px; }
+.room-group { margin-bottom: 16px; }
+.room-group-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; background: #fff; border-radius: 10px 10px 0 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04); font-weight: 600; font-size: 14px; cursor: pointer;
+}
+.room-group-header .arrow { color: #ccc; font-size: 12px; transition: transform 0.2s; margin-left: auto; }
+.room-group-header .arrow.open { transform: rotate(90deg); }
+.room-group-header .room-online {
+  font-weight: 400; font-size: 12px; color: #888; margin-left: 4px;
+}
+.room-group-header .online-dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; margin-right: 4px;
+}
+.room-group-body { display: none; background: #fff; border-radius: 0 0 10px 10px; padding: 4px 14px 12px; }
+.room-group-body.open { display: block; }
+.user-item {
+  display: flex; align-items: center; gap: 8px; padding: 5px 8px; font-size: 13px; color: #444;
+}
+.user-item .user-avatar {
+  width: 26px; height: 26px; border-radius: 50%; background: #eef0f8;
+  display: flex; align-items: center; justify-content: center; font-size: 12px; color: #888;
+  flex-shrink: 0;
+}
+.user-item .user-name { flex: 1; }
+.user-item .online-indicator {
+  width: 6px; height: 6px; border-radius: 50%; background: #2ecc71; flex-shrink: 0;
+}
+.empty-state { text-align: center; padding: 60px 20px; color: #999; }
+.empty-state .big-icon { font-size: 48px; margin-bottom: 12px; }
+.refresh-btn {
+  display: block; margin: 16px auto; padding: 8px 24px; border: none;
+  background: #4a6cf7; color: #fff; border-radius: 24px; font-size: 13px; cursor: pointer;
+  transition: opacity 0.2s;
+}
+.refresh-btn:hover { opacity: 0.85; }
+.user-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 4px;
+}
+@media (max-width: 600px) {
+  body { padding: 12px; }
+  .header h1 { font-size: 20px; }
+  .total-bar .total-num { font-size: 28px; }
+  .user-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>👥 在线用户</h1>
+  <p>看看谁在线上</p>
+  <a class="back-link" href="/">← 返回聊天室</a>
+</div>
+
+<div id="loading" class="loading">⏳ 加载中...</div>
+<div id="content" style="display:none;">
+  <div class="total-bar" id="total-bar">
+    <div class="total-num" id="total-num">0</div>
+    <div class="total-label">当前在线</div>
+  </div>
+  <div id="room-groups"></div>
+  <button class="refresh-btn" onclick="load()">🔄 刷新</button>
+</div>
+<div id="empty" class="empty-state" style="display:none;">
+  <div class="big-icon">👻</div>
+  <div>暂无在线用户</div>
+</div>
+
+<script>
+async function load() {
+  document.getElementById("loading").style.display = "block";
+  document.getElementById("content").style.display = "none";
+  document.getElementById("empty").style.display = "none";
+  try {
+    let r = await fetch("/api/rooms/list");
+    let data = await r.json();
+    let entries = Object.entries(data).map(([name, info]) => ({
+      name,
+      count: typeof info === "object" ? info.count || 0 : info || 0,
+      hasPassword: typeof info === "object" && info.hasPassword
+    })).filter(r => r.count > 0);
+    entries.sort((a, b) => b.count - a.count);
+    document.getElementById("loading").style.display = "none";
+    if (entries.length === 0) { document.getElementById("empty").style.display = "block"; return; }
+    let total = entries.reduce((s, r) => s + r.count, 0);
+    document.getElementById("total-num").textContent = total;
+    let groups = document.getElementById("room-groups");
+    groups.innerHTML = "";
+    entries.forEach((r, i) => {
+      let group = document.createElement("div");
+      group.className = "room-group";
+      let header = document.createElement("div");
+      header.className = "room-group-header";
+      header.innerHTML = '<span class="online-dot"></span> #' + r.name + (r.hasPassword ? ' 🔒' : '') +
+        '<span class="room-online">' + r.count + ' 人</span><span class="arrow' + (i === 0 ? ' open' : '') + '">▶</span>';
+      let body = document.createElement("div");
+      body.className = "room-group-body" + (i === 0 ? " open" : "");
+      // 显示每个房间的在线人数（因无公开API获取具体用户名，显示人数统计）
+      let grid = document.createElement("div");
+      grid.className = "user-grid";
+      for (let j = 0; j < Math.min(r.count, 20); j++) {
+        let userItem = document.createElement("div");
+        userItem.className = "user-item";
+        userItem.innerHTML = '<span class="online-indicator"></span><span class="user-avatar">👤</span><span class="user-name">在线用户 ' + (j + 1) + '</span>';
+        grid.appendChild(userItem);
+      }
+      if (r.count > 20) {
+        let more = document.createElement("div");
+        more.style.cssText = "font-size:12px;color:#999;text-align:center;padding:4px;";
+        more.textContent = "还有 " + (r.count - 20) + " 位用户";
+        body.appendChild(grid);
+        body.appendChild(more);
+      } else {
+        body.appendChild(grid);
+      }
+      header.addEventListener("click", () => {
+        body.classList.toggle("open");
+        header.querySelector(".arrow").classList.toggle("open");
+      });
+      group.appendChild(header);
+      group.appendChild(body);
+      groups.appendChild(group);
+    });
+    document.getElementById("content").style.display = "block";
+  } catch(e) {
+    document.getElementById("loading").textContent = "❌ 加载失败";
+  }
+}
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+// 管理后台消息相关操作（公告、黑名单、撤回、发送消息）
+
+export async function handleAdminMessages(path, request, env, url) {
+  // path 结构：["admin", "announcement", "room"] 或 ["admin", "message", "recall", "room"]
+  // announcement/blacklist/send-message: path[1]=操作, path[2]=房间
+  // message/recall: path[1]="message", path[2]="recall", path[3]=房间
+  const isMsgPrefix = path[1] === "message";
+  const action = isMsgPrefix ? path[2] : path[1];
+  const roomIdx = isMsgPrefix ? 3 : 2;
+  switch (action) {
+    case "announcement": {
+      const annRoom = path[roomIdx];
+      const annText = url.searchParams.get("text") || "";
+      if (!annRoom) return new Response("请提供房间名", {status: 400});
+      let id;
+      if (annRoom.match(/^[0-9a-f]{64}$/)) id = env.rooms.idFromString(annRoom);
+      else if (annRoom.length <= 32) id = env.rooms.idFromName(annRoom);
+      else return new Response("无效房间", {status: 400});
+      let roomObj = env.rooms.get(id);
+      let doUrl = new URL("https://dummy-url/set-announcement?text=" + encodeURIComponent(annText));
+      let resp = await roomObj.fetch(doUrl);
+      return new Response(await resp.text(), {status: resp.status});
+    }
+
+    case "blacklist": {
+      const blAction = path[roomIdx];
+      const roomId = path[roomIdx + 1];
+      if (!roomId) return new Response("请提供房间名称或 ID。", { status: 400 });
+
+      let id;
+      if (roomId.match(/^[0-9a-f]{64}$/)) id = env.rooms.idFromString(roomId);
+      else if (roomId.length <= 32) id = env.rooms.idFromName(roomId);
+      else return new Response("房间名称/ID格式不正确或过长。", { status: 400 });
+
+      try {
+        let roomObject = env.rooms.get(id);
+        let doUrl = "https://dummy-url/blacklist/" + blAction;
+        if (action === "add" || action === "remove") {
+          const userName = url.searchParams.get("name");
+          if (!userName) return new Response("请提供用户名（?name=xxx）。", { status: 400 });
+          doUrl += "?name=" + encodeURIComponent(userName);
+        }
+        const response = await roomObject.fetch(new URL(doUrl));
+        const text = await response.text();
+        if (response.ok) return new Response(text, { status: 200 });
+        return new Response(text, { status: response.status });
+      } catch (error) {
+        return new Response("操作黑名单时发生错误: " + "操作失败", { status: 500 });
+      }
+    }
+
+    case "recall": {
+      const recallRoom = path[roomIdx];
+      const recallTs = url.searchParams.get("timestamp");
+      const recallName = url.searchParams.get("name");
+      if (!recallRoom || !recallTs || !recallName) return new Response("缺少参数", {status: 400});
+
+      let recallId;
+      if (recallRoom.match(/^[0-9a-f]{64}$/)) recallId = env.rooms.idFromString(recallRoom);
+      else if (recallRoom.length <= 32) recallId = env.rooms.idFromName(recallRoom);
+      else return new Response("房间名称/ID格式不正确。", { status: 400 });
+
+      try {
+        let roomObj = env.rooms.get(recallId);
+        let resp = await roomObj.fetch(new URL("https://dummy-url/message/recall?timestamp=" + encodeURIComponent(recallTs) + "&name=" + encodeURIComponent(recallName)));
+        let text = await resp.text();
+        return new Response(text, {status: resp.status});
+      } catch (error) {
+        return new Response("撤回失败: " + "操作失败", { status: 500 });
+      }
+    }
+
+    case "send-message": {
+      const msgRoom = path[roomIdx];
+      const msgText = url.searchParams.get("text");
+      const msgSender = url.searchParams.get("sender") || "系统公告";
+      if (!msgRoom) return new Response("请提供房间名", {status: 400});
+      if (!msgText) return new Response("请提供消息内容", {status: 400});
+
+      let msgId;
+      if (msgRoom.match(/^[0-9a-f]{64}$/)) msgId = env.rooms.idFromString(msgRoom);
+      else if (msgRoom.length <= 32) msgId = env.rooms.idFromName(msgRoom);
+      else return new Response("房间名称/ID格式不正确", {status: 400});
+
+      try {
+        let roomObj = env.rooms.get(msgId);
+        let resp = await roomObj.fetch(new URL("https://dummy-url/broadcast-message?text=" + encodeURIComponent(msgText) + "&sender=" + encodeURIComponent(msgSender)));
+        let result = await resp.text();
+        return new Response(result, {status: resp.status});
+      } catch (error) {
+        return new Response("发送消息失败: " + "操作失败", {status: 500});
+      }
+    }
+
+    default:
+      return null;
+  }
+}

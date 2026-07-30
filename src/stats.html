@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>站点统计 - CloudChat</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#4a6cf7">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f0f2f5; color: #1a1a2e; padding: 20px; max-width: 720px; margin: 0 auto;
+  min-height: 100vh;
+}
+.header { text-align: center; padding: 30px 0 20px; }
+.header h1 { font-size: 26px; font-weight: 700; color: #4a6cf7; margin-bottom: 4px; }
+.header p { color: #888; font-size: 14px; }
+.header .back-link {
+  display: inline-block; margin-top: 10px; color: #4a6cf7; text-decoration: none;
+  font-size: 14px; padding: 6px 16px; border: 1px solid #4a6cf7; border-radius: 20px;
+  transition: all 0.2s;
+}
+.header .back-link:hover { background: #4a6cf7; color: #fff; }
+.loading { text-align: center; padding: 60px 20px; color: #999; font-size: 15px; }
+.stats-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0;
+}
+.stat-card {
+  background: #fff; border-radius: 14px; padding: 20px; text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06); transition: all 0.2s;
+}
+.stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); transform: translateY(-2px); }
+.stat-card .icon { font-size: 28px; margin-bottom: 6px; }
+.stat-card .num { font-size: 30px; font-weight: 800; color: #4a6cf7; }
+.stat-card .label { font-size: 13px; color: #888; margin-top: 2px; }
+.stat-card.full { grid-column: 1 / -1; }
+.section-title {
+  font-size: 16px; font-weight: 700; margin: 20px 0 10px; display: flex; align-items: center; gap: 6px;
+}
+.leaderboard-mini { list-style: none; }
+.lb-item {
+  display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+  background: #fff; border-radius: 8px; margin-bottom: 3px; font-size: 13px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.lb-item .lb-rank { width: 24px; font-weight: 700; color: #999; flex-shrink: 0; }
+.lb-item .lb-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-item .lb-points { font-weight: 600; color: #4a6cf7; }
+.lb-item.top1 .lb-rank { color: #ffd700; }
+.lb-item.top2 .lb-rank { color: #c0c0c0; }
+.lb-item.top3 .lb-rank { color: #cd7f32; }
+.empty-state { text-align: center; padding: 40px 20px; color: #999; }
+.empty-state .big-icon { font-size: 42px; margin-bottom: 8px; }
+@media (max-width: 600px) {
+  body { padding: 12px; }
+  .header h1 { font-size: 20px; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .stat-card .num { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📊 站点统计</h1>
+  <p>CloudChat 实时数据概览</p>
+  <a class="back-link" href="/">← 返回聊天室</a>
+</div>
+
+<div id="loading" class="loading">⏳ 加载中...</div>
+<div id="content" style="display:none;">
+  <div class="stats-grid" id="main-stats"></div>
+  <div class="section-title">🏆 积分排行榜 TOP 10</div>
+  <ul id="lb-top10" class="leaderboard-mini"></ul>
+  <div style="text-align:center;margin-top:12px;">
+    <a href="/leaderboard" style="display:inline-block;padding:8px 20px;background:#4a6cf7;color:#fff;border-radius:20px;text-decoration:none;font-size:13px;">查看完整排行榜 →</a>
+  </div>
+</div>
+
+<script>
+async function load() {
+  try {
+    let [roomsData, pointsData] = await Promise.all([
+      fetch("/api/rooms/list").then(r => r.json()),
+      fetch("/api/points/all").then(r => r.json())
+    ]);
+    let roomEntries = Object.entries(roomsData);
+    let totalRooms = roomEntries.length;
+    let totalOnline = roomEntries.reduce((s, [_, info]) => s + (typeof info === "object" ? info.count || 0 : info || 0), 0);
+    let passwordRooms = roomEntries.filter(([_, info]) => typeof info === "object" && info.hasPassword).length;
+    let pointsEntries = Object.entries(pointsData);
+    let totalUsers = pointsEntries.length;
+    let totalPoints = pointsEntries.reduce((s, [_, p]) => s + (Number(p) || 0), 0);
+    document.getElementById("loading").style.display = "none";
+    let mainStats = document.getElementById("main-stats");
+    mainStats.innerHTML = '' +
+      '<div class="stat-card"><div class="icon">🏠</div><div class="num">' + totalRooms + '</div><div class="label">房间总数</div></div>' +
+      '<div class="stat-card"><div class="icon">👥</div><div class="num">' + totalOnline + '</div><div class="label">当前在线</div></div>' +
+      '<div class="stat-card"><div class="icon">👤</div><div class="num">' + totalUsers + '</div><div class="label">注册用户</div></div>' +
+      '<div class="stat-card"><div class="icon">💰</div><div class="num">' + totalPoints.toLocaleString() + '</div><div class="label">积分总量</div></div>';
+    if (passwordRooms > 0) {
+      mainStats.innerHTML += '<div class="stat-card"><div class="icon">🔒</div><div class="num">' + passwordRooms + '</div><div class="label">加密房间</div></div>';
+    }
+    document.getElementById("content").style.display = "block";
+    let sorted = pointsEntries.sort((a, b) => b[1] - a[1]).slice(0, 10);
+    let lb = document.getElementById("lb-top10");
+    lb.innerHTML = "";
+    sorted.forEach(([name, points], i) => {
+      let item = document.createElement("li");
+      item.className = "lb-item" + (i < 3 ? " top" + (i+1) : "");
+      item.innerHTML = '<span class="lb-rank">' + (i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i+1)) + '</span>' +
+        '<span class="lb-name">' + name + '</span><span class="lb-points">' + points.toLocaleString() + ' 分</span>';
+      lb.appendChild(item);
+    });
+  } catch(e) {
+    document.getElementById("loading").textContent = "❌ 加载失败";
+  }
+}
+load();
+</script>
+</body>
+</html>

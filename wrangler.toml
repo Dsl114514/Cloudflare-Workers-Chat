@@ -1,0 +1,71 @@
+name = "cloudflare-workers-chat"
+compatibility_date = "2024-01-01"
+
+main = "src/index.mjs"
+
+workers_dev = true
+
+routes = [
+  { pattern = "chat.liuxiyu.cn/*", zone_name = "liuxiyu.cn" },
+  { pattern = "chat.liuxiyu.dpdns.org/*", zone_name = "liuxiyu.dpdns.org" },
+  { pattern = "community.liuxiyu.dpdns.org", zone_name = "liuxiyu.dpdns.org", custom_domain = true, enabled = true, previews_enabled = false },
+  { pattern = "chat.csel.dpdns.org", zone_name = "csel.dpdns.org", custom_domain = true, enabled = true, previews_enabled = false },
+  { pattern = "origin.lxybackup.dpdns.org", zone_name = "lxybackup.dpdns.org", custom_domain = true, enabled = true, previews_enabled = false },
+  { pattern = "chatnew.liuxiyu.dpdns.org", zone_name = "liuxiyu.dpdns.org", custom_domain = true, enabled = true, previews_enabled = false },
+  { pattern = "chat.liuxiyu.dpdns.org", zone_name = "liuxiyu.dpdns.org", custom_domain = true, enabled = true, previews_enabled = false },
+]
+
+[durable_objects]
+bindings = [
+  { name = "rooms", class_name = "ChatRoom" },
+  { name = "registry", class_name = "RoomRegistry" },
+  { name = "archive", class_name = "VersionArchive" },
+  { name = "filebucket", class_name = "FileBucket" },
+]
+
+[[rules]]
+type = "Data"
+globs = ["**/*.html", "**/*.js", "**/*.css"]
+fallthrough = false
+
+# Indicate that you want the ChatRoom class to be callable as a Durable Object.
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = true
+persist = true
+head_sampling_rate = 1
+
+[vars]
+ADMIN_SECRET_KEY = "9167c945079746dbfa6cd249df4ad64f102e9e34a366624539ee3ac7cfefa16e"
+ADMIN_KEY = "7a7be27563c45956c313005973b4902a15b7a1008c207c05"
+AI_BASE_URL = "https://api.deepseek.com/v1"
+AI_MODEL = "deepseek-v4-flash"
+AI_SYSTEM_PROMPT = "你是一个友好的助手，请用中文回答。"
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ChatRoom"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["RoomRegistry"]
+
+[[migrations]]
+tag = "v3"
+deleted_classes = ["RateLimiter"]
+
+[[migrations]]
+tag = "v4"
+new_sqlite_classes = ["VersionArchive"]
+
+[[migrations]]
+tag = "v5"
+new_sqlite_classes = ["FileBucket"]

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>关于 CloudChat</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#4a6cf7">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f0f2f5; color: #1a1a2e;
+}
+/* Hero */
+.hero {
+  background: linear-gradient(135deg, #4a6cf7 0%, #6c5ce7 50%, #a855f7 100%);
+  color: #fff; padding: 60px 20px 50px; text-align: center; position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 30px 30px; pointer-events: none;
+}
+.hero h1 { font-size: 38px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
+.hero .subtitle { font-size: 16px; opacity: 0.85; margin-bottom: 20px; }
+.hero .version-badge {
+  display: inline-block; background: rgba(255,255,255,0.2); backdrop-filter: blur(4px);
+  padding: 4px 14px; border-radius: 20px; font-size: 13px; margin-bottom: 20px;
+}
+.hero .nav-links { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.hero .nav-links a {
+  display: inline-block; padding: 8px 20px; border-radius: 24px; font-size: 14px; font-weight: 500;
+  text-decoration: none; transition: all 0.2s;
+  background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+}
+.hero .nav-links a:hover { background: #fff; color: #4a6cf7; transform: translateY(-1px); }
+.container { max-width: 780px; margin: 0 auto; padding: 30px 20px 60px; }
+/* Sections */
+.section { margin-bottom: 28px; }
+.section h2 {
+  font-size: 20px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+.section h2::after { content: ''; flex: 1; height: 1px; background: #e0e0e0; margin-left: 8px; }
+.section p, .section li { font-size: 14px; line-height: 1.8; color: #444; }
+/* Feature cards */
+.features { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.feature-card {
+  background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: all 0.2s;
+}
+.feature-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); transform: translateY(-2px); }
+.feature-card .fc-icon { font-size: 28px; margin-bottom: 8px; }
+.feature-card .fc-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: #1a1a2e; }
+.feature-card .fc-desc { font-size: 13px; color: #666; line-height: 1.6; }
+/* Tech stack */
+.tech-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.tech-item {
+  background: #fff; padding: 8px 16px; border-radius: 10px; font-size: 13px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 6px;
+}
+.tech-item .tech-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+/* Stats */
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.stat-card {
+  background: #fff; border-radius: 12px; padding: 18px; text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.stat-card .stat-num { font-size: 28px; font-weight: 800; color: #4a6cf7; }
+.stat-card .stat-label { font-size: 13px; color: #888; margin-top: 4px; }
+/* Timeline */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 4px; bottom: 4px; width: 2px; background: #e0e0e0; }
+.timeline-item { position: relative; margin-bottom: 14px; padding-left: 16px; }
+.timeline-item::before {
+  content: ''; position: absolute; left: -20px; top: 6px; width: 10px; height: 10px;
+  border-radius: 50%; background: #4a6cf7; border: 2px solid #fff; box-shadow: 0 0 0 2px #4a6cf7;
+}
+.timeline-item .tl-date { font-size: 12px; color: #999; margin-bottom: 2px; }
+.timeline-item .tl-text { font-size: 14px; color: #333; }
+.timeline-item .tl-text code { font-family: 'SF Mono', 'Fira Code', monospace; background: #eef0f8; padding: 1px 5px; border-radius: 4px; font-size: 12px; color: #4a6cf7; }
+/* Footer */
+.footer { text-align: center; padding: 20px; font-size: 13px; color: #aaa; border-top: 1px solid #e8e8e8; margin-top: 20px; }
+.footer a { color: #4a6cf7; text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+@media (max-width: 600px) {
+  .hero h1 { font-size: 28px; }
+  .features { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="version-badge">🚀 v1.15</div>
+  <h1>☁️ CloudChat</h1>
+  <p class="subtitle">基于 Cloudflare Workers 的现代化实时聊天室</p>
+  <div class="nav-links">
+    <a href="/">💬 进入聊天室</a>
+    <a href="/help">📖 帮助中心</a>
+    <a href="/changelog">📋 更新日志</a>
+    <a href="/admin">⚙️ 管理后台</a>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- 介绍 -->
+  <div class="section">
+    <h2>📌 简介</h2>
+    <p>CloudChat 是一个基于 Cloudflare Workers 和 Durable Objects 构建的实时聊天系统。无需注册即可畅聊，支持私信、房间管理、积分经济、商城抽奖、AI 对话、LaTeX 公式渲染等丰富功能。前端采用 ES Module 架构，所有静态资源打包进 Worker，无需额外服务器。</p>
+  </div>
+
+  <!-- 核心特性 -->
+  <div class="section">
+    <h2>✨ 核心特性</h2>
+    <div class="features">
+      <div class="feature-card">
+        <div class="fc-icon">💬</div>
+        <div class="fc-title">实时通信</div>
+        <div class="fc-desc">基于 WebSocket + Durable Objects 的全双工实时消息推送</div>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon">🏠</div>
+        <div class="fc-title">多房间</div>
+        <div class="fc-desc">公共/私人/密码房间，房间置顶，实时在线列表</div>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon">💰</div>
+        <div class="fc-title">积分经济</div>
+        <div class="fc-desc">积分转账、商城购物、标签装扮、抽奖娱乐</div>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon">🤖</div>
+        <div class="fc-title">AI 对话</div>
+        <div class="fc-desc">输入 /ai 即可与 DeepSeek AI 进行连续对话</div>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon">📐</div>
+        <div class="fc-title">LaTeX 渲染</div>
+        <div class="fc-desc">支持 $...$ 行内和 $$...$$ 块级数学公式渲染（KaTeX）</div>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon">🎨</div>
+        <div class="fc-title">多色标签</div>
+        <div class="fc-desc">支持分段着色标签，VIP 自动检测徽章，彩色名字</div>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon">🔐</div>
+        <div class="fc-title">安全管理</div>
+        <div class="fc-desc">用户/IP 封禁、全局黑名单、同 IP 检测、房间密码</div>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon">📱</div>
+        <div class="fc-title">移动适配</div>
+        <div class="fc-desc">底部导航栏、触摸优化、PWA 离线缓存支持</div>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon">🎁</div>
+        <div class="fc-title">任务 & 抽奖</div>
+        <div class="fc-desc">管理员可创建任务和奖池，用户完成任务获得积分奖励</div>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon">🖼️</div>
+        <div class="fc-title">富媒体消息</div>
+        <div class="fc-desc">图片/文件上传、语音消息、URL 预览、自定义表情</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 技术栈 -->
+  <div class="section">
+    <h2>🛠️ 技术栈</h2>
+    <div class="tech-list">
+      <div class="tech-item"><span class="tech-dot" style="background:#f38020;"></span> Cloudflare Workers</div>
+      <div class="tech-item"><span class="tech-dot" style="background:#4a6cf7;"></span> Durable Objects</div>
+      <div class="tech-item"><span class="tech-dot" style="background:#00b4d8;"></span> WebSocket</div>
+      <div class="tech-item"><span class="tech-dot" style="background:#f7df1e;"></span> JavaScript (ES Modules)</div>
+      <div class="tech-item"><span class="tech-dot" style="background:#e34f26;"></span> HTML5</div>
+      <div class="tech-item"><span class="tech-dot" style="background:#1572b6;"></span> CSS3 (Variables)</div>
+      <div class="tech-item"><span class="tech-dot" style="background:#6c5ce7;"></span> KaTeX</div>
+      <div class="tech-item"><span class="tech-dot" style="background:#e65100;"></span> highlight.js</div>
+      <div class="tech-item"><span class="tech-dot" style="background:#412991;"></span> DeepSeek API</div>
+      <div class="tech-item"><span class="tech-dot" style="background:#000;"></span> Service Worker (PWA)</div>
+    </div>
+  </div>
+
+  <!-- GitHub -->
+  <div class="section" style="text-align:center;padding:16px 0;">
+    <a href="https://github.com/MEMZ-CHROER/Cloudflare-Workers-Chat" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:10px 24px;background:#fff;border-radius:24px;text-decoration:none;color:#1a1a2e;font-size:14px;font-weight:500;box-shadow:0 1px 4px rgba(0,0,0,0.08);transition:all 0.2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.12)';this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 1px 4px rgba(0,0,0,0.08)';this.style.transform='none'">
+      <span style="font-size:20px;">🐙</span> GitHub 开源仓库
+    </a>
+  </div>
+
+  <!-- 发展历程 -->
+  <div class="section">
+    <h2>📅 发展历程</h2>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="tl-date">2026-04-28 · v1.0</div>
+        <div class="tl-text">🎉 首个版本发布，基于 Cloudflare Workers + Durable Objects 实现实时聊天</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-date">2026-05-15 · v1.4</div>
+        <div class="tl-text">🔍 消息搜索、回复、代码高亮、已读回执</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-date">2026-05-20 · v1.6</div>
+        <div class="tl-text">🎤 语音消息、消息转发、表情回应、房间信息面板</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-date">2026-05-24 · v1.11</div>
+        <div class="tl-text">🤖 AI 对话、LaTeX 公式渲染、@全体成员、代码高亮优化</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-date">2026-05-27 · v1.15</div>
+        <div class="tl-text">🎨 UI 全面优化、CSS 抽取、Toast 通知系统、代码模块化重构</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <a href="/">💬 聊天室</a> · <a href="/help">📖 帮助</a> · <a href="/changelog">📋 更新日志</a> · <a href="/admin">⚙️ 管理</a><br>
+  Built with ☁️ Cloudflare Workers · ❤️ 2026
+</div>
+
+</body>
+</html>

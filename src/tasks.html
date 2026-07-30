@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>任务中心 - Cloud Chat</title>
+<style>
+  :root {
+    --primary: #4a6cf7;
+    --primary-dark: #3b5de7;
+    --text: #1a1a2e;
+    --text-secondary: #888;
+    --border: #e8e8e8;
+    --bg: #f0f2f5;
+    --card-bg: #fff;
+    --success: #2ecc71;
+  }
+  body.dark {
+    --bg: #1a1a2e;
+    --card-bg: #16213e;
+    --text: #e0e0e0;
+    --text-secondary: #8899aa;
+    --border: #2a2a4a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+  }
+  .container { max-width: 640px; margin: 0 auto; padding: 16px; }
+
+  /* Auth */
+  #auth-section { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  .auth-card {
+    background: var(--card-bg); border-radius: 16px; padding: 32px; width: 100%; max-width: 380px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08); text-align: center;
+  }
+  .auth-card h1 { font-size: 24px; margin-bottom: 24px; }
+  .auth-tabs { display: flex; gap: 0; margin-bottom: 20px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+  .auth-tab { flex: 1; padding: 10px; border: none; background: var(--card-bg); cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text-secondary); transition: all 0.2s; }
+  .auth-tab.active { background: var(--primary); color: #fff; }
+  .auth-input {
+    width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px;
+    font-size: 15px; outline: none; margin-bottom: 12px; background: var(--card-bg); color: var(--text);
+    font-family: inherit; transition: border-color 0.2s;
+  }
+  .auth-input:focus { border-color: var(--primary); }
+  .auth-btn {
+    width: 100%; padding: 12px; border: none; border-radius: 10px; background: var(--primary);
+    color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit;
+    transition: background 0.2s;
+  }
+  .auth-btn:hover { background: var(--primary-dark); }
+  .auth-error { color: #e74c3c; font-size: 13px; margin-top: 8px; display: none; }
+  .auth-skip { margin-top: 16px; font-size: 13px; }
+  .auth-skip a { color: var(--primary); text-decoration: none; }
+
+  /* Header */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 0; border-bottom: 1px solid var(--border); margin-bottom: 16px;
+  }
+  .header h1 { font-size: 20px; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .header-btn {
+    padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--card-bg); color: var(--text); cursor: pointer; font-size: 13px;
+    font-family: inherit; text-decoration: none; transition: all 0.2s;
+  }
+  .header-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .header-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .header-btn.primary:hover { background: var(--primary-dark); }
+
+  /* Points bar */
+  .points-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; background: var(--card-bg); border-radius: 12px;
+    border: 1px solid var(--border); margin-bottom: 16px;
+  }
+  .points-label { font-size: 14px; color: var(--text-secondary); }
+  .points-value { font-size: 20px; font-weight: 700; color: #e67e22; }
+
+  /* Task list */
+  .task-list { display: flex; flex-direction: column; gap: 10px; }
+  .task-card {
+    display: flex; align-items: center; padding: 16px; background: var(--card-bg);
+    border: 1px solid var(--border); border-radius: 12px; transition: box-shadow 0.2s;
+  }
+  .task-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .task-info { flex: 1; min-width: 0; }
+  .task-name { font-weight: 600; font-size: 15px; }
+  .task-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .task-reward {
+    font-size: 15px; font-weight: 700; color: #e67e22; margin: 0 16px; white-space: nowrap;
+  }
+  .task-btn {
+    padding: 8px 18px; border: none; border-radius: 8px; font-weight: 600; font-size: 13px;
+    cursor: pointer; transition: all 0.2s; font-family: inherit; white-space: nowrap;
+  }
+  .task-btn-claim { background: var(--primary); color: #fff; }
+  .task-btn-claim:hover { background: var(--primary-dark); }
+  .task-btn-done { background: #ecf0f1; color: #95a5a6; cursor: default; }
+  .task-btn-login-required { background: var(--primary); color: #fff; }
+
+  /* Empty */
+  .empty-state {
+    text-align: center; padding: 60px 16px; color: var(--text-secondary);
+  }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state .empty-text { font-size: 15px; }
+
+  /* Loading */
+  .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
+
+  /* Dark mode toggle */
+  .dark-toggle {
+    background: none; border: none; font-size: 20px; cursor: pointer;
+    padding: 4px 8px; border-radius: 6px; transition: background 0.2s;
+  }
+  .dark-toggle:hover { background: var(--border); }
+
+  @media(max-width:480px) {
+    .container { padding: 12px; }
+    .auth-card { padding: 24px 20px; }
+    .header h1 { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+  <!-- Auth -->
+  <div id="auth-section">
+    <div class="auth-card">
+      <h1>📋 任务中心</h1>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login" onclick="switchAuthTab('login')">登录</button>
+        <button class="auth-tab" data-tab="register" onclick="switchAuthTab('register')">注册</button>
+      </div>
+      <div id="auth-login">
+        <input id="login-name" class="auth-input" placeholder="用户名" maxlength="32">
+        <input id="login-password" type="password" class="auth-input" placeholder="密码">
+        <button id="login-btn" class="auth-btn" type="button">登录</button>
+        <div id="login-error" class="auth-error"></div>
+      </div>
+      <div id="auth-register" style="display:none">
+        <input id="register-name" class="auth-input" placeholder="用户名" maxlength="32">
+        <input id="register-password" type="password" class="auth-input" placeholder="密码（至少6位）">
+        <button id="register-btn" class="auth-btn" type="button">注册</button>
+        <div id="register-error" class="auth-error"></div>
+      </div>
+      <p class="auth-skip"><a id="skip-auth" href="#">跳过，直接浏览任务</a></p>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div id="main-section" style="display:none">
+    <div class="container">
+      <div class="header">
+        <h1>📋 任务中心</h1>
+        <div class="header-actions">
+          <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()">🌙</button>
+          <a href="/" class="header-btn">返回聊天</a>
+          <button id="logout-btn" class="header-btn" onclick="logout()" style="display:none">退出</button>
+        </div>
+      </div>
+
+      <div class="points-bar">
+        <span class="points-label">我的积分</span>
+        <span class="points-value" id="points-display">0</span>
+      </div>
+
+      <div id="task-container">
+        <div class="loading">加载中...</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const API_BASE = "";
+let authToken = localStorage.getItem("chat_token") || "";
+let userName = localStorage.getItem("chat_username") || "";
+
+function escapeHtml(str) {
+  let d = document.createElement("div");
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+// Auth
+function switchAuthTab(tab) {
+  document.querySelectorAll(".auth-tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tab));
+  document.getElementById("auth-login").style.display = tab === "login" ? "" : "none";
+  document.getElementById("auth-register").style.display = tab === "register" ? "" : "none";
+}
+
+async function login() {
+  let name = document.getElementById("login-name").value.trim();
+  let pass = document.getElementById("login-password").value;
+  let errEl = document.getElementById("login-error");
+  if (!name || !pass) { errEl.textContent = "请填写用户名和密码"; errEl.style.display = "block"; return; }
+  try {
+    let r = await fetch(API_BASE + "/api/login", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({name, password: pass})
+    });
+    let data = await r.json();
+    if (data.error) { errEl.textContent = data.error; errEl.style.display = "block"; return; }
+    authToken = data.token;
+    userName = name;
+    localStorage.setItem("chat_token", authToken);
+    localStorage.setItem("chat_username", userName);
+    enterMain();
+  } catch(e) { errEl.textContent = "登录失败: " + e.message; errEl.style.display = "block"; }
+}
+
+async function register() {
+  let name = document.getElementById("register-name").value.trim();
+  let pass = document.getElementById("register-password").value;
+  let errEl = document.getElementById("register-error");
+  if (!name || !pass) { errEl.textContent = "请填写用户名和密码"; errEl.style.display = "block"; return; }
+  if (pass.length < 6) { errEl.textContent = "密码至少6位"; errEl.style.display = "block"; return; }
+  try {
+    let r = await fetch(API_BASE + "/api/register", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({name, password: pass})
+    });
+    let data = await r.json();
+    if (data.error) { errEl.textContent = data.error; errEl.style.display = "block"; return; }
+    // Auto-login after registration
+    let loginR = await fetch(API_BASE + "/api/login", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({name, password: pass})
+    });
+    let loginData = await loginR.json();
+    if (loginData.error) { errEl.textContent = "注册成功但登录失败: " + loginData.error; errEl.style.display = "block"; return; }
+    authToken = loginData.token;
+    userName = name;
+    localStorage.setItem("chat_token", authToken);
+    localStorage.setItem("chat_username", userName);
+    enterMain();
+  } catch(e) { errEl.textContent = "注册失败: " + e.message; errEl.style.display = "block"; }
+}
+
+document.getElementById("login-btn").addEventListener("click", login);
+document.getElementById("register-btn").addEventListener("click", register);
+document.getElementById("login-password").addEventListener("keydown", e => { if (e.key === "Enter") login(); });
+document.getElementById("register-password").addEventListener("keydown", e => { if (e.key === "Enter") register(); });
+document.getElementById("skip-auth").addEventListener("click", e => { e.preventDefault(); enterMain(); });
+
+function logout() {
+  localStorage.removeItem("chat_token");
+  localStorage.removeItem("chat_username");
+  authToken = "";
+  userName = "";
+  document.getElementById("main-section").style.display = "none";
+  document.getElementById("auth-section").style.display = "";
+  document.getElementById("logout-btn").style.display = "none";
+}
+
+function enterMain() {
+  document.getElementById("auth-section").style.display = "none";
+  document.getElementById("main-section").style.display = "";
+  document.getElementById("logout-btn").style.display = userName ? "" : "none";
+  loadTasks();
+  updatePoints();
+}
+
+// Dark mode
+function toggleDark() {
+  document.body.classList.toggle("dark");
+  document.getElementById("dark-toggle").textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+  localStorage.setItem("chat_dark", document.body.classList.contains("dark") ? "1" : "");
+}
+if (localStorage.getItem("chat_dark") === "1") { document.body.classList.add("dark"); document.getElementById("dark-toggle").textContent = "☀️"; }
+
+// Points
+async function updatePoints() {
+  if (!authToken) { document.getElementById("points-display").textContent = "0"; return; }
+  try {
+    let r = await fetch(API_BASE + "/api/points/all");
+    let data = await r.json();
+    let pts = data[userName];
+    document.getElementById("points-display").textContent = pts !== undefined ? pts : "0";
+  } catch(e) {}
+}
+
+// Tasks
+async function loadTasks() {
+  let container = document.getElementById("task-container");
+  try {
+    let [tasksR, compR] = await Promise.all([
+      fetch(API_BASE + "/api/tasks/list"),
+      authToken ? fetch(API_BASE + "/api/tasks/completions?name=" + encodeURIComponent(userName)) : Promise.resolve(null)
+    ]);
+    let tasks = await tasksR.json();
+    let completed = [];
+    if (compR) { let compData = await compR.json(); completed = compData.completed || []; }
+
+    if (!tasks || tasks.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">暂无可用任务</div></div>';
+      return;
+    }
+    let html = '<div class="task-list">';
+    for (let task of tasks) {
+      let isDone = completed.includes(task.id);
+      let btnHtml;
+      if (!authToken) {
+        btnHtml = '<button class="task-btn task-btn-login-required" onclick="document.getElementById(\'auth-section\').style.display=\'\';document.getElementById(\'main-section\').style.display=\'none\'">登录后领取</button>';
+      } else if (isDone) {
+        btnHtml = '<button class="task-btn task-btn-done">已完成 ✓</button>';
+      } else {
+        btnHtml = '<button class="task-btn task-btn-claim" data-task-id="' + escapeHtml(task.id) + '">领取奖励</button>';
+      }
+      html += '<div class="task-card">' +
+        '<div class="task-info"><div class="task-name">' + escapeHtml(task.name) + '</div>' +
+        (task.description ? '<div class="task-desc">' + escapeHtml(task.description) + '</div>' : '') +
+        '</div><span class="task-reward">+' + task.reward + '</span>' +
+        btnHtml + '</div>';
+    }
+    html += '</div>';
+    container.innerHTML = html;
+  } catch(e) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">加载失败: ' + e.message + '</div></div>';
+  }
+}
+
+async function claimTask(taskId) {
+  try {
+    let r = await fetch(API_BASE + "/api/tasks/claim", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({name: userName, taskId})
+    });
+    let data = await r.json();
+    if (data.error) { alert(data.error); return; }
+    alert("已领取任务！完成任务后可获得奖励。");
+    loadTasks();
+  } catch(e) {
+    alert("领取失败: " + e.message);
+  }
+}
+
+async function completeTask(taskId) {
+  try {
+    let r = await fetch(API_BASE + "/api/tasks/complete", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({name: userName, taskId})
+    });
+    let data = await r.json();
+    if (data.error) { alert(data.error); return; }
+    alert("任务完成！获得 +" + data.reward + " 积分！当前积分: " + data.total);
+    updatePoints();
+    loadTasks();
+  } catch(e) {
+    alert("提交失败: " + e.message);
+  }
+}
+
+// Event delegation
+document.getElementById("task-container").addEventListener("click", e => {
+  let btn = e.target.closest(".task-btn-claim");
+  if (!btn) return;
+  let id = btn.dataset.taskId;
+  if (!id) return;
+  if (btn.classList.contains("task-btn-complete")) {
+    completeTask(id);
+  } else {
+    claimTask(id);
+  }
+});
+
+// Auto-login check
+if (authToken && userName) {
+  enterMain();
+}
+</script>
+</body>
+</html>

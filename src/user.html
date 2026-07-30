@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用户主页 - CloudChat</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#4a6cf7">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f0f2f5; color: #1a1a2e; padding: 20px; max-width: 640px; margin: 0 auto;
+  min-height: 100vh;
+}
+.header { text-align: center; padding: 24px 0 16px; }
+.header .back-link {
+  display: inline-block; color: #4a6cf7; text-decoration: none;
+  font-size: 14px; padding: 6px 16px; border: 1px solid #4a6cf7; border-radius: 20px;
+  transition: all 0.2s;
+}
+.header .back-link:hover { background: #4a6cf7; color: #fff; }
+.profile-card {
+  background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  overflow: hidden; margin-top: 16px;
+}
+.profile-cover {
+  height: 100px; background: linear-gradient(135deg, #4a6cf7, #6c5ce7);
+}
+.profile-header {
+  display: flex; align-items: flex-end; gap: 16px; padding: 0 20px; margin-top: -40px;
+}
+.profile-avatar {
+  width: 80px; height: 80px; border-radius: 50%; border: 4px solid #fff;
+  background: #eef0f8; display: flex; align-items: center; justify-content: center;
+  font-size: 32px; color: #999; overflow: hidden; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profile-title { flex: 1; padding-bottom: 4px; }
+.profile-name {
+  font-size: 22px; font-weight: 700; color: #1a1a2e; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.profile-name .tag-badge {
+  display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px;
+  border-radius: 6px; color: #fff;
+}
+.profile-name .vip-badge {
+  font-size: 11px; font-weight: 700; background: linear-gradient(135deg,#f6d365,#fda085);
+  color: #fff; padding: 2px 6px; border-radius: 4px;
+}
+.profile-status { font-size: 13px; color: #888; margin-top: 2px; }
+.profile-body { padding: 20px; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.info-item {
+  background: #f8f9fe; border-radius: 10px; padding: 12px 14px;
+}
+.info-item .label { font-size: 11px; color: #999; margin-bottom: 4px; text-transform: uppercase; }
+.info-item .value { font-size: 16px; font-weight: 600; color: #1a1a2e; }
+.info-item.full { grid-column: 1 / -1; }
+.bio-box {
+  background: #f8f9fe; border-radius: 10px; padding: 14px; margin-top: 12px;
+  font-size: 14px; color: #333; line-height: 1.6;
+}
+.bio-box .bio-label { font-size: 11px; color: #999; margin-bottom: 4px; }
+.bio-box .bio-empty { color: #bbb; font-style: italic; }
+.not-found {
+  text-align: center; padding: 60px 20px; color: #999;
+}
+.not-found .big-icon { font-size: 48px; margin-bottom: 12px; }
+.loading { text-align: center; padding: 60px 20px; color: #999; font-size: 15px; }
+.actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+.actions a {
+  padding: 8px 18px; border-radius: 20px; font-size: 13px; text-decoration: none;
+  background: #4a6cf7; color: #fff; transition: all 0.2s;
+}
+.actions a:hover { opacity: 0.85; }
+.actions a.secondary { background: #f0f2f5; color: #555; }
+@media (max-width: 600px) {
+  body { padding: 12px; }
+  .profile-avatar { width: 64px; height: 64px; font-size: 24px; }
+  .profile-name { font-size: 18px; }
+  .info-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a class="back-link" href="/">← 返回聊天室</a>
+</div>
+
+<div id="loading" class="loading">⏳ 加载中...</div>
+<div id="not-found" class="not-found" style="display:none;">
+  <div class="big-icon">🔍</div>
+  <div>用户不存在</div>
+  <a class="back-link" href="/" style="margin-top:16px;display:inline-block;">← 返回聊天室</a>
+</div>
+<div id="profile" style="display:none;">
+  <div class="profile-card">
+    <div class="profile-cover"></div>
+    <div class="profile-header">
+      <div class="profile-avatar" id="avatar"></div>
+      <div class="profile-title">
+        <div class="profile-name">
+          <span id="name"></span>
+          <span id="tag-badge" class="tag-badge"></span>
+          <span id="vip-badge" class="vip-badge"></span>
+        </div>
+        <div class="profile-status" id="status"></div>
+      </div>
+    </div>
+    <div class="profile-body">
+      <div class="info-grid">
+        <div class="info-item"><div class="label">积分</div><div class="value" id="points">-</div></div>
+        <div class="info-item"><div class="label">用户状态</div><div class="value" id="user-status">-</div></div>
+      </div>
+      <div class="bio-box" id="bio-box">
+        <div class="bio-label">📝 个人简介</div>
+        <div id="bio" class="bio-empty">这个人很懒，什么都没写</div>
+      </div>
+      <div class="actions">
+        <a href="/" id="chat-link">💬 发消息</a>
+        <a href="/leaderboard" class="secondary">🏆 排行榜</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function load() {
+  let params = new URLSearchParams(location.search);
+  let name = params.get("name");
+  if (!name) {
+    name = localStorage.getItem("chat_user") || "";
+    if (!name) { showNotFound(); return; }
+  }
+  try {
+    let r = await fetch("/api/user/profile?name=" + encodeURIComponent(name));
+    let data = await r.json();
+    if (!data || data.error) { showNotFound(); return; }
+    render(data);
+  } catch(e) {
+    showNotFound();
+  }
+}
+function showNotFound() {
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("not-found").style.display = "block";
+}
+function render(data) {
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("profile").style.display = "block";
+  document.getElementById("chat-link").href = "/#search?name=" + encodeURIComponent(data.name);
+  document.getElementById("name").textContent = data.name;
+  let tag = document.getElementById("tag-badge");
+  if (data.tag) {
+    tag.textContent = data.tag;
+    tag.style.display = "inline-block";
+    if (data.tagColor) tag.style.background = data.tagColor;
+    if (data.tagBorder) tag.style.border = "2px solid " + data.tagBorder;
+  } else { tag.style.display = "none"; }
+  let vb = document.getElementById("vip-badge");
+  let vip = getVipLevel(data.name);
+  if (vip) { vb.textContent = vip; vb.style.display = "inline-block"; }
+  else { vb.style.display = "none"; }
+  let avatar = document.getElementById("avatar");
+  if (data.avatar && data.avatar.length > 50) {
+    avatar.innerHTML = '<img src="' + data.avatar + '" alt="avatar">';
+  } else {
+    avatar.textContent = data.name.charAt(0).toUpperCase();
+  }
+  document.getElementById("points").textContent = data.points != null ? Number(data.points).toLocaleString() + " 分" : "-";
+  let status = data.registered ? "✅ 已注册" : "👤 游客";
+  if (data.role === "super") status = "🛡️ 超级管理员";
+  else if (data.role === "admin") status = "🔧 管理员";
+  document.getElementById("user-status").textContent = status;
+  let bio = document.getElementById("bio");
+  if (data.bio && data.bio.trim()) {
+    bio.textContent = data.bio;
+    bio.className = "";
+  } else {
+    bio.textContent = "这个人很懒，什么都没写";
+    bio.className = "bio-empty";
+  }
+}
+function getVipLevel(name) {
+  if (!name) return null;
+  let m = name.match(/\[VIP([1-9]|10|99)\]/i);
+  if (m) return "VIP" + m[1];
+  if (/\[MVP\]/i.test(name)) return "MVP";
+  if (/\[V0\]/i.test(name)) return "V0";
+  return null;
+}
+load();
+</script>
+</body>
+</html>

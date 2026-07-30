@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>更新日志 - CloudChat</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#4a6cf7">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f0f2f5; color: #1a1a2e; padding: 20px; max-width: 800px; margin: 0 auto;
+}
+.header {
+  text-align: center; padding: 30px 0 20px;
+}
+.header h1 { font-size: 28px; font-weight: 700; color: #4a6cf7; margin-bottom: 6px; }
+.header p { color: #888; font-size: 14px; }
+.header .back-link {
+  display: inline-block; margin-top: 12px; color: #4a6cf7; text-decoration: none;
+  font-size: 14px; padding: 6px 16px; border: 1px solid #4a6cf7; border-radius: 20px;
+  transition: all 0.2s;
+}
+.header .back-link:hover { background: #4a6cf7; color: #fff; }
+.version-group { margin-bottom: 24px; }
+.version-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+  padding: 12px 16px; background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  cursor: pointer; user-select: none; transition: box-shadow 0.2s;
+}
+.version-header:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.version-header .version-tag {
+  background: #4a6cf7; color: #fff; font-size: 12px; font-weight: 600;
+  padding: 3px 10px; border-radius: 12px; white-space: nowrap;
+}
+.version-header .version-date { color: #999; font-size: 13px; }
+.version-header .version-arrow { margin-left: auto; color: #ccc; font-size: 14px; transition: transform 0.2s; }
+.version-header .version-arrow.open { transform: rotate(90deg); }
+.version-body { display: none; padding: 0 4px; }
+.version-body.open { display: block; }
+.feature-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 14px; background: #fff; border-radius: 8px; margin-bottom: 4px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.feature-item .icon { font-size: 16px; width: 24px; text-align: center; flex-shrink: 0; margin-top: 1px; }
+.feature-item .text { font-size: 14px; line-height: 1.5; color: #333; flex: 1; }
+.feature-item .text .tag {
+  display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 4px;
+  margin-right: 4px; font-weight: 600;
+}
+.tag-new { background: #e8f5e9; color: #2e7d32; }
+.tag-fix { background: #fde8e8; color: #c62828; }
+.tag-improve { background: #e3f2fd; color: #1565c0; }
+.tag-feature { background: #fff3e0; color: #e65100; }
+@media (max-width: 600px) {
+  body { padding: 12px; }
+  .header h1 { font-size: 22px; }
+  .version-header { padding: 10px 12px; flex-wrap: wrap; }
+  .feature-item { padding: 6px 10px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📋 更新日志</h1>
+  <p>CloudChat 的成长记录</p>
+  <a class="back-link" href="/">← 返回聊天室</a>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.19</span>
+    <span class="version-date">2026-07-30</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🔒</span><span class="text"><span class="tag tag-fix">安全</span>积分转账 API 新增 token 验证 — 防止任意盗转积分</span></div>
+    <div class="feature-item"><span class="icon">🔒</span><span class="text"><span class="tag tag-fix">安全</span>游戏 API 新增 token 验证 — 防止冒名扣分/加分</span></div>
+    <div class="feature-item"><span class="icon">🔒</span><span class="text"><span class="tag tag-fix">安全</span>URL 预览 API 限制协议/IP/敏感地址 — 防止 SSRF 内网扫描</span></div>
+    <div class="feature-item"><span class="icon">🔒</span><span class="text"><span class="tag tag-fix">安全</span>WebSocket 密码验证失败时拒绝连接 — 防止绕过密码保护房间</span></div>
+    <div class="feature-item"><span class="icon">🔒</span><span class="text"><span class="tag tag-fix">安全</span>不再向客户端暴露服务端错误堆栈 — 防止信息泄露</span></div>
+    <div class="feature-item"><span class="icon">🔒</span><span class="text"><span class="tag tag-fix">安全</span>Markdown 渲染增加双引号和单引号转义 — 防止 XSS 攻击</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.18</span>
+    <span class="version-date">2026-06-04</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🎮</span><span class="text"><span class="tag tag-feature">新增</span>小游戏中心 — 在聊天室入口和聊天内通过 <code>/game</code> 命令打开，包含四款休闲游戏:</span></div>
+    <div class="feature-item"><span class="icon">🎰</span><span class="text"><span class="tag tag-feature">新增</span>老虎机 — 每次 100 积分，三连大奖 5000 积分，两连小奖 200 积分</span></div>
+    <div class="feature-item"><span class="icon">🎲</span><span class="text"><span class="tag tag-feature">新增</span>猜大小 — 下注后猜骰子点数大小(2-6/8-12)，2倍赔付，7点平局退注</span></div>
+    <div class="feature-item"><span class="icon">🃏</span><span class="text"><span class="tag tag-feature">新增</span>21点 — 经典扑克 vs 庄家，Blackjack 2.5倍赔付，支持要牌/停牌</span></div>
+    <div class="feature-item"><span class="icon">🔢</span><span class="text"><span class="tag tag-feature">新增</span>猜数字 — 猜 1-100，入场 50 积分，越少次猜中奖励越高（最高 5000）</span></div>
+    <div class="feature-item"><span class="icon">✂️</span><span class="text"><span class="tag tag-feature">新增</span>石头剪刀布 — 经典对决，自选下注 50-2000，2 倍赔付，平局退注</span></div>
+    <div class="feature-item"><span class="icon">🀄</span><span class="text"><span class="tag tag-feature">新增</span>记忆翻牌 — 4×4 翻牌配对，步数越少奖越高（最高 2000 分）</span></div>
+    <div class="feature-item"><span class="icon">💣</span><span class="text"><span class="tag tag-feature">新增</span>扫雷 — 9×9 经典扫雷，首击安全，全清奖 3000 积分</span></div>
+    <div class="feature-item"><span class="icon">🧩</span><span class="text"><span class="tag tag-feature">新增</span>2048 — 合并方块冲击高分，达到 2048 奖 5000 积分，支持键盘/触屏</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-improve">优化</span>首页入口添加游戏按钮，聊天内可用 <code>/game</code> 命令快速打开</span></div>
+    <div class="feature-item"><span class="icon">🐛</span><span class="text"><span class="tag tag-fix">修复</span>Escape 键无法关闭游戏面板，点击遮罩背景可关闭</span></div>
+    <div class="feature-item"><span class="icon">🐛</span><span class="text"><span class="tag tag-fix">修复</span><code>/api/points/get</code> 路由缺失导致积分显示为 0</span></div>
+t    <div class="feature-item"><span class="icon">🏓</span><span class="text"><span class="tag tag-feature">新增</span>打砖块 — 经典街机，挡板接球破砖，3 条命，入场 150</span></div>
+	    <div class="feature-item"><span class="icon">🍎</span><span class="text"><span class="tag tag-feature">新增</span>接水果 — 水果从天降，移动篮子接，30 秒倒计时</span></div>
+	    <div class="feature-item"><span class="icon">✈️</span><span class="text"><span class="tag tag-feature">新增</span>飞越障碍 — 点击飞行避开柱子，穿过越多分越高</span></div>
+	    <div class="feature-item"><span class="icon">🎳</span><span class="text"><span class="tag tag-feature">新增</span>保龄球 — 蓄力释放滚球击瓶，每局 2 投</span></div>
+	    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-improve">优化</span>重构游戏模块和样式 — games.js 拆分为 5 个模块，游戏 CSS 按需加载</span></div>
+    <div class="feature-item"><span class="icon">🌊</span><span class="text"><span class="tag tag-feature">新增</span>打地鼠 — 3×3 网格，20 秒疯狂点击，首局 100 积分入场</span></div>
+    <div class="feature-item"><span class="icon">🧮</span><span class="text"><span class="tag tag-feature">新增</span>速算挑战 — 10 道算术题 5 秒限时作答，全对额外奖 1000</span></div>
+    <div class="feature-item"><span class="icon">🎯</span><span class="text"><span class="tag tag-feature">新增</span>打靶 — 5×5 网格中快速点击目标，按反应时间计分</span></div>
+    <div class="feature-item"><span class="icon">📋</span><span class="text"><span class="tag tag-feature">新增</span>舒尔特方格 — 5×5 数字 1-25 按顺序点击，考验注意力和反应速度</span></div>
+    <div class="feature-item"><span class="icon">🎨</span><span class="text"><span class="tag tag-feature">新增</span>颜色序列记忆 — 西蒙说风格，记住颜色序列并复现，轮次越高分越高</span></div>
+    <div class="feature-item"><span class="icon">🪐</span><span class="text"><span class="tag tag-feature">新增</span>打飞碟 — 4×4 网格飞碟随机出现，30 秒内尽可能多点击</span></div>
+    <div class="feature-item"><span class="icon">📋</span><span class="text"><span class="tag tag-improve">优化</span>舒尔特方格支持自定义大小（3×3 到 8×8），选择后自动保存</span></div>
+    <div class="feature-item"><span class="icon">⚡</span><span class="text"><span class="tag tag-feature">新增</span>反应测试 — 5 轮等待变绿点击，测反应速度，越短分越高</span></div>
+    <div class="feature-item"><span class="icon">🧱</span><span class="text"><span class="tag tag-feature">新增</span>叠叠乐 — 方块滑动点击堆叠，每层 +100 分</span></div>
+    <div class="feature-item"><span class="icon">🎡</span><span class="text"><span class="tag tag-feature">新增</span>幸运转盘 — 8 格轮盘随机停，最高 5000 积分大奖</span></div>
+    <div class="feature-item"><span class="icon">⚡</span><span class="text"><span class="tag tag-improve">优化</span>页面加载性能 — JS 模块增加 CDN/浏览器缓存，非首屏模块（游戏/商城/抽奖/任务）延迟加载</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.17</span>
+    <span class="version-date">2026-06-01</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🐛</span><span class="text"><span class="tag tag-fix">修复</span>Toast 独立模块被 CDN 缓存导致 JS 模块链断裂 — 将 Toast 函数内联到 state.js，消除额外请求</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-improve">优化</span>Toast 通知集成 — 操作反馈（错误/成功/提示）使用浮层通知代替聊天消息</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.16</span>
+    <span class="version-date">2026-05-31</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🎁</span><span class="text"><span class="tag tag-feature">新增</span>兑换码系统 — 管理员可在后台生成/添加兑换码，用户访问 <code>/redeem</code> 页面输入码兑换积分</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-improve">优化</span>管理后台新增「兑换码」管理页面 — 批量生成、自定义添加、查看列表/状态、删除</span></div>
+    <div class="feature-item"><span class="icon">🐛</span><span class="text"><span class="tag tag-fix">修复</span>兑换API路径匹配错误 — `/api/redeem` 路由未正确分发到 handler，导致返回 404</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.15</span>
+    <span class="version-date">2026-05-27</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🎨</span><span class="text"><span class="tag tag-feature">优化</span>CSS抽取 — 所有内联样式从 chat.html 提取到独立 style.css 文件，管理后台 CSS 变量统一</span></div>
+    <div class="feature-item"><span class="icon">🎨</span><span class="text"><span class="tag tag-feature">优化</span>浮动按钮整合 — 右侧浮动按钮减少为5个常用按钮，其余收入 ⚙️ 更多菜单</span></div>
+    <div class="feature-item"><span class="icon">🎨</span><span class="text"><span class="tag tag-feature">优化</span>输入工具栏折叠 — 二级工具栏（语音/文件/定时/投票等）收入 ➕ 展开按钮，界面更简洁</span></div>
+    <div class="feature-item"><span class="icon">🎨</span><span class="text"><span class="tag tag-feature">优化</span>移动端底部导航 — 新增底部工具栏（提示音/暗色/搜索/更多），优化移动端操作体验</span></div>
+    <div class="feature-item"><span class="icon">🎨</span><span class="text"><span class="tag tag-feature">新增</span>Toast 通知系统 — 操作反馈（错误/成功/提示）以浮层通知代替聊天消息，不污染聊天记录</span></div>
+    <div class="feature-item"><span class="icon">🎨</span><span class="text"><span class="tag tag-feature">新增</span>管理后台颜色选择器 — 标签颜色/边框选择从下拉菜单改为色块网格，直观易用</span></div>
+    <div class="feature-item"><span class="icon">🎨</span><span class="text"><span class="tag tag-feature">优化</span>触摸设备支持 — 消息操作按钮在触摸设备上点击显示，适配触屏交互</span></div>
+    <div class="feature-item"><span class="icon">🐛</span><span class="text"><span class="tag tag-fix">修复</span>core.js 缺少闭合大括号导致模块解析失败</span></div>
+    <div class="feature-item"><span class="icon">🐛</span><span class="text"><span class="tag tag-fix">修复</span>main.js 引用已删除元素导致 JS 崩溃、登录按钮无效</span></div>
+    <div class="feature-item"><span class="icon">🐛</span><span class="text"><span class="tag tag-fix">修复</span>暗色模式恢复系统偏好自动跟随</span></div>
+    <div class="feature-item"><span class="icon">🐛</span><span class="text"><span class="tag tag-fix">修复</span>更新日志默认只展开最新版本，不再同时打开旧版本</span></div>
+    <div class="feature-item"><span class="icon">📖</span><span class="text"><span class="tag tag-feature">新增</span>帮助中心页面 <code>/help</code> — 汇总所有命令、操作、快捷键的完整参考</span></div>
+    <div class="feature-item"><span class="icon">ℹ️</span><span class="text"><span class="tag tag-feature">新增</span>关于页面 <code>/about</code> — 展示功能特性、技术栈和发展历程</span></div>
+    <div class="feature-item"><span class="icon">🐛</span><span class="text"><span class="tag tag-fix">修复</span>聊天消息 DOM 无限增长 — 设置 500 条上限，超限自动移除最早消息</span></div>
+    <div class="feature-item"><span class="icon">🐛</span><span class="text"><span class="tag tag-fix">修复</span>收藏夹存储 Key 写死问题 — 静态常量在模块初始化时计算导致所有房间共用 key</span></div>
+    <div class="feature-item"><span class="icon">🐛</span><span class="text"><span class="tag tag-fix">修复</span>关键字提醒没有提示音 — 匹配关键词时同时播放声音</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-improve">优化</span>房间列表搜索过滤 — 顶部输入框实时筛选房间名</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-improve">优化</span>登录/注册按钮加载状态 — 请求期间禁用按钮并显示"登录中..."</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-improve">优化</span>WebSocket 重连指数退避 — 2s→4s→8s→...→60s，成功连接后重置</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-improve">优化</span>URL 预览加缓存去重 — 同 URL 不重复请求预览接口</span></div>
+    <div class="feature-item"><span class="icon">🏆</span><span class="text"><span class="tag tag-feature">新增</span>积分排行榜 <code>/leaderboard</code> — 全站积分排名，可搜索、筛选 TOP N</span></div>
+    <div class="feature-item"><span class="icon">👤</span><span class="text"><span class="tag tag-feature">新增</span>用户主页 <code>/user?name=xxx</code> — 查看用户资料、积分、标签、简介</span></div>
+    <div class="feature-item"><span class="icon">🏠</span><span class="text"><span class="tag tag-feature">新增</span>房间目录 <code>/rooms</code> — 浏览所有公开房间及在线人数</span></div>
+    <div class="feature-item"><span class="icon">👥</span><span class="text"><span class="tag tag-feature">新增</span>在线用户 <code>/online</code> — 实时查看各房间在线人数</span></div>
+    <div class="feature-item"><span class="icon">📊</span><span class="text"><span class="tag tag-feature">新增</span>站点统计 <code>/stats</code> — 房间数、在线人数、积分总量、排行榜 TOP10</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.14</span>
+    <span class="version-date">2026-05-27</span>
+    <span class="version-arrow">▶</span>
+  </div>
+  <div class="version-body">
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>多色标签支持 — 标签支持背景色 + 边框色双色配置，右键菜单可分别设置，用户主页同步显示</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>头像系统 — 注册用户可上传头像（PNG/JPG，max 200KB），消息和用户主页同步显示</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>用户主页 — 右键用户菜单查看个人资料（头像、标签、积分、VIP、简介），支持编辑资料和更换头像</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>房间密码保护 — 管理员可为房间设置密码，用户加入需验证，房间列表显示 🔒 标识</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>消息翻译 — 消息菜单点击 🌐 翻译，基于 DeepSeek API 自动翻译为中文，结果内联显示</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>自定义表情 — 管理员后台上传表情图片，聊天输入 <code>:名称:</code> 显示，表情面板快捷插入</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.13</span>
+    <span class="version-date">2026-05-25</span>
+    <span class="version-arrow">▶</span>
+  </div>
+  <div class="version-body">
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-improve">优化</span>代码模块化 — 将 <code>registry.mjs</code>（1177行）按领域拆分为 10 个 handler 模块，将 <code>api/admin.mjs</code>（742行）拆分为 11 个领域模块，提升可维护性</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.12</span>
+    <span class="version-date">2026-05-24</span>
+    <span class="version-arrow">▶</span>
+  </div>
+  <div class="version-body">
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-improve">优化</span>代码模块化 — 将 <code>registry.mjs</code>（1177行）按领域拆分为 10 个 handler 模块，将 <code>api/admin.mjs</code>（742行）拆分为 11 个领域模块，提升可维护性</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.11</span>
+    <span class="version-date">2026-05-24</span>
+    <span class="version-arrow">▶</span>
+  </div>
+  <div class="version-body">
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>AI 智能对话 — 聊天室输入 <code>/ai 你的问题</code> 或 <code>@ai 你的问题</code> 即可与 AI 对话，基于 DeepSeek API</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>LaTeX 公式渲染 — 消息中使用 <code>$...$</code> 或 <code>$$...$$</code> 渲染数学公式，基于 KaTeX</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>@全体成员 — 发送 <code>@all</code> 或 <code>@everyone</code> 高亮通知所有在线用户</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-improve">优化</span>代码语法高亮 — 代码块支持语言标识，自动识别并着色</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.10</span>
+    <span class="version-date">2026-05-24</span>
+    <span class="version-arrow">▶</span>
+  </div>
+  <div class="version-body">
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>自定义机器人命令 — 管理员可在后台配置 Bot 关键词和自动回复，聊天室通过 <code>/bot</code> 或 <code>@bot</code> 触发</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-improve">优化</span>消息操作菜单 — 所有操作按钮（回复/收藏/置顶/转发/回应等）整合为三点菜单 ⋮，鼠标悬停显示</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-fix">修复</span>商城背包页面无法切换的问题</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-fix">修复</span>管理后台机器人页面显示房间列表的问题</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.9</span>
+    <span class="version-date">2026-05-24</span>
+    <span class="version-arrow">▶</span>
+  </div>
+  <div class="version-body">
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>Webhook 管理面板 — 管理员可在后台直接向房间发送消息，支持自定义发送者名称</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>更新日志页面 — 在 /changelog 查看所有历史更新记录</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>版本存档系统 — 在 /archive 浏览和下载历史版本，支持 zip 打包上传</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.8</span>
+    <span class="version-date">2026-05-23</span>
+    <span class="version-arrow">▶</span>
+  </div>
+  <div class="version-body">
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>图片画廊模式 — 点击图片全屏查看，支持左右翻页导航</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>文件管理面板 — 按图片/文件分类查看，点击跳转到原始消息</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>回复消息跳转 — 点击引用块跳转到被回复的原始消息</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>Markdown 工具栏 — 一键添加粗体、斜体、代码块等格式</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>消息标记 — 点击时间戳添加临时标记，方便定位</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>URL 预览 — 发送链接时自动抓取标题和描述信息</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>定时消息列表 — 查看和管理已设置的定时消息</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.7</span>
+    <span class="version-date">2026-05-22</span>
+    <span class="version-arrow">▶</span>
+  </div>
+  <div class="version-body">
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>用户备注 — 右键用户菜单添加备注名，仅自己可见</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>快捷短语面板 — 预置常用短语，点击即发送</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>关键词提醒 — 设置关键词，消息匹配时闪烁标题提醒</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>日期分割线 — 聊天记录按日期自动显示分割标识</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-fix">修复</span>favorites.js 模块初始化时 roomname 未定义的问题</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-fix">修复</span>note.js 循环依赖导致的加载异常</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.6</span>
+    <span class="version-date">2026-05-20</span>
+    <span class="version-arrow">▶</span>
+  </div>
+  <div class="version-body">
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>房间信息面板 — 查看房间名、在线人数、WebSocket 状态</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>语音消息录制 — 使用 MediaRecorder API 录制并发送语音</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>消息转发 — 右键菜单转发消息到私聊，保留原文引用</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>表情回应 — 点击消息下方的 😊 添加 emoji 回应</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.5</span>
+    <span class="version-date">2026-05-18</span>
+    <span class="version-arrow">▶</span>
+  </div>
+  <div class="version-body">
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>草稿自动保存 — 输入内容自动存入 localStorage，刷新后恢复</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>精华消息 — 管理员可将消息标记为精华，所有人可见</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>消息收藏 — 点击星标收藏消息，侧边栏查看收藏列表</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>@全体成员 — 发送 @all/@everyone 时通知所有在线用户</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>批量踢出 — 管理员可勾选多人后一次性踢出</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>管理员置顶消息 — 将重要消息置顶到聊天室顶部</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.4</span>
+    <span class="version-date">2026-05-15</span>
+    <span class="version-arrow">▶</span>
+  </div>
+  <div class="version-body">
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>用户黑名单/屏蔽 — 屏蔽指定用户的消息</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>消息搜索 — 点击搜索按钮搜索聊天记录并高亮显示</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>消息回复 — 点击回复按钮引用回复指定消息</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>代码语法高亮 — 集成 highlight.js 自动识别代码语言着色</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>消息已读状态 — 自己的消息旁显示已读/未读指示</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-improve">优化</span>UI 界面布局和交互体验</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.3</span>
+    <span class="version-date">2026-05-10</span>
+    <span class="version-arrow">▶</span>
+  </div>
+  <div class="version-body">
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>管理后台 — 完整的 Web 管理面板，支持房间管理、用户管理、积分管理</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>商店系统 — 用户可用积分购买标签（彩色名称标识）</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>任务系统 — 管理员可创建任务，用户完成后领取积分奖励</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>抽奖系统 — 创建奖池和奖品，用户消耗积分参与抽奖</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>用户标签 — 管理员可给用户设置彩色标签标识身份</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>同 IP 检测 — 后台查看共用 IP 的用户，检测多开</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.2</span>
+    <span class="version-date">2026-05-05</span>
+    <span class="version-arrow">▶</span>
+  </div>
+  <div class="version-body">
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>图片消息 — 支持上传和展示图片</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>文件上传 — 支持文件分享和下载</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>私聊功能 — 用户之间发送私密消息（悄悄话）</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>用户菜单 — 点击用户名查看资料、踢出、封禁等操作</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>在线列表 — 实时显示房间内在线用户</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.1</span>
+    <span class="version-date">2026-05-01</span>
+    <span class="version-arrow">▶</span>
+  </div>
+  <div class="version-body">
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>多房间支持 — 通过 Durable Object 实现独立的聊天房间</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>暗色模式 — 一键切换日间/夜间主题</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>消息提示音 — 新消息声音提醒，可开关</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">新增</span>Service Worker — PWA 离线缓存支持</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-fix">修复</span>WebSocket 重连机制优化</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.0</span>
+    <span class="version-date">2026-04-28</span>
+    <span class="version-arrow">▶</span>
+  </div>
+  <div class="version-body">
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">首发</span>基于 Cloudflare Workers + Durable Objects 的实时聊天室</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">核心</span>WebSocket 实时双向通信</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">核心</span>消息持久化存储到 DO Storage</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">核心</span>用户名认证（无需密码）</span></div>
+    <div class="feature-item"><span class="icon">✅</span><span class="text"><span class="tag tag-feature">核心</span>管理员 IP 封禁 + 用户封禁</span></div>
+  </div>
+</div>
+
+<script>
+function toggle(header) {
+  let body = header.nextElementSibling;
+  let arrow = header.querySelector('.version-arrow');
+  if (body) {
+    body.classList.toggle('open');
+    if (arrow) arrow.classList.toggle('open');
+  }
+}
+// 默认展开最新版本
+</script>
+
+</body>
+</html>

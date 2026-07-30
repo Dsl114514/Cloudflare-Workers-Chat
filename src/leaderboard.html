@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>积分排行榜 - CloudChat</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#4a6cf7">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f0f2f5; color: #1a1a2e; padding: 20px; max-width: 800px; margin: 0 auto;
+  min-height: 100vh;
+}
+.header {
+  text-align: center; padding: 30px 0 20px;
+}
+.header h1 { font-size: 28px; font-weight: 800; color: #4a6cf7; margin-bottom: 6px; }
+.header p { color: #888; font-size: 14px; }
+.header .back-link {
+  display: inline-block; margin-top: 12px; color: #4a6cf7; text-decoration: none;
+  font-size: 14px; padding: 6px 16px; border: 1px solid #4a6cf7; border-radius: 20px;
+  transition: all 0.2s;
+}
+.header .back-link:hover { background: #4a6cf7; color: #fff; }
+.controls { display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+.search-box {
+  flex: 1; padding: 9px 14px; border: 1px solid #ddd; border-radius: 24px;
+  font-size: 14px; outline: none; background: #fff; min-width: 150px;
+}
+.search-box:focus { border-color: #4a6cf7; }
+.rank-filter {
+  padding: 9px 14px; border: 1px solid #ddd; border-radius: 24px;
+  font-size: 13px; outline: none; background: #fff; cursor: pointer;
+}
+.loading { text-align: center; padding: 60px 20px; color: #999; font-size: 15px; }
+.leaderboard { list-style: none; }
+.rank-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; background: #fff; border-radius: 10px; margin-bottom: 5px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.15s;
+}
+.rank-item:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.1); transform: translateY(-1px); }
+.rank-item.top1 { background: linear-gradient(135deg, #fff9e6, #fff); border: 1px solid #ffd700; }
+.rank-item.top2 { background: linear-gradient(135deg, #f5f5f5, #fff); border: 1px solid #c0c0c0; }
+.rank-item.top3 { background: linear-gradient(135deg, #fef0e6, #fff); border: 1px solid #cd7f32; }
+.rank-num {
+  width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; background: #f0f2f5; color: #666; flex-shrink: 0;
+}
+.top1 .rank-num { background: #ffd700; color: #fff; font-size: 16px; }
+.top2 .rank-num { background: #c0c0c0; color: #fff; font-size: 16px; }
+.top3 .rank-num { background: #cd7f32; color: #fff; font-size: 16px; }
+.rank-avatar {
+  width: 38px; height: 38px; border-radius: 50%; object-fit: cover;
+  background: #eef0f8; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: #999; overflow: hidden;
+}
+.rank-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.rank-info { flex: 1; min-width: 0; }
+.rank-name { font-size: 14px; font-weight: 600; color: #1a1a2e; display: flex; align-items: center; gap: 6px; }
+.rank-name .tag-badge {
+  display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 5px;
+  border-radius: 4px; color: #fff; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rank-name .vip-badge {
+  font-size: 11px; font-weight: 700; padding: 0 5px; border-radius: 3px;
+}
+.rank-vip { font-size: 11px; margin-top: 1px; color: #888; }
+.rank-points {
+  font-size: 16px; font-weight: 700; color: #4a6cf7; flex-shrink: 0;
+  text-align: right;
+}
+.rank-points span { font-size: 11px; font-weight: 400; color: #999; }
+.empty-state { text-align: center; padding: 60px 20px; color: #999; }
+.empty-state .big-icon { font-size: 48px; margin-bottom: 12px; }
+@media (max-width: 600px) {
+  body { padding: 12px; }
+  .header h1 { font-size: 22px; }
+  .controls { flex-direction: column; }
+  .rank-item { padding: 8px 10px; gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🏆 积分排行榜</h1>
+  <p>CloudChat 财富榜 — 看看谁最富有</p>
+  <a class="back-link" href="/">← 返回聊天室</a>
+</div>
+
+<div class="controls">
+  <input class="search-box" id="search" type="text" placeholder="🔍 搜索用户..." oninput="render()">
+  <select class="rank-filter" id="filter" onchange="render()">
+    <option value="100">TOP 100</option>
+    <option value="50">TOP 50</option>
+    <option value="20">TOP 20</option>
+    <option value="10">TOP 10</option>
+    <option value="0">全部</option>
+  </select>
+</div>
+
+<div id="loading" class="loading">⏳ 加载中...</div>
+<ul id="leaderboard" class="leaderboard" style="display:none;"></ul>
+<div id="empty" class="empty-state" style="display:none;">
+  <div class="big-icon">📭</div>
+  <div>暂无数据</div>
+</div>
+
+<script>
+let allData = [];
+
+async function load() {
+  try {
+    let r = await fetch("/api/points/all");
+    let data = await r.json();
+    allData = Object.entries(data).map(([name, points]) => ({ name, points }));
+    allData.sort((a, b) => b.points - a.points);
+    document.getElementById("loading").style.display = "none";
+    render();
+  } catch(e) {
+    document.getElementById("loading").textContent = "❌ 加载失败: " + e.message;
+  }
+}
+
+function getVipLevel(name) {
+  if (!name) return null;
+  let m = name.match(/\[VIP([1-9]|10|99)\]/i);
+  if (m) return "VIP" + m[1];
+  if (/\[MVP\]/i.test(name)) return "MVP";
+  if (/\[V0\]/i.test(name)) return "V0";
+  return null;
+}
+
+function render() {
+  let q = document.getElementById("search").value.trim().toLowerCase();
+  let limit = parseInt(document.getElementById("filter").value);
+  let list = allData;
+  if (q) list = list.filter(u => u.name.toLowerCase().includes(q));
+  let container = document.getElementById("leaderboard");
+  let empty = document.getElementById("empty");
+  container.style.display = "none";
+  empty.style.display = "none";
+  if (list.length === 0) { empty.style.display = "block"; return; }
+  let display = limit > 0 ? list.slice(0, limit) : list;
+  container.innerHTML = "";
+  display.forEach((u, i) => {
+    let actualRank = allData.indexOf(u) + 1;
+    let item = document.createElement("li");
+    item.className = "rank-item" + (actualRank === 1 ? " top1" : actualRank === 2 ? " top2" : actualRank === 3 ? " top3" : "");
+    let rankNum = document.createElement("div");
+    rankNum.className = "rank-num";
+    rankNum.textContent = actualRank <= 3 ? ["🥇","🥈","🥉"][actualRank-1] : actualRank;
+    item.appendChild(rankNum);
+    let avatar = document.createElement("div");
+    avatar.className = "rank-avatar";
+    avatar.textContent = u.name.charAt(0).toUpperCase();
+    item.appendChild(avatar);
+    let info = document.createElement("div");
+    info.className = "rank-info";
+    let nameRow = document.createElement("div");
+    nameRow.className = "rank-name";
+    nameRow.textContent = u.name;
+    info.appendChild(nameRow);
+    let vip = getVipLevel(u.name);
+    if (vip) {
+      let vb = document.createElement("span");
+      vb.className = "vip-badge";
+      vb.style.cssText = "background:linear-gradient(135deg,#f6d365,#fda085);color:#fff;font-size:10px;padding:0 5px;border-radius:3px;margin-left:4px;";
+      vb.textContent = vip;
+      nameRow.appendChild(vb);
+    }
+    let pts = document.createElement("div");
+    pts.className = "rank-points";
+    pts.innerHTML = Number(u.points).toLocaleString() + ' <span>积分</span>';
+    item.appendChild(info);
+    item.appendChild(pts);
+    item.addEventListener("click", () => window.open("/user?name=" + encodeURIComponent(u.name), "_blank"));
+    container.appendChild(item);
+  });
+  container.style.display = "";
+}
+
+load();
+</script>
+</body>
+</html>

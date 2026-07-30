@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>兑换积分 - CloudChat</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#4a6cf7">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f0f2f5; color: #1a1a2e; padding: 20px; max-width: 500px; margin: 0 auto;
+  min-height: 100vh;
+}
+.header { text-align: center; padding: 40px 0 24px; }
+.header h1 { font-size: 26px; font-weight: 800; color: #4a6cf7; margin-bottom: 4px; }
+.header p { color: #888; font-size: 14px; }
+.header .back-link {
+  display: inline-block; margin-top: 12px; color: #4a6cf7; text-decoration: none;
+  font-size: 14px; padding: 6px 16px; border: 1px solid #4a6cf7; border-radius: 20px;
+  transition: all 0.2s;
+}
+.header .back-link:hover { background: #4a6cf7; color: #fff; }
+.card {
+  background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  padding: 28px 24px;
+}
+.card .label { font-size: 13px; color: #888; margin-bottom: 4px; }
+.input-group { display: flex; gap: 8px; margin: 12px 0; }
+.input-group input {
+  flex: 1; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 12px;
+  font-size: 18px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  outline: none; text-align: center; transition: border-color 0.2s;
+  font-family: 'Courier New', monospace;
+}
+.input-group input:focus { border-color: #4a6cf7; }
+.input-group button {
+  padding: 12px 28px; background: #4a6cf7; color: #fff; border: none;
+  border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer;
+  white-space: nowrap; transition: all 0.2s;
+}
+.input-group button:hover { background: #3b5de7; }
+.input-group button:disabled { background: #a0b0f0; cursor: not-allowed; }
+.result-box {
+  margin-top: 16px; padding: 16px; border-radius: 12px; display: none;
+  font-size: 14px; line-height: 1.6;
+}
+.result-box.success { display: block; background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+.result-box.error { display: block; background: #fde8e8; color: #c62828; border: 1px solid #ef9a9a; }
+.result-box .pts-highlight { font-size: 22px; font-weight: 800; display: block; margin: 8px 0; }
+.user-info {
+  display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+  background: #f8f9fe; border-radius: 12px; margin-bottom: 16px;
+}
+.user-info .avatar {
+  width: 40px; height: 40px; border-radius: 50%; background: #4a6cf7;
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; flex-shrink: 0;
+}
+.user-info .info { flex: 1; }
+.user-info .name { font-weight: 600; font-size: 15px; }
+.user-info .pts-label { font-size: 12px; color: #888; }
+.user-info .pts { font-weight: 700; color: #f39c12; }
+.history { margin-top: 20px; }
+.history h3 { font-size: 14px; color: #888; margin-bottom: 8px; }
+.history-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 14px; background: #fff; border-radius: 10px; margin-bottom: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05); font-size: 13px;
+}
+.history-item .h-code { font-family: monospace; font-weight: 700; color: #4a6cf7; }
+.history-item .h-pts { font-weight: 700; color: #f39c12; }
+.history-item .h-time { color: #999; font-size: 12px; }
+.history-empty { color: #bbb; font-size: 13px; text-align: center; padding: 20px; }
+@media (max-width: 600px) {
+  body { padding: 12px; }
+  .header h1 { font-size: 20px; }
+  .input-group { flex-direction: column; }
+  .input-group button { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🎁 积分兑换</h1>
+  <p>输入兑换码，领取积分奖励</p>
+  <a class="back-link" href="/">← 返回聊天室</a>
+</div>
+
+<div class="card">
+  <!-- 当前用户 -->
+  <div class="user-info" id="user-info" style="display:none">
+    <div class="avatar" id="avatar"></div>
+    <div class="info">
+      <div class="name" id="username"></div>
+      <div class="pts-label">当前积分</div>
+      <div class="pts" id="current-points">-</div>
+    </div>
+  </div>
+
+  <div class="label">请输入兑换码</div>
+  <div class="input-group">
+    <input type="text" id="code-input" placeholder="如 VIP-A1B2C3D4" maxlength="30" autocomplete="off" spellcheck="false">
+    <button id="redeem-btn" onclick="doRedeem()">兑换</button>
+  </div>
+
+  <div class="result-box" id="result-box"></div>
+</div>
+
+<div class="history" id="history-section" style="display:none">
+  <h3>📋 兑换记录</h3>
+  <div id="history-list"></div>
+</div>
+
+<script>
+let userName = localStorage.getItem("chat_user") || "";
+
+async function loadUser() {
+  if (!userName) {
+    let name = prompt("请输入你的用户名：");
+    if (name && name.trim()) {
+      userName = name.trim();
+      localStorage.setItem("chat_user", userName);
+    }
+  }
+  if (!userName) {
+    document.querySelector("#code-input").disabled = true;
+    document.querySelector("#redeem-btn").disabled = true;
+    return;
+  }
+  document.querySelector("#user-info").style.display = "flex";
+  document.querySelector("#avatar").textContent = userName.charAt(0).toUpperCase();
+  document.querySelector("#username").textContent = userName;
+  loadPoints();
+  loadHistory();
+}
+
+async function loadPoints() {
+  try {
+    let r = await fetch("/api/points/get?name=" + encodeURIComponent(userName));
+    let data = await r.json();
+    let pts = Number(data.points || 0);
+    document.querySelector("#current-points").textContent = pts.toLocaleString();
+  } catch(e) {
+    document.querySelector("#current-points").textContent = "?";
+  }
+}
+
+async function doRedeem() {
+  let input = document.querySelector("#code-input");
+  let btn = document.querySelector("#redeem-btn");
+  let resultBox = document.querySelector("#result-box");
+
+  let code = input.value.trim();
+  if (!code) { showResult("请输入兑换码", false); return; }
+  if (!userName) { showResult("请先设置用户名", false); return; }
+
+  btn.disabled = true;
+  btn.textContent = "兑换中...";
+  resultBox.className = "result-box";
+  resultBox.style.display = "none";
+
+  try {
+    let r = await fetch("/api/redeem", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({code, user: userName})
+    });
+    let data = await r.json();
+    if (data.ok) {
+      showResult('兑换成功！<span class="pts-highlight">+' + Number(data.points).toLocaleString() + ' 积分</span>当前积分: ' + Number(data.total).toLocaleString(), true);
+      input.value = "";
+      loadPoints();
+      loadHistory();
+    } else {
+      showResult(data.error || "兑换失败", false);
+    }
+  } catch(e) {
+    showResult("网络错误: " + e.message, false);
+  }
+
+  btn.disabled = false;
+  btn.textContent = "兑换";
+}
+
+function showResult(msg, success) {
+  let box = document.querySelector("#result-box");
+  box.className = "result-box " + (success ? "success" : "error");
+  box.innerHTML = msg;
+  box.style.display = "block";
+}
+
+async function loadHistory() {
+  // 兑换记录存储在 localStorage
+  let history = JSON.parse(localStorage.getItem("redeem_history") || "[]");
+  let section = document.querySelector("#history-section");
+  let list = document.querySelector("#history-list");
+
+  if (history.length === 0) {
+    // 从服务端获取
+    try {
+      let r = await fetch("/api/admin/redeem/list?key=" + encodeURIComponent(localStorage.getItem("admin_key") || ""));
+      if (r.ok) {
+        let allCodes = await r.json();
+        let userCodes = Object.entries(allCodes).filter(([_, info]) => info.usedBy === userName);
+        if (userCodes.length > 0) {
+          history = userCodes.map(([code, info]) => ({
+            code, points: info.points, time: info.usedAt
+          }));
+          localStorage.setItem("redeem_history", JSON.stringify(history));
+        }
+      }
+    } catch(e) {}
+  }
+
+  if (history.length === 0) {
+    section.style.display = "none";
+    return;
+  }
+
+  section.style.display = "block";
+  list.innerHTML = history.sort((a, b) => b.time - a.time).map(h =>
+    '<div class="history-item">' +
+      '<span class="h-code">' + h.code + '</span>' +
+      '<span class="h-pts">+' + Number(h.points).toLocaleString() + '</span>' +
+      '<span class="h-time">' + (h.time ? new Date(h.time).toLocaleString() : "") + '</span>' +
+    '</div>'
+  ).join("");
+}
+
+loadUser();
+</script>
+</body>
+</html>

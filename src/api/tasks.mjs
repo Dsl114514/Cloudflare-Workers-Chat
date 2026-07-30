@@ -1,0 +1,42 @@
+// 任务 API - 任务列表、完成记录、领取、完成
+
+export async function handleTasks(path, request, env) {
+  const url = new URL(request.url);
+  const taskAction = path[1];
+  try {
+    let registryId = env.registry.idFromName("global");
+    let stub = env.registry.get(registryId);
+
+    if (taskAction === "list") {
+      let r = await stub.fetch(new URL("https://dummy-url/tasks/list"));
+      return new Response(await r.text(), { status: 200, headers: {"Content-Type": "application/json"} });
+    }
+    if (taskAction === "completions") {
+      let name = url.searchParams.get("name");
+      if (!name) return new Response("请提供用户名", { status: 400 });
+      let r = await stub.fetch(new URL("https://dummy-url/tasks/completions?name=" + encodeURIComponent(name)));
+      return new Response(await r.text(), { status: 200, headers: {"Content-Type": "application/json"} });
+    }
+    if (taskAction === "claims") {
+      let name = url.searchParams.get("name");
+      if (!name) return new Response("请提供用户名", { status: 400 });
+      let r = await stub.fetch(new URL("https://dummy-url/tasks/claims?name=" + encodeURIComponent(name)));
+      return new Response(await r.text(), { status: 200, headers: {"Content-Type": "application/json"} });
+    }
+    if (taskAction === "claim") {
+      if (request.method !== "POST") return new Response("方法不允许", {status: 405});
+      let body = await request.json();
+      let r = await stub.fetch("https://dummy-url/task/claim", {method: "POST", body: JSON.stringify(body), headers: {"Content-Type": "application/json"}});
+      return new Response(await r.text(), { status: r.status, headers: {"Content-Type": "application/json"} });
+    }
+    if (taskAction === "complete") {
+      if (request.method !== "POST") return new Response("方法不允许", {status: 405});
+      let body = await request.json();
+      let r = await stub.fetch("https://dummy-url/task/complete", {method: "POST", body: JSON.stringify(body), headers: {"Content-Type": "application/json"}});
+      return new Response(await r.text(), { status: r.status, headers: {"Content-Type": "application/json"} });
+    }
+    return new Response("未找到该操作", { status: 404 });
+  } catch (error) {
+    return new Response("任务操作失败: " + error.message, { status: 500 });
+  }
+}

@@ -1,0 +1,24 @@
+// 管理后台Bot命令操作
+
+export async function handleAdminBot(path, request, env, url) {
+  if (path[1] !== "bot") return null;
+
+  try {
+    let registryId = env.registry.idFromName("global");
+    let registryStub = env.registry.get(registryId);
+    let action = url.searchParams.get("action") || "list";
+    let registryUrl = "https://dummy-url/bot-commands?action=" + encodeURIComponent(action);
+    if (action === "delete" || action === "get") {
+      let keyword = url.searchParams.get("keyword");
+      if (keyword) registryUrl += "&keyword=" + encodeURIComponent(keyword);
+    }
+    if (action === "add" || action === "update") {
+      let r = await registryStub.fetch(registryUrl, {method: "POST", body: await request.text(), headers: {"Content-Type": "application/json"}});
+      return new Response(await r.text(), {status: r.status, headers: {"Content-Type": "application/json"}});
+    }
+    let r = await registryStub.fetch(registryUrl);
+    return new Response(await r.text(), {status: 200, headers: {"Content-Type": "application/json"}});
+  } catch (error) {
+    return new Response(JSON.stringify({error: "操作失败"}), {status: 500});
+  }
+}
