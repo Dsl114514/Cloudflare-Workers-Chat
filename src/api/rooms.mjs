@@ -65,6 +65,20 @@ export async function handleRooms(path, request, env) {
       }
     }
 
+      // 加载更多历史消息（无限滚动）
+      if (path[2] === "history") {
+        let hLimit = new URL(request.url).searchParams.get("limit") || 50;
+        let hBefore = new URL(request.url).searchParams.get("before") || "";
+        let hUrl = "https://dummy-url/messages?limit=" + hLimit;
+        if (hBefore) hUrl += "&before=" + encodeURIComponent(hBefore);
+        let hResp = await roomObject.fetch(new URL(hUrl));
+        let hData = await hResp.json();
+        let filtered = (Array.isArray(hData) ? hData : []).filter(m => m.type !== "file");
+        return new Response(JSON.stringify(filtered), {
+          headers: {"Content-Type": "application/json"}
+        });
+      }
+
       let newUrl = new URL(request.url);
       newUrl.pathname = "/" + path.slice(2).join("/");
       newUrl.searchParams.set("room_name", name);

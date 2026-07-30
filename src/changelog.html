@@ -73,6 +73,23 @@ body {
 
 <div class="version-group">
   <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.20</span>
+    <span class="version-date">2026-07-30</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🚀</span><span class="text"><span class="tag tag-feature">社区</span>🎉 首个社区用户 <strong>TAXDsl</strong> 成功部署并上线聊天室！</span></div>
+    <div class="feature-item"><span class="icon">👤</span><span class="text"><span class="tag tag-feature">社区</span>TAXDsl 将参与 UI 优化和功能定制开发，期待 PR！</span></div>
+    <div class="feature-item"><span class="icon">📜</span><span class="text"><span class="tag tag-feature">新增</span>操作日志系统 — 管理后台可审计所有管理员操作</span></div>
+    <div class="feature-item"><span class="icon">🧧</span><span class="text"><span class="tag tag-feature">新增</span>积分红包 — 拼手气/固定金额红包，聊天室内抢红包</span></div>
+    <div class="feature-item"><span class="icon">📦</span><span class="text"><span class="tag tag-feature">新增</span>FileBucket 桶存储 — 文件数据从主 DO 分离，7 天自动过期</span></div>
+    <div class="feature-item"><span class="icon">📱</span><span class="text"><span class="tag tag-fix">优化</span>手机版底部栏适配 — 输入框不再被底部按钮遮挡</span></div>
+    <div class="feature-item"><span class="icon">🔗</span><span class="text"><span class="tag tag-improve">优化</span>支持 GitHub → Workers Builds 自动部署</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
     <span class="version-tag">v1.19</span>
     <span class="version-date">2026-07-30</span>
     <span class="version-arrow open">▶</span>
@@ -91,9 +108,9 @@ body {
   <div class="version-header" onclick="toggle(this)">
     <span class="version-tag">v1.18</span>
     <span class="version-date">2026-06-04</span>
-    <span class="version-arrow open">▶</span>
+    <span class="version-arrow">▶</span>
   </div>
-  <div class="version-body open">
+  <div class="version-body">
     <div class="feature-item"><span class="icon">🎮</span><span class="text"><span class="tag tag-feature">新增</span>小游戏中心 — 在聊天室入口和聊天内通过 <code>/game</code> 命令打开，包含四款休闲游戏:</span></div>
     <div class="feature-item"><span class="icon">🎰</span><span class="text"><span class="tag tag-feature">新增</span>老虎机 — 每次 100 积分，三连大奖 5000 积分，两连小奖 200 积分</span></div>
     <div class="feature-item"><span class="icon">🎲</span><span class="text"><span class="tag tag-feature">新增</span>猜大小 — 下注后猜骰子点数大小(2-6/8-12)，2倍赔付，7点平局退注</span></div>
@@ -106,7 +123,7 @@ body {
     <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-improve">优化</span>首页入口添加游戏按钮，聊天内可用 <code>/game</code> 命令快速打开</span></div>
     <div class="feature-item"><span class="icon">🐛</span><span class="text"><span class="tag tag-fix">修复</span>Escape 键无法关闭游戏面板，点击遮罩背景可关闭</span></div>
     <div class="feature-item"><span class="icon">🐛</span><span class="text"><span class="tag tag-fix">修复</span><code>/api/points/get</code> 路由缺失导致积分显示为 0</span></div>
-t    <div class="feature-item"><span class="icon">🏓</span><span class="text"><span class="tag tag-feature">新增</span>打砖块 — 经典街机，挡板接球破砖，3 条命，入场 150</span></div>
+    <div class="feature-item"><span class="icon">🏓</span><span class="text"><span class="tag tag-feature">新增</span>打砖块 — 经典街机，挡板接球破砖，3 条命，入场 150</span></div>
 	    <div class="feature-item"><span class="icon">🍎</span><span class="text"><span class="tag tag-feature">新增</span>接水果 — 水果从天降，移动篮子接，30 秒倒计时</span></div>
 	    <div class="feature-item"><span class="icon">✈️</span><span class="text"><span class="tag tag-feature">新增</span>飞越障碍 — 点击飞行避开柱子，穿过越多分越高</span></div>
 	    <div class="feature-item"><span class="icon">🎳</span><span class="text"><span class="tag tag-feature">新增</span>保龄球 — 蓄力释放滚球击瓶，每局 2 投</span></div>
@@ -129,9 +146,9 @@ t    <div class="feature-item"><span class="icon">🏓</span><span class="text">
   <div class="version-header" onclick="toggle(this)">
     <span class="version-tag">v1.17</span>
     <span class="version-date">2026-06-01</span>
-    <span class="version-arrow open">▶</span>
+    <span class="version-arrow">▶</span>
   </div>
-  <div class="version-body open">
+  <div class="version-body">
     <div class="feature-item"><span class="icon">🐛</span><span class="text"><span class="tag tag-fix">修复</span>Toast 独立模块被 CDN 缓存导致 JS 模块链断裂 — 将 Toast 函数内联到 state.js，消除额外请求</span></div>
     <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-improve">优化</span>Toast 通知集成 — 操作反馈（错误/成功/提示）使用浮层通知代替聊天消息</span></div>
   </div>
@@ -141,9 +158,9 @@ t    <div class="feature-item"><span class="icon">🏓</span><span class="text">
   <div class="version-header" onclick="toggle(this)">
     <span class="version-tag">v1.16</span>
     <span class="version-date">2026-05-31</span>
-    <span class="version-arrow open">▶</span>
+    <span class="version-arrow">▶</span>
   </div>
-  <div class="version-body open">
+  <div class="version-body">
     <div class="feature-item"><span class="icon">🎁</span><span class="text"><span class="tag tag-feature">新增</span>兑换码系统 — 管理员可在后台生成/添加兑换码，用户访问 <code>/redeem</code> 页面输入码兑换积分</span></div>
     <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-improve">优化</span>管理后台新增「兑换码」管理页面 — 批量生成、自定义添加、查看列表/状态、删除</span></div>
     <div class="feature-item"><span class="icon">🐛</span><span class="text"><span class="tag tag-fix">修复</span>兑换API路径匹配错误 — `/api/redeem` 路由未正确分发到 handler，导致返回 404</span></div>
@@ -154,9 +171,9 @@ t    <div class="feature-item"><span class="icon">🏓</span><span class="text">
   <div class="version-header" onclick="toggle(this)">
     <span class="version-tag">v1.15</span>
     <span class="version-date">2026-05-27</span>
-    <span class="version-arrow open">▶</span>
+    <span class="version-arrow">▶</span>
   </div>
-  <div class="version-body open">
+  <div class="version-body">
     <div class="feature-item"><span class="icon">🎨</span><span class="text"><span class="tag tag-feature">优化</span>CSS抽取 — 所有内联样式从 chat.html 提取到独立 style.css 文件，管理后台 CSS 变量统一</span></div>
     <div class="feature-item"><span class="icon">🎨</span><span class="text"><span class="tag tag-feature">优化</span>浮动按钮整合 — 右侧浮动按钮减少为5个常用按钮，其余收入 ⚙️ 更多菜单</span></div>
     <div class="feature-item"><span class="icon">🎨</span><span class="text"><span class="tag tag-feature">优化</span>输入工具栏折叠 — 二级工具栏（语音/文件/定时/投票等）收入 ➕ 展开按钮，界面更简洁</span></div>

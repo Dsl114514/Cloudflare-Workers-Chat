@@ -206,7 +206,14 @@ export class ChatRoom {
         case "/messages": {
           let limit = parseInt(url.searchParams.get("limit")) || 50;
           if (limit > 200) limit = 200;
-          let entries = await this.storage.list({reverse: true, limit: limit});
+          let before = url.searchParams.get("before"); // 时间戳游标
+          let entries;
+          if (before) {
+            let beforeKey = new Date(parseInt(before)).toISOString();
+            entries = await this.storage.list({reverse: true, limit: limit, start: beforeKey});
+          } else {
+            entries = await this.storage.list({reverse: true, limit: limit});
+          }
           let msgs = [];
           for (let [key, val] of entries) {
             try {

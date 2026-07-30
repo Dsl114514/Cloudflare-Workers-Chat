@@ -5,15 +5,8 @@ main = "src/index.mjs"
 
 workers_dev = true
 
-routes = [
-  { pattern = "chat.liuxiyu.cn/*", zone_name = "liuxiyu.cn" },
-  { pattern = "chat.liuxiyu.dpdns.org/*", zone_name = "liuxiyu.dpdns.org" },
-  { pattern = "community.liuxiyu.dpdns.org", zone_name = "liuxiyu.dpdns.org", custom_domain = true, enabled = true, previews_enabled = false },
-  { pattern = "chat.csel.dpdns.org", zone_name = "csel.dpdns.org", custom_domain = true, enabled = true, previews_enabled = false },
-  { pattern = "origin.lxybackup.dpdns.org", zone_name = "lxybackup.dpdns.org", custom_domain = true, enabled = true, previews_enabled = false },
-  { pattern = "chatnew.liuxiyu.dpdns.org", zone_name = "liuxiyu.dpdns.org", custom_domain = true, enabled = true, previews_enabled = false },
-  { pattern = "chat.liuxiyu.dpdns.org", zone_name = "liuxiyu.dpdns.org", custom_domain = true, enabled = true, previews_enabled = false },
-]
+# 路由配置已移至 Cloudflare Dashboard 管理，仓库中不保留
+# 如需添加/修改路由，请在 Dashboard → Workers → cloudflare-workers-chat → Triggers 中操作
 
 [durable_objects]
 bindings = [
