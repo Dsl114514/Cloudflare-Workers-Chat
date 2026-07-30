@@ -55,6 +55,22 @@ body {
 .tag-fix { background: #fde8e8; color: #c62828; }
 .tag-improve { background: #e3f2fd; color: #1565c0; }
 .tag-feature { background: #fff3e0; color: #e65100; }
+.pinned-announcement {
+  background: linear-gradient(135deg, #fff8e1, #fff3cd);
+  border: 1px solid #ffe082;
+  border-radius: 10px;
+  padding: 4px 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.15);
+}
+.pinned-announcement .feature-item {
+  background: transparent;
+  box-shadow: none;
+  margin-bottom: 0;
+}
+.pinned-announcement .feature-item.highlight {
+  font-size: 15px;
+}
 @media (max-width: 600px) {
   body { padding: 12px; }
   .header h1 { font-size: 22px; }
@@ -71,6 +87,11 @@ body {
   <a class="back-link" href="/">← 返回聊天室</a>
 </div>
 
+<div class="pinned-announcement">
+  <div class="feature-item highlight"><span class="icon">🚀</span><span class="text">🎉 首个社区用户 <strong>TAXDsl</strong> 成功部署并上线聊天室！</span></div>
+  <div class="feature-item highlight"><span class="icon">👤</span><span class="text">TAXDsl 将参与 UI 优化和功能定制开发，期待 PR！</span></div>
+</div>
+
 <div class="version-group">
   <div class="version-header" onclick="toggle(this)">
     <span class="version-tag">v1.20</span>
@@ -78,8 +99,6 @@ body {
     <span class="version-arrow open">▶</span>
   </div>
   <div class="version-body open">
-    <div class="feature-item"><span class="icon">🚀</span><span class="text"><span class="tag tag-feature">社区</span>🎉 首个社区用户 <strong>TAXDsl</strong> 成功部署并上线聊天室！</span></div>
-    <div class="feature-item"><span class="icon">👤</span><span class="text"><span class="tag tag-feature">社区</span>TAXDsl 将参与 UI 优化和功能定制开发，期待 PR！</span></div>
     <div class="feature-item"><span class="icon">📜</span><span class="text"><span class="tag tag-feature">新增</span>操作日志系统 — 管理后台可审计所有管理员操作</span></div>
     <div class="feature-item"><span class="icon">🧧</span><span class="text"><span class="tag tag-feature">新增</span>积分红包 — 拼手气/固定金额红包，聊天室内抢红包</span></div>
     <div class="feature-item"><span class="icon">📦</span><span class="text"><span class="tag tag-feature">新增</span>FileBucket 桶存储 — 文件数据从主 DO 分离，7 天自动过期</span></div>
@@ -92,9 +111,9 @@ body {
   <div class="version-header" onclick="toggle(this)">
     <span class="version-tag">v1.19</span>
     <span class="version-date">2026-07-30</span>
-    <span class="version-arrow open">▶</span>
+    <span class="version-arrow">▶</span>
   </div>
-  <div class="version-body open">
+  <div class="version-body">
     <div class="feature-item"><span class="icon">🔒</span><span class="text"><span class="tag tag-fix">安全</span>积分转账 API 新增 token 验证 — 防止任意盗转积分</span></div>
     <div class="feature-item"><span class="icon">🔒</span><span class="text"><span class="tag tag-fix">安全</span>游戏 API 新增 token 验证 — 防止冒名扣分/加分</span></div>
     <div class="feature-item"><span class="icon">🔒</span><span class="text"><span class="tag tag-fix">安全</span>URL 预览 API 限制协议/IP/敏感地址 — 防止 SSRF 内网扫描</span></div>
