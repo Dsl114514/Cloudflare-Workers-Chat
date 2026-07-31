@@ -90,6 +90,22 @@ body::before {
   pointer-events: none;
 }
 
+/* 视频壁纸 — 位于背景图之下 */
+#video-wallpaper {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -3;
+  pointer-events: none;
+}
+
+/* 视频壁纸激活时隐藏静态背景图 */
+body.video-bg::before {
+  display: none;
+}
+
 /* 主题底色遮罩（亮色磨砂 / 暗色磨砂） */
 body::after {
   content: '';
@@ -2923,6 +2939,110 @@ body.dark .poll-option {
   color: var(--text-secondary);
   margin-top: 8px;
   line-height: 1.5;
+}
+
+#settings-overlay .settings-input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+#settings-overlay .settings-input-row input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--input-ink);
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+  min-width: 0;
+}
+
+#settings-overlay .settings-input-row input:focus {
+  border-color: var(--primary);
+}
+
+#settings-overlay .settings-input-row button {
+  padding: 8px 14px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+#settings-overlay .settings-input-row button:hover {
+  background: var(--primary-dark);
+}
+
+#settings-overlay .settings-btn-secondary {
+  padding: 7px 12px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+#settings-overlay .settings-btn-secondary:hover {
+  background: var(--surface-2);
+}
+
+#settings-overlay .settings-btn-danger {
+  padding: 4px 10px;
+  background: rgba(231, 76, 60, 0.12);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+#settings-overlay .settings-btn-danger:hover {
+  background: rgba(231, 76, 60, 0.2);
+}
+
+#settings-overlay #bg-blur-slider {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--border);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+#settings-overlay #bg-blur-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+#settings-overlay #bg-blur-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
 }
 
 /* ---- Music Overlay ---- */

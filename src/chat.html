@@ -29,6 +29,7 @@
 </head>
 
 <body class="acrylic-applied">
+  <video id="video-wallpaper" autoplay muted loop playsinline style="display:none"></video>
   <form id="name-form" action="javascript:void(0)">
     <div class="name-card">
       <h1>Cloud Chat</h1>
@@ -329,6 +330,40 @@
           </div>
           <input type="range" id="bg-opacity-slider" min="0" max="100" value="100">
           <p class="settings-hint">调整聊天背景磨砂层的透明度，数值越低背景图越清晰。</p>
+        </div>
+        <div class="settings-item">
+          <div class="settings-label">
+            <span>磨砂程度</span>
+            <span id="bg-blur-value">18px</span>
+          </div>
+          <input type="range" id="bg-blur-slider" min="0" max="30" value="18">
+          <p class="settings-hint">调整磨砂玻璃模糊强度，数值越大越模糊。</p>
+        </div>
+        <div class="settings-item">
+          <div class="settings-label">
+            <span>自定义壁纸</span>
+            <button id="wallpaper-cancel-btn" type="button" class="settings-btn-danger" style="display:none">恢复随机</button>
+          </div>
+          <div class="settings-input-row">
+            <input id="wallpaper-url-input" placeholder="输入图片 URL" type="url">
+            <button id="wallpaper-url-btn" type="button">应用</button>
+          </div>
+          <button id="wallpaper-file-btn" type="button" class="settings-btn-secondary">📁 选择本地图片</button>
+          <input type="file" id="wallpaper-file-input" accept="image/*" style="display:none">
+          <p class="settings-hint">设置自定义图片壁纸，点击"恢复随机"返回随机背景。</p>
+        </div>
+        <div class="settings-item">
+          <div class="settings-label">
+            <span>视频壁纸</span>
+            <button id="video-cancel-btn" type="button" class="settings-btn-danger" style="display:none">取消视频</button>
+          </div>
+          <div class="settings-input-row">
+            <input id="video-url-input" placeholder="输入视频 URL" type="url">
+            <button id="video-url-btn" type="button">应用</button>
+          </div>
+          <button id="video-file-btn" type="button" class="settings-btn-secondary">📁 选择本地视频</button>
+          <input type="file" id="video-file-input" accept="video/*" style="display:none">
+          <p class="settings-hint">设置视频动态壁纸，视频将循环静音播放。</p>
         </div>
       </div>
     </div>

@@ -1,7 +1,12 @@
-// 设置面板 — 背景透明度等偏好
-const BG_TINT_KEY = "bgTint";
+// 设置面板 — 背景透明度 / 磨砂程度 / 自定义壁纸 / 视频壁纸
+import { showError, showInfo } from './state.js';
 
-// 应用背景磨砂层透明度（0~1）
+const BG_TINT_KEY = "bgTint";
+const BG_BLUR_KEY = "bgBlur";
+const WALLPAPER_KEY = "customWallpaper";
+const VIDEO_KEY = "customVideo";
+
+// ---- 背景透明度 ----
 export function applyBgTint(value) {
   let v = Math.max(0, Math.min(1, Number(value) || 1));
   document.documentElement.style.setProperty("--bg-tint", String(v));
@@ -12,27 +17,216 @@ export function applyBgTint(value) {
   return v;
 }
 
-// 启动时恢复保存的透明度
-export function initSettings() {
-  const saved = localStorage.getItem(BG_TINT_KEY);
-  applyBgTint(saved === null ? 1 : saved);
-
-  const slider = document.getElementById("bg-opacity-slider");
-  if (slider) {
-    slider.addEventListener("input", (e) => {
-      const v = applyBgTint(e.target.value / 100);
-      localStorage.setItem(BG_TINT_KEY, String(v));
-    });
-  }
+// ---- 磨砂程度 ----
+export function applyBgBlur(value) {
+  let v = Math.max(0, Math.min(30, Number(value) || 0));
+  document.documentElement.style.setProperty("--frosted-blur", `blur(${v}px)`);
+  const valEl = document.getElementById("bg-blur-value");
+  const sliderEl = document.getElementById("bg-blur-slider");
+  if (valEl) valEl.textContent = v + "px";
+  if (sliderEl) sliderEl.value = v;
+  return v;
 }
 
+// ---- 自定义壁纸 ----
+export function applyWallpaper(url) {
+  if (!url) { restoreRandomWallpaper(); return; }
+  document.documentElement.style.setProperty("--site-bg-image", `url("${url}")`);
+  // 取消视频壁纸（互斥）
+  if (document.body.classList.contains("video-bg")) cancelVideoWallpaper();
+  const cancelBtn = document.getElementById("wallpaper-cancel-btn");
+  if (cancelBtn) cancelBtn.style.display = "";
+  localStorage.setItem(WALLPAPER_KEY, url);
+}
+
+function restoreRandomWallpaper() {
+  localStorage.removeItem(WALLPAPER_KEY);
+  const cancelBtn = document.getElementById("wallpaper-cancel-btn");
+  if (cancelBtn) cancelBtn.style.display = "none";
+  const urlInput = document.getElementById("wallpaper-url-input");
+  if (urlInput) urlInput.value = "";
+  // 清除内联样式，让 main.js 的随机背景接管
+  document.documentElement.style.removeProperty("--site-bg-image");
+  // 重新触发随机背景加载
+  localStorage.removeItem("ff-bg-url");
+  localStorage.removeItem("ff-bg-ts");
+  window.location.reload();
+}
+
+// ---- 视频壁纸 ----
+export function applyVideoWallpaper(url) {
+  if (!url) { cancelVideoWallpaper(); return; }
+  const video = document.getElementById("video-wallpaper");
+  if (!video) return;
+  video.src = url;
+  video.style.display = "";
+  document.body.classList.add("video-bg");
+  // 互斥：取消自定义图片壁纸
+  if (localStorage.getItem(WALLPAPER_KEY)) {
+    localStorage.removeItem(WALLPAPER_KEY);
+    const wpCancel = document.getElementById("wallpaper-cancel-btn");
+    if (wpCancel) wpCancel.style.display = "none";
+  }
+  const cancelBtn = document.getElementById("video-cancel-btn");
+  if (cancelBtn) cancelBtn.style.display = "";
+  localStorage.setItem(VIDEO_KEY, url);
+  video.play().catch(() => {});
+}
+
+export function cancelVideoWallpaper() {
+  const video = document.getElementById("video-wallpaper");
+  if (video) {
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+    video.style.display = "none";
+  }
+  document.body.classList.remove("video-bg");
+  const cancelBtn = document.getElementById("video-cancel-btn");
+  if (cancelBtn) cancelBtn.style.display = "none";
+  const urlInput = document.getElementById("video-url-input");
+  if (urlInput) urlInput.value = "";
+  localStorage.removeItem(VIDEO_KEY);
+}
+
+// ---- 面板开闭 ----
 export function openSettings() {
   document.getElementById("settings-overlay").classList.add("show");
-  // 打开时同步当前值到滑块
-  const cur = getComputedStyle(document.documentElement).getPropertyValue("--bg-tint").trim();
-  applyBgTint(cur === "" ? 1 : parseFloat(cur));
+  // 同步当前值到控件
+  const tint = getComputedStyle(document.documentElement).getPropertyValue("--bg-tint").trim();
+  applyBgTint(tint === "" ? 1 : parseFloat(tint));
+  const blurVal = localStorage.getItem(BG_BLUR_KEY);
+  applyBgBlur(blurVal === null ? 18 : blurVal);
+  // 同步壁纸输入框
+  const wpUrl = document.getElementById("wallpaper-url-input");
+  if (wpUrl) wpUrl.value = localStorage.getItem(WALLPAPER_KEY) || "";
+  const vidUrl = document.getElementById("video-url-input");
+  if (vidUrl) vidUrl.value = localStorage.getItem(VIDEO_KEY) || "";
 }
 
 export function closeSettings() {
   document.getElementById("settings-overlay").classList.remove("show");
+}
+
+// ---- 初始化 ----
+export function initSettings() {
+  // 恢复透明度
+  const savedTint = localStorage.getItem(BG_TINT_KEY);
+  applyBgTint(savedTint === null ? 1 : savedTint);
+
+  // 恢复磨砂程度
+  const savedBlur = localStorage.getItem(BG_BLUR_KEY);
+  applyBgBlur(savedBlur === null ? 18 : savedBlur);
+
+  // 恢复自定义壁纸
+  const savedWp = localStorage.getItem(WALLPAPER_KEY);
+  if (savedWp) {
+    document.documentElement.style.setProperty("--site-bg-image", `url("${savedWp}")`);
+    const cancelBtn = document.getElementById("wallpaper-cancel-btn");
+    if (cancelBtn) cancelBtn.style.display = "";
+  }
+
+  // 恢复视频壁纸
+  const savedVideo = localStorage.getItem(VIDEO_KEY);
+  if (savedVideo) {
+    const video = document.getElementById("video-wallpaper");
+    if (video) {
+      video.src = savedVideo;
+      video.style.display = "";
+      document.body.classList.add("video-bg");
+      const cancelBtn = document.getElementById("video-cancel-btn");
+      if (cancelBtn) cancelBtn.style.display = "";
+      video.play().catch(() => {});
+    }
+  }
+
+  // ---- 绑定事件 ----
+  // 透明度滑块
+  const tintSlider = document.getElementById("bg-opacity-slider");
+  if (tintSlider) {
+    tintSlider.addEventListener("input", (e) => {
+      const v = applyBgTint(e.target.value / 100);
+      localStorage.setItem(BG_TINT_KEY, String(v));
+    });
+  }
+
+  // 磨砂滑块
+  const blurSlider = document.getElementById("bg-blur-slider");
+  if (blurSlider) {
+    blurSlider.addEventListener("input", (e) => {
+      const v = applyBgBlur(e.target.value);
+      localStorage.setItem(BG_BLUR_KEY, String(v));
+    });
+  }
+
+  // 自定义壁纸 URL
+  const wpUrlBtn = document.getElementById("wallpaper-url-btn");
+  if (wpUrlBtn) {
+    wpUrlBtn.addEventListener("click", () => {
+      const url = document.getElementById("wallpaper-url-input").value.trim();
+      if (!url) { showError("请输入图片 URL"); return; }
+      applyWallpaper(url);
+      showInfo("壁纸已应用");
+    });
+  }
+
+  // 自定义壁纸文件
+  const wpFileBtn = document.getElementById("wallpaper-file-btn");
+  const wpFileInput = document.getElementById("wallpaper-file-input");
+  if (wpFileBtn && wpFileInput) {
+    wpFileBtn.addEventListener("click", () => wpFileInput.click());
+    wpFileInput.addEventListener("change", () => {
+      const file = wpFileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        applyWallpaper(reader.result);
+        showInfo("本地图片壁纸已应用");
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // 恢复随机壁纸
+  const wpCancelBtn = document.getElementById("wallpaper-cancel-btn");
+  if (wpCancelBtn) {
+    wpCancelBtn.addEventListener("click", restoreRandomWallpaper);
+  }
+
+  // 视频壁纸 URL
+  const vidUrlBtn = document.getElementById("video-url-btn");
+  if (vidUrlBtn) {
+    vidUrlBtn.addEventListener("click", () => {
+      const url = document.getElementById("video-url-input").value.trim();
+      if (!url) { showError("请输入视频 URL"); return; }
+      applyVideoWallpaper(url);
+      showInfo("视频壁纸已应用");
+    });
+  }
+
+  // 视频壁纸文件
+  const vidFileBtn = document.getElementById("video-file-btn");
+  const vidFileInput = document.getElementById("video-file-input");
+  if (vidFileBtn && vidFileInput) {
+    vidFileBtn.addEventListener("click", () => vidFileInput.click());
+    vidFileInput.addEventListener("change", () => {
+      const file = vidFileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        applyVideoWallpaper(reader.result);
+        showInfo("本地视频壁纸已应用");
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // 取消视频壁纸
+  const vidCancelBtn = document.getElementById("video-cancel-btn");
+  if (vidCancelBtn) {
+    vidCancelBtn.addEventListener("click", () => {
+      cancelVideoWallpaper();
+      showInfo("已取消视频壁纸");
+    });
+  }
 }
