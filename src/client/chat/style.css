@@ -1,26 +1,33 @@
 /* Cloud Chat Styles - extracted from chat.html
-   Firefly-inspired deep dark glass theme */
+   Firefly-inspired frosted glass (亮色磨砂 / 暗色磨砂) */
 :root {
-  --primary: #7189ff;
-  --primary-light: #8aa1ff;
-  --primary-dark: #5a6fe0;
-  --primary-rgb: 113, 137, 255;
-  --bg: #10131d;
-  --surface: #171b2b;
-  --surface-2: #1d2240;
-  --text: #eef2ff;
-  --text-secondary: #9aa7c7;
-  --border: rgba(255, 255, 255, 0.1);
-  --shadow: 0 12px 34px rgba(0, 0, 0, 0.38);
-  --shadow-sm: 0 6px 18px rgba(0, 0, 0, 0.28);
+  --primary: #4a6cf7;
+  --primary-light: #6b8aff;
+  --primary-dark: #3451d1;
+  --primary-rgb: 74, 108, 247;
+  --bg: rgba(255, 255, 255, 0.5);
+  --surface: rgba(255, 255, 255, 0.64);
+  --surface-2: rgba(255, 255, 255, 0.8);
+  --text: #1f2940;
+  --text-secondary: #5f6f93;
+  --border: rgba(31, 41, 64, 0.12);
+  --shadow: 0 12px 34px rgba(24, 36, 72, 0.16);
+  --shadow-sm: 0 6px 18px rgba(24, 36, 72, 0.1);
   --radius: 16px;
   --radius-sm: 10px;
-  --msg-self: linear-gradient(135deg, #7189ff, #a78bfa);
+  --msg-self: linear-gradient(135deg, #4a6cf7, #a78bfa);
   --msg-self-text: #fff;
-  --msg-other: #1d2240;
-  --msg-other-text: #eef2ff;
-  --online-dot: #34d399;
+  --msg-other: rgba(255, 255, 255, 0.66);
+  --msg-other-text: #1f2940;
+  --online-dot: #2ecc71;
   --site-bg-image: url("https://api.elaina.cat/random/pc");
+  /* 磨砂玻璃层 - 亮色 */
+  --frosted: rgba(255, 255, 255, 0.42);
+  --frosted-strong: rgba(255, 255, 255, 0.66);
+  --frosted-border: rgba(255, 255, 255, 0.6);
+  --frosted-blur: blur(18px);
+  --input-ink: #1f2940;
+  --input-ph: #8a96b8;
 }
 
 body.dark {
@@ -28,17 +35,24 @@ body.dark {
   --primary-light: #7a96ff;
   --primary-dark: #4a6cf7;
   --primary-rgb: 91, 124, 250;
-  --bg: #0a0c14;
-  --surface: #10142a;
-  --surface-2: #141a33;
+  --bg: rgba(14, 18, 30, 0.5);
+  --surface: rgba(20, 25, 42, 0.62);
+  --surface-2: rgba(24, 30, 50, 0.7);
   --text: #e4eaf8;
-  --text-secondary: #7a8ba8;
-  --border: rgba(255, 255, 255, 0.08);
+  --text-secondary: #9aa7c7;
+  --border: rgba(255, 255, 255, 0.1);
   --shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
   --shadow-sm: 0 6px 18px rgba(0, 0, 0, 0.4);
-  --msg-other: #10142a;
+  --msg-other: rgba(20, 25, 42, 0.62);
   --msg-other-text: #e4eaf8;
   --online-dot: #34d399;
+  /* 磨砂玻璃层 - 暗色 */
+  --frosted: rgba(28, 34, 54, 0.42);
+  --frosted-strong: rgba(20, 25, 42, 0.66);
+  --frosted-border: rgba(255, 255, 255, 0.14);
+  --frosted-blur: blur(18px);
+  --input-ink: #e4eaf8;
+  --input-ph: #6a7a98;
 }
 
 body.dark #chat-input {
@@ -58,35 +72,36 @@ body.dark #chat-input::placeholder {
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  background: var(--bg);
   color: var(--text);
   overflow: hidden;
   height: 100vh;
 }
 
-/* Firefly 深色玻璃背景层 */
+/* 背景图绘制在 body 最底层 */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  z-index: -1;
-  background:
-    radial-gradient(circle at top left, rgba(122, 162, 255, 0.14), transparent 34%),
-    radial-gradient(circle at bottom right, rgba(167, 139, 250, 0.16), transparent 30%),
-    linear-gradient(180deg, rgba(10, 13, 24, 0.6), rgba(16, 19, 29, 0.9));
+  z-index: -2;
+  background-image: var(--site-bg-image);
+  background-position: center;
+  background-size: cover;
+  filter: blur(1.5px) saturate(1.05);
   pointer-events: none;
 }
 
+/* 主题底色遮罩（亮色磨砂 / 暗色磨砂） */
 body::after {
   content: '';
   position: fixed;
   inset: 0;
   z-index: -1;
-  background-image: var(--site-bg-image);
-  background-position: center;
-  background-size: cover;
-  opacity: 0.5;
-  filter: blur(1.5px) saturate(1.05);
+  background:
+    radial-gradient(circle at top left, rgba(122, 162, 255, 0.12), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(167, 139, 250, 0.1), transparent 30%),
+    var(--frosted);
+  backdrop-filter: var(--frosted-blur);
+  -webkit-backdrop-filter: var(--frosted-blur);
   pointer-events: none;
 }
 
@@ -100,7 +115,11 @@ body::after {
   overflow-y: auto;
   padding: 16px;
   overflow-wrap: break-word;
-  background: transparent;
+  background:
+    linear-gradient(0deg, var(--frosted-strong), var(--frosted-strong)),
+    var(--frosted);
+  backdrop-filter: var(--frosted-blur);
+  -webkit-backdrop-filter: var(--frosted-blur);
 }
 
 #chatlog p {
@@ -220,6 +239,8 @@ body::after {
 
 .chat-msg.other .bubble {
   background: var(--msg-other);
+  backdrop-filter: var(--frosted-blur);
+  -webkit-backdrop-filter: var(--frosted-blur);
   color: var(--msg-other-text);
   border-bottom-left-radius: 4px;
   box-shadow: var(--shadow-sm);
@@ -302,8 +323,10 @@ body::after {
   top: 0;
   bottom: 56px;
   width: 260px;
-  background: var(--surface);
-  border-left: 1px solid var(--border);
+  background: var(--frosted-strong);
+  backdrop-filter: var(--frosted-blur);
+  -webkit-backdrop-filter: var(--frosted-blur);
+  border-left: 1px solid var(--frosted-border);
   padding: 12px 8px;
   overflow-y: auto;
 }
@@ -405,7 +428,12 @@ body::after {
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at top left, rgba(122, 162, 255, 0.12), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(167, 139, 250, 0.1), transparent 30%),
+    var(--frosted);
+  backdrop-filter: var(--frosted-blur);
+  -webkit-backdrop-filter: var(--frosted-blur);
   overflow-y: auto;
   padding: 0;
 }
@@ -612,7 +640,7 @@ body::after {
   background:
     radial-gradient(circle at top left, rgba(122, 162, 255, 0.18), transparent 40%),
     radial-gradient(circle at bottom right, rgba(167, 139, 250, 0.22), transparent 36%),
-    linear-gradient(135deg, #0e1120 0%, #10131d 55%, #140f22 100%);
+    var(--frosted);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -621,15 +649,15 @@ body::after {
 
 #name-form .name-card {
   background: var(--surface-2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--frosted-border);
   border-radius: 24px;
   padding: 40px 36px;
   box-shadow: var(--shadow);
   max-width: 420px;
   width: 90%;
   text-align: center;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: var(--frosted-blur);
+  -webkit-backdrop-filter: var(--frosted-blur);
 }
 
 #name-form .name-card h1 {
@@ -776,17 +804,25 @@ body::after {
   left: 12px;
   right: 268px;
   width: calc(100% - 280px);
-  border: 1px solid var(--border);
+  border: 1px solid var(--frosted-border);
   border-radius: 22px;
   padding: 0 16px;
   padding-left: 100px;
   padding-right: 140px;
   outline: none;
   font-size: 14px;
-  background: var(--surface);
+  color: var(--text);
+  background: var(--frosted);
+  backdrop-filter: var(--frosted-blur);
+  -webkit-backdrop-filter: var(--frosted-blur);
   box-shadow: var(--shadow-sm);
   transition: border-color 0.2s, box-shadow 0.2s;
   font-family: inherit;
+}
+
+#chat-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
 }
 
 #chat-input:focus {
@@ -860,7 +896,9 @@ body::after {
   gap: 4px;
   padding: 6px 8px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  backdrop-filter: var(--frosted-blur);
+  -webkit-backdrop-filter: var(--frosted-blur);
+  border: 1px solid var(--frosted-border);
   border-radius: 10px;
   z-index: 25;
   align-items: center;
@@ -905,7 +943,9 @@ body::after {
   width: 330px;
   max-height: 280px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  backdrop-filter: var(--frosted-blur);
+  -webkit-backdrop-filter: var(--frosted-blur);
+  border: 1px solid var(--frosted-border);
   border-radius: 12px;
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
   overflow-y: auto;
@@ -964,7 +1004,10 @@ body::after {
 
 #profile-box {
   position: relative;
-  background: #fff;
+  background: var(--surface-2);
+  border: 1px solid var(--frosted-border);
+  backdrop-filter: var(--frosted-blur);
+  -webkit-backdrop-filter: var(--frosted-blur);
   border-radius: 14px;
   width: 340px;
   max-width: 90vw;
@@ -1092,7 +1135,7 @@ body::after {
   display: none;
   position: fixed;
   z-index: 100;
-  background: #fff;
+  background: var(--surface-2);
   border-radius: 10px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
   padding: 4px;
@@ -1258,7 +1301,10 @@ body::after {
   z-index: 100;
   width: 340px;
   height: 460px;
-  background: #fff;
+  background: var(--surface-2);
+  border: 1px solid var(--frosted-border);
+  backdrop-filter: var(--frosted-blur);
+  -webkit-backdrop-filter: var(--frosted-blur);
   border-radius: 12px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
   flex-direction: column;
@@ -1327,9 +1373,11 @@ body::after {
 }
 
 .dm-other .dm-msg-text {
-  background: #fff;
-  color: #1a1a2e;
-  border: 1px solid #e4e6eb;
+  background: var(--frosted-strong);
+  backdrop-filter: var(--frosted-blur);
+  -webkit-backdrop-filter: var(--frosted-blur);
+  color: var(--text);
+  border: 1px solid var(--frosted-border);
   border-radius: 2px 8px 8px 8px;
 }
 
@@ -1347,8 +1395,8 @@ body::after {
   display: flex;
   padding: 8px;
   gap: 6px;
-  border-top: 1px solid #e4e6eb;
-  background: #fff;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
 }
 
 #dm-input {
@@ -1788,7 +1836,9 @@ body.dark .search-highlight.active {
   min-width: 180px;
   max-width: 260px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  backdrop-filter: var(--frosted-blur);
+  -webkit-backdrop-filter: var(--frosted-blur);
+  border: 1px solid var(--frosted-border);
   border-radius: 10px;
   box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.12);
   padding: 4px;
@@ -2394,6 +2444,10 @@ body.dark .poll-option {
     height: 40px;
     padding-left: 92px;
     padding-right: 96px;
+    background: var(--frosted);
+    backdrop-filter: var(--frosted-blur);
+    -webkit-backdrop-filter: var(--frosted-blur);
+    border: 1px solid var(--frosted-border);
   }
 
   #emoji-btn {
@@ -2557,7 +2611,10 @@ body.dark .poll-option {
 }
 
 #shop-overlay .shop-card {
-  background: #fff;
+  background: var(--surface-2);
+  border: 1px solid var(--frosted-border);
+  backdrop-filter: var(--frosted-blur);
+  -webkit-backdrop-filter: var(--frosted-blur);
   border-radius: 16px;
   max-width: 560px;
   width: 92%;
@@ -2794,7 +2851,10 @@ body.dark .poll-option {
 }
 
 #task-overlay .task-card {
-  background: #fff;
+  background: var(--surface-2);
+  border: 1px solid var(--frosted-border);
+  backdrop-filter: var(--frosted-blur);
+  -webkit-backdrop-filter: var(--frosted-blur);
   border-radius: 16px;
   max-width: 560px;
   width: 92%;
@@ -2964,7 +3024,10 @@ body.dark .poll-option {
 }
 
 #lottery-overlay .overlay-content {
-  background: #fff;
+  background: var(--surface-2);
+  border: 1px solid var(--frosted-border);
+  backdrop-filter: var(--frosted-blur);
+  -webkit-backdrop-filter: var(--frosted-blur);
   border-radius: 16px;
   max-width: 500px;
   width: 92%;
