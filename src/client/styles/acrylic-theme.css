@@ -1,10 +1,14 @@
 /**
  * CloudChat - Acrylic Modern Theme
  * 现代亚克力风格主题 - 毛玻璃效果 + 半透明设计
+ *
+ * 注意：全局样式（body/* 等）都加了 .acrylic-applied 包装类，
+ *       避免污染聊天页面（chat.html）。聊天页面不添加 .acrylic-applied 类，
+ *       因此只继承 :root 变量和特定组件类样式（如 .hero、.card 等）。
  */
 
 /* ========================================
-   亚克力主题变量
+   亚克力主题变量（全局，所有页面共享）
    ======================================== */
 :root {
   --acrylic-bg: rgba(255, 255, 255, 0.7);
@@ -23,15 +27,15 @@
 }
 
 /* ========================================
-   全局基础样式 - 亚克力风格
+   全局基础样式 - 亚克力风格（仅限非聊天页面 .acrylic-applied 下）
    ======================================== */
-* {
+.acrylic-applied * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-body {
+.acrylic-applied body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
   background-attachment: fixed;
@@ -40,7 +44,7 @@ body {
   position: relative;
 }
 
-body::before {
+.acrylic-applied body::before {
   content: '';
   position: fixed;
   top: 0;
@@ -54,7 +58,7 @@ body::before {
   z-index: 0;
 }
 
-.container {
+.acrylic-applied .container {
   max-width: 780px;
   margin: 0 auto;
   padding: 30px 20px 60px;
@@ -212,24 +216,24 @@ body::before {
 }
 
 /* ========================================
-   按钮样式 - 亚克力风格
+   按钮样式 - 亚克力风格（在 .acrylic-applied 下才覆盖全局 button）
    ======================================== */
-button,
-.btn,
-.hero .nav-links a,
-.task-btn,
-.header-btn,
-.auth-btn,
-.refresh-btn,
-.v-actions a,
-.v-actions button,
-.actions a,
-.input-group button,
-.room-actions button,
-.user-item button,
-.blacklist-item button,
-.nav-tabs a,
-.nav-item {
+.acrylic-applied button,
+.acrylic-applied .btn,
+.acrylic-applied .hero .nav-links a,
+.acrylic-applied .task-btn,
+.acrylic-applied .header-btn,
+.acrylic-applied .auth-btn,
+.acrylic-applied .refresh-btn,
+.acrylic-applied .v-actions a,
+.acrylic-applied .v-actions button,
+.acrylic-applied .actions a,
+.acrylic-applied .input-group button,
+.acrylic-applied .room-actions button,
+.acrylic-applied .user-item button,
+.acrylic-applied .blacklist-item button,
+.acrylic-applied .nav-tabs a,
+.acrylic-applied .nav-item {
   background: var(--acrylic-bg);
   backdrop-filter: blur(10px);
   border: 1px solid var(--acrylic-border);
@@ -244,8 +248,8 @@ button,
   overflow: hidden;
 }
 
-button::before,
-.btn::before {
+.acrylic-applied button::before,
+.acrylic-applied .btn::before {
   content: '';
   position: absolute;
   top: 50%;
@@ -258,71 +262,71 @@ button::before,
   transition: width 0.6s, height 0.6s;
 }
 
-button:active::before,
-.btn:active::before {
+.acrylic-applied button:active::before,
+.acrylic-applied .btn:active::before {
   width: 300px;
   height: 300px;
 }
 
-button:hover,
-.btn:hover,
-.hero .nav-links a:hover,
-.task-btn:hover,
-.header-btn:hover,
-.nav-tabs a:hover {
+.acrylic-applied button:hover,
+.acrylic-applied .btn:hover,
+.acrylic-applied .hero .nav-links a:hover,
+.acrylic-applied .task-btn:hover,
+.acrylic-applied .header-btn:hover,
+.acrylic-applied .nav-tabs a:hover {
   background: var(--acrylic-bg-hover);
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
-.btn-primary,
-.btn-set,
-.btn-p,
-.tag-set-btn,
-.btn-batch-add,
-.auth-btn,
-.task-btn-claim,
-.header-btn.primary,
-.nav-tabs a.active,
-.nav-item.active {
+.acrylic-applied .btn-primary,
+.acrylic-applied .btn-set,
+.acrylic-applied .btn-p,
+.acrylic-applied .tag-set-btn,
+.acrylic-applied .btn-batch-add,
+.acrylic-applied .auth-btn,
+.acrylic-applied .task-btn-claim,
+.acrylic-applied .header-btn.primary,
+.acrylic-applied .nav-tabs a.active,
+.acrylic-applied .nav-item.active {
   background: var(--primary-gradient);
   color: #fff;
   border: none;
 }
 
-.btn-danger,
-.kick-btn,
-.ban-btn,
-.btn-batch-deduct,
-.btn-sm-danger {
+.acrylic-applied .btn-danger,
+.acrylic-applied .kick-btn,
+.acrylic-applied .ban-btn,
+.acrylic-applied .btn-batch-deduct,
+.acrylic-applied .btn-sm-danger {
   background: var(--danger-gradient);
   color: #fff;
   border: none;
 }
 
-.btn-success {
+.acrylic-applied .btn-success {
   background: var(--success-gradient);
   color: #fff;
   border: none;
 }
 
 /* ========================================
-   输入框 - 亚克力风格
+   输入框 - 亚克力风格（.acrylic-applied 下才覆盖）
    ======================================== */
-input[type="text"],
-input[type="number"],
-input[type="password"],
-input[type="email"],
-select,
-textarea,
-.search-box,
-.search-bar input,
-.auth-input,
-.pts-toolbar input,
-.pts-table .p-actions input,
-.pts-batch-bar input[type="number"],
-.nav-search input,
-.ipg-filter input {
+.acrylic-applied input[type="text"],
+.acrylic-applied input[type="number"],
+.acrylic-applied input[type="password"],
+.acrylic-applied input[type="email"],
+.acrylic-applied select,
+.acrylic-applied textarea,
+.acrylic-applied .search-box,
+.acrylic-applied .search-bar input,
+.acrylic-applied .auth-input,
+.acrylic-applied .pts-toolbar input,
+.acrylic-applied .pts-table .p-actions input,
+.acrylic-applied .pts-batch-bar input[type="number"],
+.acrylic-applied .nav-search input,
+.acrylic-applied .ipg-filter input {
   background: var(--acrylic-bg);
   backdrop-filter: blur(10px);
   border: 1px solid var(--acrylic-border);
@@ -334,26 +338,26 @@ textarea,
   outline: none;
 }
 
-input[type="text"]:focus,
-input[type="number"]:focus,
-input[type="password"]:focus,
-input[type="email"]:focus,
-select:focus,
-textarea:focus,
-.search-box:focus,
-.search-bar input:focus,
-.auth-input:focus {
+.acrylic-applied input[type="text"]:focus,
+.acrylic-applied input[type="number"]:focus,
+.acrylic-applied input[type="password"]:focus,
+.acrylic-applied input[type="email"]:focus,
+.acrylic-applied select:focus,
+.acrylic-applied textarea:focus,
+.acrylic-applied .search-box:focus,
+.acrylic-applied .search-bar input:focus,
+.acrylic-applied .auth-input:focus {
   background: var(--acrylic-bg-hover);
   border-color: #667eea;
   box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
   transform: translateY(-1px);
 }
 
-input[type="text"]::placeholder,
-input[type="number"]::placeholder,
-input[type="password"]::placeholder,
-input[type="email"]::placeholder,
-textarea::placeholder {
+.acrylic-applied input[type="text"]::placeholder,
+.acrylic-applied input[type="number"]::placeholder,
+.acrylic-applied input[type="password"]::placeholder,
+.acrylic-applied input[type="email"]::placeholder,
+.acrylic-applied textarea::placeholder {
   color: var(--text-muted);
 }
 
@@ -477,14 +481,14 @@ textarea::placeholder {
 }
 
 /* ========================================
-   模态框 - 亚克力风格
+   模态框 - 亚克力风格（在 .acrylic-applied 下才生效）
    ======================================== */
-.modal-overlay {
+.acrylic-applied .modal-overlay {
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
 }
 
-.modal-box {
+.acrylic-applied .modal-box {
   background: var(--acrylic-bg-active);
   backdrop-filter: var(--acrylic-blur);
   border-radius: 24px;
@@ -492,13 +496,13 @@ textarea::placeholder {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
-.modal-header {
+.acrylic-applied .modal-header {
   background: rgba(102, 126, 234, 0.05);
   border-bottom: 1px solid var(--acrylic-border);
   padding: 20px 24px;
 }
 
-.modal-header h3 {
+.acrylic-applied .modal-header h3 {
   font-size: 20px;
   font-weight: 700;
   background: var(--primary-gradient);
@@ -507,7 +511,7 @@ textarea::placeholder {
   background-clip: text;
 }
 
-.modal-header .close-btn {
+.acrylic-applied .modal-header .close-btn {
   background: var(--acrylic-bg);
   border: 1px solid var(--acrylic-border);
   width: 32px;
@@ -519,32 +523,32 @@ textarea::placeholder {
   transition: all 0.3s;
 }
 
-.modal-header .close-btn:hover {
+.acrylic-applied .modal-header .close-btn:hover {
   background: var(--danger-gradient);
   color: #fff;
   border: none;
 }
 
 /* ========================================
-   滚动条 - 亚克力风格
+   滚动条 - 亚克力风格（.acrylic-applied 下才覆盖）
    ======================================== */
-::-webkit-scrollbar {
+.acrylic-applied ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-::-webkit-scrollbar-track {
+.acrylic-applied ::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
 }
 
-::-webkit-scrollbar-thumb {
+.acrylic-applied ::-webkit-scrollbar-thumb {
   background: var(--primary-gradient);
   border-radius: 10px;
   transition: background 0.3s;
 }
 
-::-webkit-scrollbar-thumb:hover {
+.acrylic-applied ::-webkit-scrollbar-thumb:hover {
   background: var(--secondary-gradient);
 }
 
@@ -748,7 +752,7 @@ textarea::placeholder {
   box-shadow: 0 0 8px rgba(102, 126, 234, 0.5);
 }
 
-/* 主题切换按钮 */
+/* 主题切换按钮（给非聊天页面使用的独立按钮，聊天页用 #theme-toggle） */
 .theme-toggle-btn {
   position: fixed;
   top: 20px;
@@ -780,10 +784,10 @@ textarea::placeholder {
 }
 
 /* ========================================
-   响应式调整
+   响应式调整（.acrylic-applied 下生效）
    ======================================== */
 @media (max-width: 768px) {
-  body {
+  .acrylic-applied body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   }
 
@@ -806,10 +810,10 @@ textarea::placeholder {
 }
 
 /* ========================================
-   暗色模式支持
+   暗色模式支持（.acrylic-applied 下生效）
    ======================================== */
 @media (prefers-color-scheme: dark) {
-  :root {
+  .acrylic-applied:root {
     --acrylic-bg: rgba(26, 26, 46, 0.7);
     --acrylic-bg-hover: rgba(26, 26, 46, 0.85);
     --acrylic-bg-active: rgba(26, 26, 46, 0.95);
@@ -819,7 +823,7 @@ textarea::placeholder {
     --text-muted: #808080;
   }
 
-  body {
+  .acrylic-applied body {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f1e 100%);
   }
 }

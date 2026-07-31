@@ -242,6 +242,78 @@ if (document.readyState === 'loading') {
   initThemeButtons();
 }
 
+// 背景图片切换
+const BG_IMAGE_API = "https://api.elaina.cat/random/pc/";
+const BG_STORAGE_KEY = "cloudchat-bg-image";
+
+function applyBgImage(url) {
+  if (url) {
+    document.body.style.backgroundImage = `url("${url}")`;
+    document.body.style.backgroundSize = "cover";
+    document.body.style.backgroundPosition = "center center";
+    document.body.style.backgroundRepeat = "no-repeat";
+    document.body.style.backgroundAttachment = "fixed";
+  } else {
+    document.body.style.backgroundImage = "";
+    document.body.style.backgroundSize = "";
+    document.body.style.backgroundPosition = "";
+    document.body.style.backgroundRepeat = "";
+    document.body.style.backgroundAttachment = "";
+  }
+}
+
+function initBgImage() {
+  const saved = localStorage.getItem(BG_STORAGE_KEY);
+  if (saved) applyBgImage(saved);
+}
+
+async function changeBgImage() {
+  const btn = document.getElementById("bg-image-toggle");
+  const mbbBtn = document.getElementById("mbb-bg-image");
+  try {
+    if (btn) btn.style.opacity = "0.5";
+    if (mbbBtn) mbbBtn.style.opacity = "0.5";
+    const resp = await fetch(BG_IMAGE_API + "?_=" + Date.now());
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    applyBgImage(url);
+    localStorage.setItem(BG_STORAGE_KEY, url);
+    showInfo("背景图片已更新");
+  } catch (e) {
+    showError("背景图片加载失败: " + e.message);
+  } finally {
+    if (btn) btn.style.opacity = "";
+    if (mbbBtn) mbbBtn.style.opacity = "";
+  }
+}
+
+function resetBgImage() {
+  applyBgImage(null);
+  localStorage.removeItem(BG_STORAGE_KEY);
+  showInfo("背景图片已清除");
+}
+
+function initBgImageButtons() {
+  const bgToggle = document.getElementById("bg-image-toggle");
+  const mbbBg = document.getElementById("mbb-bg-image");
+  if (bgToggle) {
+    bgToggle.addEventListener("click", changeBgImage);
+    bgToggle.addEventListener("contextmenu", (e) => { e.preventDefault(); resetBgImage(); });
+  }
+  if (mbbBg) {
+    mbbBg.addEventListener("click", changeBgImage);
+    mbbBg.addEventListener("contextmenu", (e) => { e.preventDefault(); resetBgImage(); });
+  }
+  initBgImage();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initBgImageButtons);
+} else {
+  initBgImageButtons();
+}
+
 // Service Worker
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
 
