@@ -37,6 +37,8 @@ import CHAT_NOTE from "./client/chat/note.js";
 import CHAT_KEYWORDS from "./client/chat/keywords.js";
 import CHAT_GAMES from "./client/chat/games.js";
 import CHAT_FILESPANEL from "./client/chat/filespanel.js";
+import CHAT_SETTINGS from "./client/chat/settings.js";
+import CHAT_MUSIC from "./client/chat/music.js";
 import CHAT_GAME_CORE from "./client/chat/game-core.js";
 import CHAT_GAME_SIMPLE from "./client/chat/game-simple.js";
 import CHAT_GAME_CARDS from "./client/chat/game-cards.js";
@@ -98,6 +100,8 @@ const CHAT_MODULES = {
   "chat/keywords.js": CHAT_KEYWORDS,
   "chat/filespanel.js": CHAT_FILESPANEL,
   "chat/games.js": CHAT_GAMES,
+  "chat/settings.js": CHAT_SETTINGS,
+  "chat/music.js": CHAT_MUSIC,
   "chat/game-core.js": CHAT_GAME_CORE,
   "chat/game-simple.js": CHAT_GAME_SIMPLE,
   "chat/game-cards.js": CHAT_GAME_CARDS,
