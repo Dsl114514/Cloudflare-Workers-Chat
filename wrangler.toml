@@ -5,8 +5,15 @@ main = "src/index.mjs"
 
 workers_dev = true
 
-# 路由配置已移至 Cloudflare Dashboard 管理，仓库中不保留
-# 如需添加/修改路由，请在 Dashboard → Workers → cloudflare-workers-chat → Triggers 中操作
+routes = [
+  { pattern = "dslirc.indevs.in/*", zone_name = "dslirc.indevs.in" },
+  { pattern = "chat.dslirc.indevs.in/*", zone_name = "dslirc.indevs.in" },
+  { pattern = "community.dslirc.indevs.in", zone_name = "dslirc.indevs.in", custom_domain = true, enabled = true, previews_enabled = false },
+  { pattern = "chat.dslirc.indevs.in", zone_name = "dslirc.indevs.in", custom_domain = true, enabled = true, previews_enabled = false },
+  { pattern = "origin.dslirc.indevs.in", zone_name = "dslirc.indevs.in", custom_domain = true, enabled = true, previews_enabled = false },
+  { pattern = "chatnew.dslirc.indevs.in", zone_name = "dslirc.indevs.in", custom_domain = true, enabled = true, previews_enabled = false },
+  { pattern = "chat.dslirc.indevs.in", zone_name = "dslirc.indevs.in", custom_domain = true, enabled = true, previews_enabled = false },
+]
 
 [durable_objects]
 bindings = [
@@ -50,20 +57,4 @@ AI_SYSTEM_PROMPT = "你是一个友好的助手，请用中文回答。"
 #   new_sqlite_classes = ["ChatRoom", "RoomRegistry", "VersionArchive", "FileBucket"]
 [[migrations]]
 tag = "v1"
-new_sqlite_classes = ["ChatRoom"]
-
-[[migrations]]
-tag = "v2"
-new_sqlite_classes = ["RoomRegistry"]
-
-[[migrations]]
-tag = "v3"
-deleted_classes = ["RateLimiter"]
-
-[[migrations]]
-tag = "v4"
-new_sqlite_classes = ["VersionArchive"]
-
-[[migrations]]
-tag = "v5"
-new_sqlite_classes = ["FileBucket"]
+new_sqlite_classes = ["ChatRoom", "RoomRegistry", "VersionArchive", "FileBucket"]
