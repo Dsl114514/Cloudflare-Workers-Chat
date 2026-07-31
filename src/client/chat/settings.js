@@ -1,14 +1,16 @@
-// 设置面板 — 背景透明度 / 磨砂程度 / 自定义壁纸 / 视频壁纸
+// 设置面板 — 背景透明度 / 磨砂程度 / 界面色调 / 自定义壁纸 / 视频壁纸
 import { showError, showInfo } from './state.js';
 
 const BG_TINT_KEY = "bgTint";
 const BG_BLUR_KEY = "bgBlur";
+const UI_COLOR_KEY = "uiColor";
 const WALLPAPER_KEY = "customWallpaper";
 const VIDEO_KEY = "customVideo";
 
 // ---- 背景透明度 ----
 export function applyBgTint(value) {
-  let v = Math.max(0, Math.min(1, Number(value) || 1));
+  let n = Number(value);
+  let v = isNaN(n) ? 1 : Math.max(0, Math.min(1, n));
   document.documentElement.style.setProperty("--bg-tint", String(v));
   const valEl = document.getElementById("bg-opacity-value");
   const sliderEl = document.getElementById("bg-opacity-slider");
@@ -19,13 +21,54 @@ export function applyBgTint(value) {
 
 // ---- 磨砂程度 ----
 export function applyBgBlur(value) {
-  let v = Math.max(0, Math.min(30, Number(value) || 0));
+  let n = Number(value);
+  let v = isNaN(n) ? 18 : Math.max(0, Math.min(30, n));
   document.documentElement.style.setProperty("--frosted-blur", `blur(${v}px)`);
   const valEl = document.getElementById("bg-blur-value");
   const sliderEl = document.getElementById("bg-blur-slider");
   if (valEl) valEl.textContent = v + "px";
   if (sliderEl) sliderEl.value = v;
   return v;
+}
+
+// ---- 界面色调 ----
+function hexToRgb(hex) {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return m ? { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) } : null;
+}
+
+function rgbToHex(r, g, b) {
+  return "#" + [r, g, b].map(x => x.toString(16).padStart(2, "0")).join("");
+}
+
+export function applyUiColor(hex) {
+  if (!hex) { resetUiColor(); return; }
+  const rgb = hexToRgb(hex);
+  if (!rgb) { showError("无效的颜色值"); return; }
+  document.documentElement.style.setProperty("--frosted-r", String(rgb.r));
+  document.documentElement.style.setProperty("--frosted-g", String(rgb.g));
+  document.documentElement.style.setProperty("--frosted-b", String(rgb.b));
+  const resetBtn = document.getElementById("color-reset-btn");
+  if (resetBtn) resetBtn.style.display = "";
+  localStorage.setItem(UI_COLOR_KEY, hex);
+}
+
+function resetUiColor() {
+  localStorage.removeItem(UI_COLOR_KEY);
+  document.documentElement.style.removeProperty("--frosted-r");
+  document.documentElement.style.removeProperty("--frosted-g");
+  document.documentElement.style.removeProperty("--frosted-b");
+  const resetBtn = document.getElementById("color-reset-btn");
+  if (resetBtn) resetBtn.style.display = "none";
+  // 恢复颜色选择器为当前实际值
+  const colorInput = document.getElementById("ui-color-input");
+  if (colorInput) {
+    const cs = getComputedStyle(document.documentElement);
+    const r = cs.getPropertyValue("--frosted-r").trim();
+    const g = cs.getPropertyValue("--frosted-g").trim();
+    const b = cs.getPropertyValue("--frosted-b").trim();
+    colorInput.value = rgbToHex(+r || 255, +g || 255, +b || 255);
+  }
 }
 
 // ---- 自定义壁纸 ----
@@ -45,9 +88,7 @@ function restoreRandomWallpaper() {
   if (cancelBtn) cancelBtn.style.display = "none";
   const urlInput = document.getElementById("wallpaper-url-input");
   if (urlInput) urlInput.value = "";
-  // 清除内联样式，让 main.js 的随机背景接管
   document.documentElement.style.removeProperty("--site-bg-image");
-  // 重新触发随机背景加载
   localStorage.removeItem("ff-bg-url");
   localStorage.removeItem("ff-bg-ts");
   window.location.reload();
@@ -102,6 +143,19 @@ export function openSettings() {
   if (wpUrl) wpUrl.value = localStorage.getItem(WALLPAPER_KEY) || "";
   const vidUrl = document.getElementById("video-url-input");
   if (vidUrl) vidUrl.value = localStorage.getItem(VIDEO_KEY) || "";
+  // 同步颜色选择器
+  const colorInput = document.getElementById("ui-color-input");
+  if (colorInput) {
+    const saved = localStorage.getItem(UI_COLOR_KEY);
+    if (saved) colorInput.value = saved;
+    else {
+      const cs = getComputedStyle(document.documentElement);
+      const r = cs.getPropertyValue("--frosted-r").trim();
+      const g = cs.getPropertyValue("--frosted-g").trim();
+      const b = cs.getPropertyValue("--frosted-b").trim();
+      colorInput.value = rgbToHex(+r || 255, +g || 255, +b || 255);
+    }
+  }
 }
 
 export function closeSettings() {
@@ -117,6 +171,10 @@ export function initSettings() {
   // 恢复磨砂程度
   const savedBlur = localStorage.getItem(BG_BLUR_KEY);
   applyBgBlur(savedBlur === null ? 18 : savedBlur);
+
+  // 恢复界面色调
+  const savedColor = localStorage.getItem(UI_COLOR_KEY);
+  if (savedColor) applyUiColor(savedColor);
 
   // 恢复自定义壁纸
   const savedWp = localStorage.getItem(WALLPAPER_KEY);
@@ -156,6 +214,21 @@ export function initSettings() {
     blurSlider.addEventListener("input", (e) => {
       const v = applyBgBlur(e.target.value);
       localStorage.setItem(BG_BLUR_KEY, String(v));
+    });
+  }
+
+  // 界面色调
+  const colorInput = document.getElementById("ui-color-input");
+  if (colorInput) {
+    colorInput.addEventListener("input", (e) => {
+      applyUiColor(e.target.value);
+    });
+  }
+  const colorResetBtn = document.getElementById("color-reset-btn");
+  if (colorResetBtn) {
+    colorResetBtn.addEventListener("click", () => {
+      resetUiColor();
+      showInfo("已恢复默认色调");
     });
   }
 

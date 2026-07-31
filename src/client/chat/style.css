@@ -21,10 +21,17 @@
   --msg-other-text: #1f2940;
   --online-dot: #2ecc71;
   --site-bg-image: url("https://api.elaina.cat/random/pc");
-  /* 磨砂玻璃层 - 亮色 */
-  --frosted: rgba(255, 255, 255, 0.42);
-  --frosted-strong: rgba(255, 255, 255, 0.66);
-  --frosted-border: rgba(255, 255, 255, 0.6);
+  /* 磨砂玻璃层 - 亮色（RGB 分量 + alpha，受 --bg-tint 控制） */
+  --frosted-r: 255;
+  --frosted-g: 255;
+  --frosted-b: 255;
+  --frosted-a: 0.42;
+  --frosted-strong-a: 0.66;
+  --frosted-border-a: 0.6;
+  --bg-tint: 1;
+  --frosted: rgba(var(--frosted-r), var(--frosted-g), var(--frosted-b), calc(var(--frosted-a) * var(--bg-tint)));
+  --frosted-strong: rgba(var(--frosted-r), var(--frosted-g), var(--frosted-b), calc(var(--frosted-strong-a) * var(--bg-tint)));
+  --frosted-border: rgba(var(--frosted-r), var(--frosted-g), var(--frosted-b), calc(var(--frosted-border-a) * var(--bg-tint)));
   --frosted-blur: blur(18px);
   --input-ink: #1f2940;
   --input-ph: #8a96b8;
@@ -46,10 +53,16 @@ body.dark {
   --msg-other: rgba(20, 25, 42, 0.62);
   --msg-other-text: #e4eaf8;
   --online-dot: #34d399;
-  /* 磨砂玻璃层 - 暗色 */
-  --frosted: rgba(28, 34, 54, 0.42);
-  --frosted-strong: rgba(20, 25, 42, 0.66);
-  --frosted-border: rgba(255, 255, 255, 0.14);
+  /* 磨砂玻璃层 - 暗色（RGB 分量 + alpha，受 --bg-tint 控制） */
+  --frosted-r: 24;
+  --frosted-g: 30;
+  --frosted-b: 50;
+  --frosted-a: 0.42;
+  --frosted-strong-a: 0.66;
+  --frosted-border-a: 0.14;
+  --frosted: rgba(var(--frosted-r), var(--frosted-g), var(--frosted-b), calc(var(--frosted-a) * var(--bg-tint)));
+  --frosted-strong: rgba(var(--frosted-r), var(--frosted-g), var(--frosted-b), calc(var(--frosted-strong-a) * var(--bg-tint)));
+  --frosted-border: rgba(var(--frosted-r), var(--frosted-g), var(--frosted-b), calc(var(--frosted-border-a) * var(--bg-tint)));
   --frosted-blur: blur(18px);
   --input-ink: #e4eaf8;
   --input-ph: #6a7a98;
@@ -119,8 +132,7 @@ body::after {
   backdrop-filter: var(--frosted-blur);
   -webkit-backdrop-filter: var(--frosted-blur);
   pointer-events: none;
-  opacity: var(--bg-tint, 1);
-  transition: opacity 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 /* ---- Chat Log ---- */
@@ -3010,6 +3022,36 @@ body.dark .poll-option {
 
 #settings-overlay .settings-btn-danger:hover {
   background: rgba(231, 76, 60, 0.2);
+}
+
+#settings-overlay .settings-color-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#settings-overlay .settings-color-row input[type="color"] {
+  width: 44px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  background: none;
+  padding: 2px;
+}
+
+#settings-overlay .settings-color-row input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+#settings-overlay .settings-color-row input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 6px;
+}
+
+#settings-overlay .settings-color-hint {
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 #settings-overlay #bg-blur-slider {

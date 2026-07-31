@@ -1,8 +1,8 @@
 // 音乐播放器 — 基于网易云音乐 API (https://github.com/TH911/NeteaseCloudMusicApi)
 import { showError, showInfo } from './state.js';
 
-const API_KEY = "musicApiBase";
-let apiBase = localStorage.getItem(API_KEY) || "";
+// 默认 API 地址（自建部署，无需用户输入）
+const API_BASE = "https://netease-cloud-music-api.vercel.app";
 let queue = [];      // 播放队列
 let currentIndex = -1;
 let audio = null;
@@ -53,8 +53,7 @@ function ensureAudio() {
 
 // ---- API 调用 ----
 async function apiGet(path, params) {
-  if (!apiBase) { showError("请先填写 API 地址"); throw new Error("no api base"); }
-  const base = apiBase.replace(/\/+$/, "");
+  const base = API_BASE.replace(/\/+$/, "");
   const qs = new URLSearchParams(params).toString();
   const url = base + path + (qs ? "?" + qs : "");
   const res = await fetch(url);
@@ -65,7 +64,6 @@ async function apiGet(path, params) {
 // ---- 搜索 ----
 export async function searchMusic(keywords) {
   if (!keywords || !keywords.trim()) { showInfo("请输入搜索内容"); return; }
-  if (!apiBase) { showError("请先填写 API 地址"); return; }
   const container = document.getElementById("music-results");
   container.innerHTML = '<div class="music-empty">搜索中...</div>';
   try {
@@ -183,21 +181,12 @@ export function prev() {
 // ---- 面板开闭 ----
 export function openMusic() {
   document.getElementById("music-overlay").classList.add("show");
-  document.getElementById("music-api-input").value = apiBase;
   const input = document.getElementById("music-search-input");
   if (input) input.focus();
 }
 
 export function closeMusic() {
   document.getElementById("music-overlay").classList.remove("show");
-}
-
-export function saveApiBase() {
-  const val = document.getElementById("music-api-input").value.trim();
-  if (!val) { showError("请输入 API 地址"); return; }
-  apiBase = val;
-  localStorage.setItem(API_KEY, val);
-  showInfo("API 地址已保存");
 }
 
 // ---- 初始化事件 ----
@@ -209,7 +198,6 @@ export function initMusic() {
   document.getElementById("music-search-input").addEventListener("keydown", (e) => {
     if (e.key === "Enter") searchMusic(e.target.value);
   });
-  document.getElementById("music-api-save").addEventListener("click", saveApiBase);
   document.getElementById("music-play").addEventListener("click", togglePlay);
   document.getElementById("music-next").addEventListener("click", next);
   document.getElementById("music-prev").addEventListener("click", prev);
