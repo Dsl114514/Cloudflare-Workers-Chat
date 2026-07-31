@@ -4,26 +4,26 @@
  */
 
 /* ========================================
-   亚克力主题变量
+   亚克力主题变量 - Firefly 深色玻璃风
    ======================================== */
 :root {
-  --acrylic-bg: rgba(255, 255, 255, 0.7);
-  --acrylic-bg-hover: rgba(255, 255, 255, 0.85);
-  --acrylic-bg-active: rgba(255, 255, 255, 0.95);
-  --acrylic-border: rgba(255, 255, 255, 0.3);
-  --acrylic-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --acrylic-bg: rgba(28, 34, 54, 0.62);
+  --acrylic-bg-hover: rgba(40, 48, 74, 0.72);
+  --acrylic-bg-active: rgba(22, 27, 44, 0.88);
+  --acrylic-border: rgba(255, 255, 255, 0.12);
+  --acrylic-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
   --acrylic-blur: blur(20px);
-  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-  --danger-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --text-primary: #2d3748;
-  --text-secondary: #4a5568;
-  --text-muted: #a0aec0;
+  --primary-gradient: linear-gradient(135deg, #7aa2ff 0%, #a78bfa 50%, #f472b6 100%);
+  --secondary-gradient: linear-gradient(135deg, #38bdf8 0%, #a78bfa 100%);
+  --success-gradient: linear-gradient(135deg, #34d399 0%, #22d3ee 100%);
+  --danger-gradient: linear-gradient(135deg, #fb7185 0%, #f472b6 100%);
+  --text-primary: #eef2ff;
+  --text-secondary: #b6c1dd;
+  --text-muted: #7a8ba8;
 }
 
 /* ========================================
-   全局基础样式 - 亚克力风格
+   全局基础样式 - Firefly 深色玻璃
    ======================================== */
 * {
   box-sizing: border-box;
@@ -33,7 +33,10 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background:
+    radial-gradient(circle at top left, rgba(122, 162, 255, 0.14), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(167, 139, 250, 0.2), transparent 30%),
+    linear-gradient(135deg, #10131d 0%, #0e1120 50%, #12101c 100%);
   background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
@@ -47,9 +50,9 @@ body::before {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image:
-    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  background: var(--site-bg-image, none) center/cover no-repeat;
+  opacity: 0.28;
+  filter: blur(2px);
   pointer-events: none;
   z-index: 0;
 }
@@ -472,8 +475,15 @@ textarea::placeholder {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* ========================================
@@ -556,6 +566,7 @@ textarea::placeholder {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -563,13 +574,23 @@ textarea::placeholder {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -1000px 0; }
-  100% { background-position: 1000px 0; }
+  0% {
+    background-position: -1000px 0;
+  }
+
+  100% {
+    background-position: 1000px 0;
+  }
 }
 
 .card,
@@ -810,16 +831,19 @@ textarea::placeholder {
    ======================================== */
 @media (prefers-color-scheme: dark) {
   :root {
-    --acrylic-bg: rgba(26, 26, 46, 0.7);
-    --acrylic-bg-hover: rgba(26, 26, 46, 0.85);
-    --acrylic-bg-active: rgba(26, 26, 46, 0.95);
+    --acrylic-bg: rgba(20, 24, 40, 0.65);
+    --acrylic-bg-hover: rgba(32, 38, 60, 0.72);
+    --acrylic-bg-active: rgba(16, 20, 34, 0.88);
     --acrylic-border: rgba(255, 255, 255, 0.1);
-    --text-primary: #e0e0e0;
-    --text-secondary: #b0b0b0;
-    --text-muted: #808080;
+    --text-primary: #e8ecf8;
+    --text-secondary: #a0b0cc;
+    --text-muted: #6a7a98;
   }
 
   body {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f1e 100%);
+    background:
+      radial-gradient(circle at top left, rgba(122, 162, 255, 0.1), transparent 34%),
+      radial-gradient(circle at bottom right, rgba(167, 139, 250, 0.16), transparent 30%),
+      linear-gradient(135deg, #0a0c14 0%, #0e1120 50%, #0c0a16 100%);
   }
 }

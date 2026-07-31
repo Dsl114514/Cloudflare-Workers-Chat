@@ -3,7 +3,7 @@
  * 支持经典主题和亚克力现代主题
  */
 
-(function() {
+(function () {
   'use strict';
 
   // 主题配置
@@ -183,12 +183,12 @@
         bottom: 30px;
         left: 50%;
         transform: translateX(-50%) translateY(100px);
-        background: rgba(255, 255, 255, 0.95);
+        background: rgba(28, 34, 54, 0.82);
         backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.14);
         border-radius: 16px;
         padding: 16px 24px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
         display: flex;
         align-items: center;
         gap: 16px;
@@ -198,7 +198,7 @@
       }
       .theme-notif-icon {
         font-size: 32px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
+        background: var(--ff-grad, linear-gradient(135deg, #7aa2ff, #f472b6));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -209,12 +209,12 @@
       .theme-notif-title {
         font-size: 16px;
         font-weight: 700;
-        color: #2d3748;
+        color: #eef2ff;
         margin-bottom: 2px;
       }
       .theme-notif-desc {
         font-size: 13px;
-        color: #718096;
+        color: #9aa7c7;
       }
       @keyframes slideUpNotif {
         to {
