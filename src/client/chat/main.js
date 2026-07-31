@@ -13,9 +13,9 @@ import { showSuccess, showInfo, showError } from './state.js';
 
 // Window 兼容 — 重模块用延迟加载存根
 function lazyMod(name, fnName) {
-  return function (...args) {
+  return function(...args) {
     import('./' + name + '.js').then(m => {
-      if (m[fnName]) try { m[fnName](...args); } catch (e) { showError("模块错误: " + e.message); }
+      if (m[fnName]) try { m[fnName](...args); } catch(e) { showError("模块错误: " + e.message); }
     }).catch(e => showError("加载模块失败: " + e.message));
   };
 }
@@ -65,7 +65,7 @@ document.body.addEventListener("click", (e) => {
     navigator.clipboard.writeText(code.textContent).then(() => {
       btn.textContent = "已复制"; btn.classList.add("copied");
       setTimeout(() => { btn.textContent = "复制"; btn.classList.remove("copied"); }, 2000);
-    }).catch(() => { });
+    }).catch(() => {});
   }
 });
 
@@ -76,7 +76,7 @@ document.getElementById("fav-close")?.addEventListener("click", toggleFavoritesP
 // 精华消息 - moved to more-menu
 // 定时消息管理 - moved to more-menu
 
-window._showScheduledList = function (list) {
+window._showScheduledList = function(list) {
   if (!list || list.length === 0) { showInfo("当前没有定时消息"); return; }
   let existing = document.getElementById("sched-list-panel");
   if (existing) { existing.remove(); return; }
@@ -99,7 +99,7 @@ window._showScheduledList = function (list) {
     row.querySelector("[data-sched-id]").addEventListener("click", (e) => {
       e.stopPropagation();
       if (state.currentWebSocket) {
-        state.currentWebSocket.send(JSON.stringify({ type: "schedule-cancel", id: s.id }));
+        state.currentWebSocket.send(JSON.stringify({type: "schedule-cancel", id: s.id}));
         row.remove();
         if (listDiv.children.length === 0) { overlay.remove(); showSuccess("所有定时消息已取消"); }
       }
@@ -158,162 +158,6 @@ document.getElementById("dark-toggle").addEventListener("click", () => {
   document.getElementById("dark-toggle").textContent = on ? "☀️" : "🌙";
 });
 
-// 主题切换 - 支持经典和亚克力主题
-const THEMES = {
-  classic: { name: '经典主题', file: '/static/styles/all-styles.css', icon: '🎨' },
-  acrylic: { name: '亚克力主题', file: '/static/styles/acrylic-theme.css', icon: '✨' }
-};
-
-let currentTheme = localStorage.getItem('cloudchat-theme') || 'acrylic';
-
-// 如果保存的是亚克力主题，加载它
-if (currentTheme === 'acrylic') {
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = THEMES.acrylic.file;
-  link.id = 'acrylic-theme-link';
-  document.head.appendChild(link);
-}
-
-// 初始化主题按钮
-function initThemeButtons() {
-  const themeToggle = document.getElementById("theme-toggle");
-  const mbbTheme = document.querySelector("#mbb-theme");
-
-  if (themeToggle) {
-    themeToggle.textContent = THEMES[currentTheme].icon;
-
-    // 移除旧的事件监听器（如果存在）
-    themeToggle.replaceWith(themeToggle.cloneNode(true));
-    const newThemeToggle = document.getElementById("theme-toggle");
-
-    // 添加新的事件监听器
-    newThemeToggle.addEventListener("click", handleThemeToggle);
-  }
-
-  if (mbbTheme) {
-    mbbTheme.textContent = THEMES[currentTheme].icon;
-
-    // 为移动端按钮也添加直接的事件监听器
-    mbbTheme.replaceWith(mbbTheme.cloneNode(true));
-    const newMbbTheme = document.querySelector("#mbb-theme");
-    if (newMbbTheme) {
-      newMbbTheme.addEventListener("click", handleThemeToggle);
-    }
-  }
-}
-
-// 主题切换处理函数
-function handleThemeToggle() {
-  const nextTheme = currentTheme === 'classic' ? 'acrylic' : 'classic';
-  const themeConfig = THEMES[nextTheme];
-
-  // 移除旧主题
-  const oldLink = document.getElementById('acrylic-theme-link');
-  if (oldLink) oldLink.remove();
-
-  // 如果切换到亚克力主题，加载CSS
-  if (nextTheme === 'acrylic') {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = themeConfig.file;
-    link.id = 'acrylic-theme-link';
-    document.head.appendChild(link);
-  }
-
-  // 更新状态
-  currentTheme = nextTheme;
-  localStorage.setItem('cloudchat-theme', nextTheme);
-
-  // 更新按钮图标
-  const themeToggle = document.getElementById("theme-toggle");
-  const mbbTheme = document.querySelector("#mbb-theme");
-  if (themeToggle) themeToggle.textContent = themeConfig.icon;
-  if (mbbTheme) mbbTheme.textContent = themeConfig.icon;
-
-  // 显示通知
-  showInfo(`已切换到${themeConfig.name}`);
-}
-
-// 延迟初始化，确保DOM已加载
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initThemeButtons);
-} else {
-  initThemeButtons();
-}
-
-// 背景图片切换
-const BG_IMAGE_API = "https://api.elaina.cat/random/pc/";
-const BG_STORAGE_KEY = "cloudchat-bg-image";
-
-function applyBgImage(url) {
-  if (url) {
-    document.body.style.backgroundImage = `url("${url}")`;
-    document.body.style.backgroundSize = "cover";
-    document.body.style.backgroundPosition = "center center";
-    document.body.style.backgroundRepeat = "no-repeat";
-    document.body.style.backgroundAttachment = "fixed";
-  } else {
-    document.body.style.backgroundImage = "";
-    document.body.style.backgroundSize = "";
-    document.body.style.backgroundPosition = "";
-    document.body.style.backgroundRepeat = "";
-    document.body.style.backgroundAttachment = "";
-  }
-}
-
-function initBgImage() {
-  const saved = localStorage.getItem(BG_STORAGE_KEY);
-  if (saved) applyBgImage(saved);
-}
-
-async function changeBgImage() {
-  const btn = document.getElementById("bg-image-toggle");
-  const mbbBtn = document.getElementById("mbb-bg-image");
-  try {
-    if (btn) btn.style.opacity = "0.5";
-    if (mbbBtn) mbbBtn.style.opacity = "0.5";
-    const resp = await fetch(BG_IMAGE_API + "?_=" + Date.now());
-    if (!resp.ok) throw new Error("HTTP " + resp.status);
-    const blob = await resp.blob();
-    const url = URL.createObjectURL(blob);
-    applyBgImage(url);
-    localStorage.setItem(BG_STORAGE_KEY, url);
-    showInfo("背景图片已更新");
-  } catch (e) {
-    showError("背景图片加载失败: " + e.message);
-  } finally {
-    if (btn) btn.style.opacity = "";
-    if (mbbBtn) mbbBtn.style.opacity = "";
-  }
-}
-
-function resetBgImage() {
-  applyBgImage(null);
-  localStorage.removeItem(BG_STORAGE_KEY);
-  showInfo("背景图片已清除");
-}
-
-function initBgImageButtons() {
-  const bgToggle = document.getElementById("bg-image-toggle");
-  const mbbBg = document.getElementById("mbb-bg-image");
-  if (bgToggle) {
-    bgToggle.addEventListener("click", changeBgImage);
-    bgToggle.addEventListener("contextmenu", (e) => { e.preventDefault(); resetBgImage(); });
-  }
-  if (mbbBg) {
-    mbbBg.addEventListener("click", changeBgImage);
-    mbbBg.addEventListener("contextmenu", (e) => { e.preventDefault(); resetBgImage(); });
-  }
-  initBgImage();
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initBgImageButtons);
-} else {
-  initBgImageButtons();
-}
-
 // Service Worker
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
 
@@ -323,7 +167,7 @@ document.addEventListener("visibilitychange", () => {
 });
 
 // 私信回车发送
-document.addEventListener("keydown", function (e) {
+document.addEventListener("keydown", function(e) {
   if (e.target && e.target.id === "dm-input" && e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendDM(); }
 });
 

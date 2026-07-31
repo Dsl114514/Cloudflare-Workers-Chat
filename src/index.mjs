@@ -47,6 +47,7 @@ import CHAT_STYLE from "./client/chat/style.css";
 import CHAT_GAME_STYLE from "./client/chat/game-style.css";
 import ALL_STYLES from "./client/styles/all-styles.css";
 import ACRYLIC_THEME from "./client/styles/acrylic-theme.css";
+import THEME_SWITCH_JS from "./client/theme-switch.js";
 import ADMIN_MAIN from "./client/admin/main.js";
 import ADMIN_STATE from "./client/admin/state.js";
 import ADMIN_UTILS from "./client/admin/utils.js";
@@ -221,6 +222,9 @@ export default {
         }
         if (modPath === "styles/acrylic-theme.css") {
           return new Response(ACRYLIC_THEME, {headers: {"Content-Type": "text/css;charset=UTF-8", "Cache-Control": "public, max-age=86400"}});
+        }
+        if (modPath === "theme-switch.js") {
+          return new Response(THEME_SWITCH_JS, {headers: {"Content-Type": "application/javascript;charset=UTF-8", "Cache-Control": "public, max-age=86400"}});
         }
       }
 
