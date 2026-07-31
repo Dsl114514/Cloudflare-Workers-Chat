@@ -57,15 +57,23 @@
    */
   function createThemeToggleButton() {
     // 检查是否已存在
-    if (document.getElementById('theme-toggle-btn')) {
-      return;
-    }
+    let btn = document.getElementById('theme-toggle-btn');
 
-    const btn = document.createElement('button');
-    btn.id = 'theme-toggle-btn';
-    btn.className = 'theme-toggle-btn';
-    btn.title = '切换主题';
-    btn.setAttribute('aria-label', '切换主题');
+    if (!btn) {
+      // 如果不存在，动态创建
+      btn = document.createElement('button');
+      btn.id = 'theme-toggle-btn';
+      btn.className = 'theme-toggle-btn';
+      btn.title = '切换主题 (经典/亚克力)';
+      btn.setAttribute('aria-label', '切换主题');
+
+      // 添加到页面
+      document.body.appendChild(btn);
+
+      console.log('[Theme] 主题切换按钮已创建');
+    } else {
+      console.log('[Theme] 使用已存在的主题切换按钮');
+    }
 
     // 设置图标
     btn.innerHTML = THEMES[currentTheme].icon;
@@ -73,10 +81,7 @@
     // 点击事件
     btn.addEventListener('click', toggleTheme);
 
-    // 添加到页面
-    document.body.appendChild(btn);
-
-    console.log('[Theme] 主题切换按钮已创建');
+    return btn;
   }
 
   /**
