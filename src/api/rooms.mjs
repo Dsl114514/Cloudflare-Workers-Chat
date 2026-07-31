@@ -30,13 +30,16 @@ export async function handleRooms(path, request, env) {
       }
 
       let name = path[1];
+      // 🔒 房间名白名单：只允许字母数字下划线连字符，或64位hex的DO ID，防止恶意房间名被存储触发XSS
+      let isValidName = (name.length <= 32 && /^[a-zA-Z0-9_\-]+$/.test(name)) || /^[0-9a-f]{64}$/.test(name);
+      if (!isValidName) {
+        return new Response("房间名称包含非法字符", {status: 400});
+      }
       let id;
       if (name.match(/^[0-9a-f]{64}$/)) {
         id = env.rooms.idFromString(name);
-      } else if (name.length <= 32) {
-        id = env.rooms.idFromName(name);
       } else {
-        return new Response("名称过长", {status: 404});
+        id = env.rooms.idFromName(name);
       }
 
       let roomObject = env.rooms.get(id);
@@ -77,6 +80,24 @@ export async function handleRooms(path, request, env) {
         return new Response(JSON.stringify(filtered), {
           headers: {"Content-Type": "application/json"}
         });
+      }
+
+      // 🔒 S1 安全修复：只放行公开只读端点。
+      // 其余（do-kick/do-destroy/broadcast-message/users-detail/tag-update/message/recall 等）
+      // 必须通过带管理密钥认证的 /api/admin/* 执行，杜绝任何匿名访客直达房间 DO。
+      const PUBLIC_ROOM_ENDPOINTS = [
+        "websocket",        // 聊天连接
+        "messages",         // 历史消息（只读）
+        "users",            // 在线用户列表（不含 IP）
+        "files",            // 文件列表（只读）
+        "file-data",        // 文件内容（只读）
+        "get-announcement", // 公告（只读）
+        "get-pinned",       // 置顶消息（只读）
+        "export"            // 导出聊天记录（前端公开按钮）
+      ];
+      let roomSubPath = path[2];
+      if (!PUBLIC_ROOM_ENDPOINTS.includes(roomSubPath)) {
+        return new Response("无权限访问此操作。管理操作请通过 /api/admin/* 执行。", { status: 403 });
       }
 
       let newUrl = new URL(request.url);
