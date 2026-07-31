@@ -9,6 +9,8 @@ import { toggleSearch, doSearch, searchPrev, searchNext } from './search.js';
 import { showHighlightsPanel } from './highlights.js';
 import { toggleFavoritesPanel } from './favorites.js';
 import { toggleRoomInfo } from './roominfo.js';
+import { openSettings, closeSettings, initSettings } from './settings.js';
+import { openMusic, closeMusic, initMusic } from './music.js';
 import { showSuccess, showInfo, showError } from './state.js';
 
 // Window 兼容 — 重模块用延迟加载存根
@@ -35,6 +37,16 @@ for (let [k, v] of Object.entries(lazyMods)) window[k] = lazyMod(v[0], v[1]);
 window.toggleSearch = toggleSearch;
 window.closeDM = closeDM;
 window.exportChatLog = exportChatLog;
+window.openSettings = openSettings;
+window.closeSettings = closeSettings;
+window.openMusic = openMusic;
+window.closeMusic = closeMusic;
+
+// 设置按钮
+document.getElementById("settings-toggle").addEventListener("click", openSettings);
+
+// 音乐播放器
+initMusic();
 
 // 用户菜单
 document.getElementById("user-menu").addEventListener("click", (e) => {
@@ -210,7 +222,8 @@ document.addEventListener("keydown", function(e) {
 });
 
 // 全局 Escape
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeShop(); closeTasks(); closeGames(); } });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeShop(); closeTasks(); closeGames(); closeSettings(); closeMusic(); } });
 
 // 启动登录界面
+initSettings();
 startNameChooser();
