@@ -35,8 +35,19 @@
     // 创建主题切换按钮
     createThemeToggleButton();
 
-    // 应用主题
-    setTheme(savedTheme, false);
+    // 检查当前是否已有主题样式
+    const existingTheme = document.querySelector('link[data-theme]') ||
+                          document.querySelector('link[href*="all-styles.css"]');
+
+    if (existingTheme && savedTheme === 'classic') {
+      // 经典主题已加载，只需标记
+      existingTheme.setAttribute('data-theme', 'classic');
+      currentTheme = 'classic';
+      console.log('[Theme] 经典主题已存在');
+    } else if (savedTheme !== 'classic') {
+      // 需要切换到其他主题
+      setTheme(savedTheme, false);
+    }
 
     console.log('[Theme] 系统初始化完成，当前主题:', savedTheme);
   }
@@ -100,24 +111,63 @@
 
     console.log('[Theme] 切换到主题:', themeName);
 
-    // 移除旧主题样式
-    const oldLink = document.querySelector('link[data-theme]');
+    // 移除旧的主题样式（除了经典主题的基础样式）
+    const oldLink = document.querySelector('link[data-theme]:not([href*="all-styles.css"])');
     if (oldLink) {
       oldLink.remove();
     }
 
-    // 添加新主题样式
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = theme.file;
-    link.setAttribute('data-theme', themeName);
+    // 如果切换到经典主题，确保基础样式存在
+    if (themeName === 'classic') {
+      const existingClassic = document.querySelector('link[href*="all-styles.css"]');
+      if (!existingClassic) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = theme.file;
+        link.setAttribute('data-theme', 'classic');
+        document.head.appendChild(link);
+      }
+    } else {
+      // 其他主题，添加新样式
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = theme.file;
+      link.setAttribute('data-theme', themeName);
 
-    // 加载成功后更新状态
-    link.onload = () => {
-      currentTheme = themeName;
+      // 加载成功后更新状态
+      link.onload = () => {
+        currentTheme = themeName;
 
-      // 保存到localStorage
-      localStorage.setItem('cloudchat-theme', themeName);
+        // 保存到localStorage
+        localStorage.setItem('cloudchat-theme', themeName);
+
+        // 更新按钮图标
+        const btn = document.getElementById('theme-toggle-btn');
+        if (btn) {
+          btn.innerHTML = theme.icon;
+        }
+
+        // 显示通知
+        if (animate) {
+          showThemeNotification(theme);
+        }
+
+        console.log('[Theme] 主题加载成功:', themeName);
+      };
+
+      // 加载失败处理
+      link.onerror = () => {
+        console.error('[Theme] 主题加载失败:', themeName);
+        showErrorNotification('主题加载失败，请刷新页面重试');
+      };
+
+      document.head.appendChild(link);
+    }
+
+    // 经典主题立即更新状态
+    if (themeName === 'classic') {
+      currentTheme = 'classic';
+      localStorage.setItem('cloudchat-theme', 'classic');
 
       // 更新按钮图标
       const btn = document.getElementById('theme-toggle-btn');
@@ -130,16 +180,8 @@
         showThemeNotification(theme);
       }
 
-      console.log('[Theme] 主题加载成功:', themeName);
-    };
-
-    // 加载失败处理
-    link.onerror = () => {
-      console.error('[Theme] 主题加载失败:', themeName);
-      showErrorNotification('主题加载失败，请刷新页面重试');
-    };
-
-    document.head.appendChild(link);
+      console.log('[Theme] 主题切换成功:', themeName);
+    }
   }
 
   /**
