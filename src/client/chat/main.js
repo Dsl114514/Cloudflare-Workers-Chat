@@ -158,6 +158,55 @@ document.getElementById("dark-toggle").addEventListener("click", () => {
   document.getElementById("dark-toggle").textContent = on ? "☀️" : "🌙";
 });
 
+// 主题切换 - 支持经典和亚克力主题
+const THEMES = {
+  classic: { name: '经典主题', file: '/static/styles/all-styles.css', icon: '🎨' },
+  acrylic: { name: '亚克力主题', file: '/static/styles/acrylic-theme.css', icon: '✨' }
+};
+
+let currentTheme = localStorage.getItem('cloudchat-theme') || 'classic';
+
+// 初始化主题按钮图标
+document.getElementById("theme-toggle").textContent = THEMES[currentTheme].icon;
+document.querySelector("#mbb-theme")?.textContent = THEMES[currentTheme].icon;
+
+// 如果保存的是亚克力主题，加载它
+if (currentTheme === 'acrylic') {
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = THEMES.acrylic.file;
+  link.id = 'acrylic-theme-link';
+  document.head.appendChild(link);
+}
+
+// 主题切换事件
+document.getElementById("theme-toggle").addEventListener("click", () => {
+  const nextTheme = currentTheme === 'classic' ? 'acrylic' : 'classic';
+  const themeConfig = THEMES[nextTheme];
+
+  // 移除旧主题
+  const oldLink = document.getElementById('acrylic-theme-link');
+  if (oldLink) oldLink.remove();
+
+  // 如果切换到亚克力主题，加载CSS
+  if (nextTheme === 'acrylic') {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = themeConfig.file;
+    link.id = 'acrylic-theme-link';
+    document.head.appendChild(link);
+  }
+
+  // 更新状态
+  currentTheme = nextTheme;
+  localStorage.setItem('cloudchat-theme', nextTheme);
+  document.getElementById("theme-toggle").textContent = themeConfig.icon;
+  document.querySelector("#mbb-theme")?.textContent = themeConfig.icon;
+
+  // 显示通知
+  showInfo(`已切换到${themeConfig.name}`);
+});
+
 // Service Worker
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
 

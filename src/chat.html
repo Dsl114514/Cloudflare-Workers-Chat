@@ -185,8 +185,9 @@
       <span id="gallery-next" style="display:none;position:fixed;right:20px;top:50%;transform:translateY(-50%);font-size:48px;color:#fff;cursor:pointer;user-select:none;z-index:1001;opacity:0.7;text-shadow:0 2px 8px rgba(0,0,0,0.5);">&rsaquo;</span>
       <img id="lightbox-img" src="" alt="">
     </div>
-    <!-- Floating Action Buttons - kept visible: dark, sound, search, tag -->
+    <!-- Floating Action Buttons - kept visible: dark, sound, search, tag, theme -->
     <div id="more-menu-backdrop"></div>
+    <div class="floating-btn" id="theme-toggle" title="切换主题 (经典/亚克力)">🎨</div>
     <div class="floating-btn" id="sound-toggle" title="提示音">🔊</div>
     <div class="floating-btn" id="dark-toggle" title="暗色模式">🌙</div>
     <div class="floating-btn" id="search-toggle" title="搜索消息">🔍</div>
@@ -267,6 +268,7 @@
     </div>
     <!-- Mobile bottom bar -->
     <div id="mobile-bottom-bar">
+      <button class="mbb-btn" id="mbb-theme" title="切换主题">🎨</button>
       <button class="mbb-btn" id="mbb-sound" title="提示音">🔊</button>
       <button class="mbb-btn" id="mbb-dark" title="暗色模式">🌙</button>
       <button class="mbb-btn" id="mbb-search" title="搜索">🔍</button>
