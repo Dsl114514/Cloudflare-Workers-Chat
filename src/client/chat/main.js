@@ -176,9 +176,26 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
 
 // Firefly 背景图加载 + fallback
 // 优先 api.elaina.cat，失败则切换到 picsum 随机图，再失败则使用纯渐变（已是 body::before 默认）
-// 若已设置自定义壁纸或视频壁纸，则跳过随机加载
+// 若已设置自定义壁纸或视频壁纸，则恢复并跳过随机加载
 (function setupBackground() {
-  if (localStorage.getItem("customWallpaper") || localStorage.getItem("customVideo")) return;
+  // 恢复自定义壁纸
+  const savedWp = localStorage.getItem("customWallpaper");
+  if (savedWp) {
+    document.documentElement.style.setProperty("--site-bg-image", `url("${savedWp}")`);
+    return;
+  }
+  // 恢复视频壁纸
+  const savedVideo = localStorage.getItem("customVideo");
+  if (savedVideo) {
+    const video = document.getElementById("video-wallpaper");
+    if (video) {
+      video.src = savedVideo;
+      video.style.display = "";
+      document.body.classList.add("video-bg");
+      video.play().catch(() => {});
+    }
+    return;
+  }
   const sources = [
     "https://api.elaina.cat/random/pc",
     "https://picsum.photos/1920/1080",
