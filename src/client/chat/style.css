@@ -3185,42 +3185,6 @@ body.dark .poll-option {
   background: var(--primary-dark);
 }
 
-#music-overlay .music-api-config {
-  display: flex;
-  gap: 8px;
-  padding: 8px 16px 0;
-  flex-shrink: 0;
-}
-
-#music-overlay .music-api-config input {
-  flex: 1;
-  padding: 7px 10px;
-  border: 1px dashed var(--border);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--input-ink);
-  font-size: 12px;
-  outline: none;
-  font-family: inherit;
-}
-
-#music-overlay .music-api-config input:focus {
-  border-color: var(--primary);
-  border-style: solid;
-}
-
-#music-overlay .music-api-config button {
-  padding: 6px 12px;
-  background: var(--surface);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 12px;
-  cursor: pointer;
-  font-family: inherit;
-  white-space: nowrap;
-}
-
 #music-overlay .music-results {
   flex: 1;
   overflow-y: auto;

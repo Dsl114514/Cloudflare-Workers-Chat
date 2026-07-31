@@ -11,7 +11,7 @@ const VIDEO_KEY = "customVideo";
 export function applyBgTint(value) {
   let n = Number(value);
   let v = isNaN(n) ? 1 : Math.max(0, Math.min(1, n));
-  document.documentElement.style.setProperty("--bg-tint", String(v));
+  document.body.style.setProperty("--bg-tint", String(v));
   const valEl = document.getElementById("bg-opacity-value");
   const sliderEl = document.getElementById("bg-opacity-slider");
   if (valEl) valEl.textContent = Math.round(v * 100) + "%";
@@ -23,7 +23,7 @@ export function applyBgTint(value) {
 export function applyBgBlur(value) {
   let n = Number(value);
   let v = isNaN(n) ? 18 : Math.max(0, Math.min(30, n));
-  document.documentElement.style.setProperty("--frosted-blur", `blur(${v}px)`);
+  document.body.style.setProperty("--frosted-blur", `blur(${v}px)`);
   const valEl = document.getElementById("bg-blur-value");
   const sliderEl = document.getElementById("bg-blur-slider");
   if (valEl) valEl.textContent = v + "px";
@@ -45,9 +45,9 @@ export function applyUiColor(hex) {
   if (!hex) { resetUiColor(); return; }
   const rgb = hexToRgb(hex);
   if (!rgb) { showError("无效的颜色值"); return; }
-  document.documentElement.style.setProperty("--frosted-r", String(rgb.r));
-  document.documentElement.style.setProperty("--frosted-g", String(rgb.g));
-  document.documentElement.style.setProperty("--frosted-b", String(rgb.b));
+  document.body.style.setProperty("--frosted-r", String(rgb.r));
+  document.body.style.setProperty("--frosted-g", String(rgb.g));
+  document.body.style.setProperty("--frosted-b", String(rgb.b));
   const resetBtn = document.getElementById("color-reset-btn");
   if (resetBtn) resetBtn.style.display = "";
   localStorage.setItem(UI_COLOR_KEY, hex);
@@ -55,15 +55,15 @@ export function applyUiColor(hex) {
 
 function resetUiColor() {
   localStorage.removeItem(UI_COLOR_KEY);
-  document.documentElement.style.removeProperty("--frosted-r");
-  document.documentElement.style.removeProperty("--frosted-g");
-  document.documentElement.style.removeProperty("--frosted-b");
+  document.body.style.removeProperty("--frosted-r");
+  document.body.style.removeProperty("--frosted-g");
+  document.body.style.removeProperty("--frosted-b");
   const resetBtn = document.getElementById("color-reset-btn");
   if (resetBtn) resetBtn.style.display = "none";
   // 恢复颜色选择器为当前实际值
   const colorInput = document.getElementById("ui-color-input");
   if (colorInput) {
-    const cs = getComputedStyle(document.documentElement);
+    const cs = getComputedStyle(document.body);
     const r = cs.getPropertyValue("--frosted-r").trim();
     const g = cs.getPropertyValue("--frosted-g").trim();
     const b = cs.getPropertyValue("--frosted-b").trim();
@@ -74,7 +74,7 @@ function resetUiColor() {
 // ---- 自定义壁纸 ----
 export function applyWallpaper(url) {
   if (!url) { restoreRandomWallpaper(); return; }
-  document.documentElement.style.setProperty("--site-bg-image", `url("${url}")`);
+  document.body.style.setProperty("--site-bg-image", `url("${url}")`);
   // 取消视频壁纸（互斥）
   if (document.body.classList.contains("video-bg")) cancelVideoWallpaper();
   const cancelBtn = document.getElementById("wallpaper-cancel-btn");
@@ -88,7 +88,7 @@ function restoreRandomWallpaper() {
   if (cancelBtn) cancelBtn.style.display = "none";
   const urlInput = document.getElementById("wallpaper-url-input");
   if (urlInput) urlInput.value = "";
-  document.documentElement.style.removeProperty("--site-bg-image");
+  document.body.style.removeProperty("--site-bg-image");
   localStorage.removeItem("ff-bg-url");
   localStorage.removeItem("ff-bg-ts");
   window.location.reload();
@@ -134,7 +134,7 @@ export function cancelVideoWallpaper() {
 export function openSettings() {
   document.getElementById("settings-overlay").classList.add("show");
   // 同步当前值到控件
-  const tint = getComputedStyle(document.documentElement).getPropertyValue("--bg-tint").trim();
+  const tint = getComputedStyle(document.body).getPropertyValue("--bg-tint").trim();
   applyBgTint(tint === "" ? 1 : parseFloat(tint));
   const blurVal = localStorage.getItem(BG_BLUR_KEY);
   applyBgBlur(blurVal === null ? 18 : blurVal);
@@ -149,7 +149,7 @@ export function openSettings() {
     const saved = localStorage.getItem(UI_COLOR_KEY);
     if (saved) colorInput.value = saved;
     else {
-      const cs = getComputedStyle(document.documentElement);
+      const cs = getComputedStyle(document.body);
       const r = cs.getPropertyValue("--frosted-r").trim();
       const g = cs.getPropertyValue("--frosted-g").trim();
       const b = cs.getPropertyValue("--frosted-b").trim();
@@ -179,7 +179,7 @@ export function initSettings() {
   // 恢复自定义壁纸
   const savedWp = localStorage.getItem(WALLPAPER_KEY);
   if (savedWp) {
-    document.documentElement.style.setProperty("--site-bg-image", `url("${savedWp}")`);
+    document.body.style.setProperty("--site-bg-image", `url("${savedWp}")`);
     const cancelBtn = document.getElementById("wallpaper-cancel-btn");
     if (cancelBtn) cancelBtn.style.display = "";
   }
