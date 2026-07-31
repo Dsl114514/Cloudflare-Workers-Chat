@@ -32,6 +32,9 @@
     // 从localStorage读取主题设置
     const savedTheme = localStorage.getItem('cloudchat-theme') || 'classic';
 
+    // 应用随机背景图
+    applyRandomBackground();
+
     // 创建主题切换按钮
     createThemeToggleButton();
 
@@ -39,6 +42,14 @@
     setTheme(savedTheme, false);
 
     console.log('[Theme] 系统初始化完成，当前主题:', savedTheme);
+  }
+
+  /**
+   * 应用随机背景图
+   */
+  function applyRandomBackground() {
+    const bgUrl = 'https://api.elaina.cat/random/pc?t=' + Date.now();
+    document.documentElement.style.setProperty('--site-bg-image', 'url("' + bgUrl + '")');
   }
 
   /**
