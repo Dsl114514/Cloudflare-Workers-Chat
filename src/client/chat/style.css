@@ -1457,7 +1457,7 @@ body {
 .floating-btn {
   position: fixed;
   right: 12px;
-  z-index: 11;
+  z-index: 100;
   width: 36px;
   height: 36px;
   font-size: 14px;
@@ -1470,6 +1470,7 @@ body {
   user-select: none;
   box-shadow: var(--shadow-sm);
   transition: box-shadow 0.2s, opacity 0.2s, transform 0.2s;
+  pointer-events: auto;
 }
 
 .floating-btn:hover {
@@ -1482,50 +1483,61 @@ body {
   transform: scale(0.8);
 }
 
-/* Position each floating button from bottom to top */
+/* Position each floating button from bottom to top + ascending z-index so higher buttons stack above lower ones */
 #sound-toggle {
   bottom: 60px;
+  z-index: 100;
 }
 
 #dark-toggle {
   bottom: 104px;
+  z-index: 101;
 }
 
 #tag-warehouse-btn {
   bottom: 60px;
   right: 56px;
+  z-index: 100;
 }
 
 #search-toggle {
   bottom: 148px;
+  z-index: 102;
 }
 
 #bg-image-toggle {
   bottom: 192px;
+  z-index: 103;
 }
 
 #theme-toggle {
   bottom: 236px;
+  z-index: 104;
 }
 
 #favorites-btn {
   bottom: 280px;
+  z-index: 105;
 }
 
 #highlights-btn {
   bottom: 324px;
+  z-index: 106;
 }
 
 #room-info-btn {
   bottom: 368px;
+  z-index: 107;
 }
 
 #sched-btn {
   bottom: 412px;
+  z-index: 108;
 }
 
 #more-menu-btn {
   bottom: 456px;
+  z-index: 109;
 }
 
 /* More menu panel */
@@ -1534,7 +1546,7 @@ body {
   position: fixed;
   right: 56px;
   bottom: 468px;
-  z-index: 12;
+  z-index: 110;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -1578,11 +1590,12 @@ body {
 #more-menu-backdrop {
   display: none;
   position: fixed;
-  z-index: 11;
+  z-index: 99;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
+  pointer-events: auto;
 }
 
 #more-menu-backdrop.show {
