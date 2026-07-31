@@ -1587,31 +1587,15 @@ body::after {
 }
 
 #settings-toggle {
-  bottom: 192px;
+  bottom: 200px;
 }
 
 #music-toggle {
-  bottom: 236px;
-}
-
-#favorites-btn {
-  bottom: 192px;
-}
-
-#highlights-btn {
-  bottom: 236px;
-}
-
-#room-info-btn {
-  bottom: 280px;
-}
-
-#sched-btn {
-  bottom: 324px;
+  bottom: 252px;
 }
 
 #more-menu-btn {
-  bottom: 368px;
+  bottom: 304px;
 }
 
 /* More menu panel */
@@ -1619,7 +1603,7 @@ body::after {
   display: none;
   position: fixed;
   right: 56px;
-  bottom: 380px;
+  bottom: 316px;
   z-index: 12;
   background: var(--surface);
   border: 1px solid var(--border);
