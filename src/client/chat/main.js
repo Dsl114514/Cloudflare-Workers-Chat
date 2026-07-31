@@ -161,6 +161,44 @@ document.getElementById("dark-toggle").addEventListener("click", () => {
 // Service Worker
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
 
+// Firefly 背景图加载 + fallback
+// 优先 api.elaina.cat，失败则切换到 picsum 随机图，再失败则使用纯渐变（已是 body::before 默认）
+(function setupBackground() {
+  const sources = [
+    "https://api.elaina.cat/random/pc",
+    "https://picsum.photos/1920/1080",
+    "https://bing.ioli.s.cn/v1/rand?w=1920&h=1080"
+  ];
+  const setBg = (url) => document.documentElement.style.setProperty("--site-bg-image", `url("${url}")`);
+  const tryLoad = (url) => new Promise(res => {
+    const img = new Image();
+    img.onload = () => res(true);
+    img.onerror = () => res(false);
+    img.src = url;
+    // 4 秒超时视为失败
+    setTimeout(() => res(false), 4000);
+  });
+  (async () => {
+    // 缓存 2 小时内的随机图，避免每次刷新都换
+    const cached = localStorage.getItem("ff-bg-url");
+    const cachedAt = +localStorage.getItem("ff-bg-ts") || 0;
+    if (cached && Date.now() - cachedAt < 2 * 60 * 60 * 1000) {
+      setBg(cached);
+      return;
+    }
+    for (const url of sources) {
+      const ok = await tryLoad(url);
+      if (ok) {
+        setBg(url);
+        localStorage.setItem("ff-bg-url", url);
+        localStorage.setItem("ff-bg-ts", String(Date.now()));
+        return;
+      }
+    }
+    // 全部失败，留 CSS 默认值（仍可能为空），不影响 ::before 渐变背景
+  })();
+})();
+
 // 可见性变化 - 未读计数重置
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) { state.unreadCount = 0; document.title = state.originalDocTitle; }

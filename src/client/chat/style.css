@@ -20,6 +20,7 @@
   --msg-other: #1d2240;
   --msg-other-text: #eef2ff;
   --online-dot: #34d399;
+  --site-bg-image: url("https://api.elaina.cat/random/pc");
 }
 
 body.dark {
@@ -81,11 +82,11 @@ body::after {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background-image: var(--site-bg-image, none);
+  background-image: var(--site-bg-image);
   background-position: center;
   background-size: cover;
-  opacity: 0.18;
-  filter: blur(2px);
+  opacity: 0.5;
+  filter: blur(1.5px) saturate(1.05);
   pointer-events: none;
 }
 
@@ -778,8 +779,8 @@ body::after {
   border: 1px solid var(--border);
   border-radius: 22px;
   padding: 0 16px;
-  padding-left: 46px;
-  padding-right: 145px;
+  padding-left: 100px;
+  padding-right: 140px;
   outline: none;
   font-size: 14px;
   background: var(--surface);
@@ -2391,8 +2392,8 @@ body.dark .poll-option {
     right: 12px;
     bottom: 54px;
     height: 40px;
-    padding-left: 40px;
-    padding-right: 100px;
+    padding-left: 92px;
+    padding-right: 96px;
   }
 
   #emoji-btn {
