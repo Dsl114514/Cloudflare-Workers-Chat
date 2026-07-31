@@ -79,6 +79,24 @@ export async function handleRooms(path, request, env) {
         });
       }
 
+      // 🔒 S1 安全修复：只放行公开只读端点。
+      // 其余（do-kick/do-destroy/broadcast-message/users-detail/tag-update/message/recall 等）
+      // 必须通过带管理密钥认证的 /api/admin/* 执行，杜绝任何匿名访客直达房间 DO。
+      const PUBLIC_ROOM_ENDPOINTS = [
+        "websocket",        // 聊天连接
+        "messages",         // 历史消息（只读）
+        "users",            // 在线用户列表（不含 IP）
+        "files",            // 文件列表（只读）
+        "file-data",        // 文件内容（只读）
+        "get-announcement", // 公告（只读）
+        "get-pinned",       // 置顶消息（只读）
+        "export"            // 导出聊天记录（前端公开按钮）
+      ];
+      let roomSubPath = path[2];
+      if (!PUBLIC_ROOM_ENDPOINTS.includes(roomSubPath)) {
+        return new Response("无权限访问此操作。管理操作请通过 /api/admin/* 执行。", { status: 403 });
+      }
+
       let newUrl = new URL(request.url);
       newUrl.pathname = "/" + path.slice(2).join("/");
       newUrl.searchParams.set("room_name", name);
