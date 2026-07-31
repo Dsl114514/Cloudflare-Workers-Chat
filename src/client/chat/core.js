@@ -471,9 +471,6 @@ export function startChat() {
   }
 
   // Mobile bottom bar
-  document.querySelector("#mbb-theme")?.addEventListener("click", () => {
-    document.querySelector("#theme-toggle")?.click();
-  });
   document.querySelector("#mbb-sound")?.addEventListener("click", () => {
     document.querySelector("#sound-toggle")?.click();
   });

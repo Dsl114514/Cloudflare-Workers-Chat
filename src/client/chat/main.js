@@ -166,10 +166,6 @@ const THEMES = {
 
 let currentTheme = localStorage.getItem('cloudchat-theme') || 'classic';
 
-// 初始化主题按钮图标
-document.getElementById("theme-toggle").textContent = THEMES[currentTheme].icon;
-document.querySelector("#mbb-theme")?.textContent = THEMES[currentTheme].icon;
-
 // 如果保存的是亚克力主题，加载它
 if (currentTheme === 'acrylic') {
   const link = document.createElement('link');
@@ -179,8 +175,36 @@ if (currentTheme === 'acrylic') {
   document.head.appendChild(link);
 }
 
-// 主题切换事件
-document.getElementById("theme-toggle").addEventListener("click", () => {
+// 初始化主题按钮
+function initThemeButtons() {
+  const themeToggle = document.getElementById("theme-toggle");
+  const mbbTheme = document.querySelector("#mbb-theme");
+
+  if (themeToggle) {
+    themeToggle.textContent = THEMES[currentTheme].icon;
+
+    // 移除旧的事件监听器（如果存在）
+    themeToggle.replaceWith(themeToggle.cloneNode(true));
+    const newThemeToggle = document.getElementById("theme-toggle");
+
+    // 添加新的事件监听器
+    newThemeToggle.addEventListener("click", handleThemeToggle);
+  }
+
+  if (mbbTheme) {
+    mbbTheme.textContent = THEMES[currentTheme].icon;
+
+    // 为移动端按钮也添加直接的事件监听器
+    mbbTheme.replaceWith(mbbTheme.cloneNode(true));
+    const newMbbTheme = document.querySelector("#mbb-theme");
+    if (newMbbTheme) {
+      newMbbTheme.addEventListener("click", handleThemeToggle);
+    }
+  }
+}
+
+// 主题切换处理函数
+function handleThemeToggle() {
   const nextTheme = currentTheme === 'classic' ? 'acrylic' : 'classic';
   const themeConfig = THEMES[nextTheme];
 
@@ -200,12 +224,23 @@ document.getElementById("theme-toggle").addEventListener("click", () => {
   // 更新状态
   currentTheme = nextTheme;
   localStorage.setItem('cloudchat-theme', nextTheme);
-  document.getElementById("theme-toggle").textContent = themeConfig.icon;
-  document.querySelector("#mbb-theme")?.textContent = themeConfig.icon;
+
+  // 更新按钮图标
+  const themeToggle = document.getElementById("theme-toggle");
+  const mbbTheme = document.querySelector("#mbb-theme");
+  if (themeToggle) themeToggle.textContent = themeConfig.icon;
+  if (mbbTheme) mbbTheme.textContent = themeConfig.icon;
 
   // 显示通知
   showInfo(`已切换到${themeConfig.name}`);
-});
+}
+
+// 延迟初始化，确保DOM已加载
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initThemeButtons);
+} else {
+  initThemeButtons();
+}
 
 // Service Worker
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
