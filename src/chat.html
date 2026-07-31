@@ -29,6 +29,7 @@
 </head>
 
 <body class="acrylic-applied">
+  <video id="video-wallpaper" autoplay muted loop playsinline style="display:none"></video>
   <form id="name-form" action="javascript:void(0)">
     <div class="name-card">
       <h1>Cloud Chat</h1>
@@ -229,9 +230,11 @@
   <div class="floating-btn" id="sound-toggle" title="提示音">🔊</div>
   <div class="floating-btn" id="dark-toggle" title="暗色模式">🌙</div>
   <div class="floating-btn" id="search-toggle" title="搜索消息">🔍</div>
+  <div class="floating-btn" id="settings-toggle" title="设置">⚙️</div>
+  <div class="floating-btn" id="music-toggle" title="音乐播放器">🎵</div>
   <div class="floating-btn" id="tag-warehouse-btn" title="标签仓库" onclick="openShop('inventory')">🏷️</div>
   <!-- More button + menu for less-used floating buttons -->
-  <div class="floating-btn" id="more-menu-btn" title="更多">⚙️</div>
+  <div class="floating-btn" id="more-menu-btn" title="更多">···</div>
   <div id="more-menu-panel">
     <div class="more-menu-item" data-action="favorites"><span class="mm-icon">⭐</span><span
         class="mm-label">收藏的消息</span></div>
@@ -312,12 +315,111 @@
       <div class="game-content" id="game-content"></div>
     </div>
   </div>
+  <!-- Settings Overlay -->
+  <div id="settings-overlay">
+    <div class="settings-card">
+      <div class="settings-header">
+        <span>⚙️ 设置</span>
+        <button class="settings-close" onclick="closeSettings()">&times;</button>
+      </div>
+      <div class="settings-content">
+        <div class="settings-item">
+          <div class="settings-label">
+            <span>背景透明度</span>
+            <span id="bg-opacity-value">100%</span>
+          </div>
+          <input type="range" id="bg-opacity-slider" min="0" max="100" value="100">
+          <p class="settings-hint">调整聊天背景磨砂层的透明度，数值越低背景图越清晰。</p>
+        </div>
+        <div class="settings-item">
+          <div class="settings-label">
+            <span>磨砂程度</span>
+            <span id="bg-blur-value">18px</span>
+          </div>
+          <input type="range" id="bg-blur-slider" min="0" max="30" value="18">
+          <p class="settings-hint">调整磨砂玻璃模糊强度，数值越大越模糊。</p>
+        </div>
+        <div class="settings-item">
+          <div class="settings-label">
+            <span>界面色调</span>
+            <button id="color-reset-btn" type="button" class="settings-btn-danger" style="display:none">恢复默认</button>
+          </div>
+          <div class="settings-color-row">
+            <input type="color" id="ui-color-input" value="#ffffff">
+            <span class="settings-color-hint">点击选择磨砂层底色</span>
+          </div>
+          <p class="settings-hint">自定义输入框、用户列表、聊天区的磨砂颜色。</p>
+        </div>
+        <div class="settings-item">
+          <div class="settings-label">
+            <span>自定义壁纸</span>
+            <button id="wallpaper-cancel-btn" type="button" class="settings-btn-danger" style="display:none">恢复随机</button>
+          </div>
+          <div class="settings-input-row">
+            <input id="wallpaper-url-input" placeholder="输入图片 URL" type="url">
+            <button id="wallpaper-url-btn" type="button">应用</button>
+          </div>
+          <button id="wallpaper-file-btn" type="button" class="settings-btn-secondary">📁 选择本地图片</button>
+          <input type="file" id="wallpaper-file-input" accept="image/*" style="display:none">
+          <p class="settings-hint">设置自定义图片壁纸，点击"恢复随机"返回随机背景。</p>
+        </div>
+        <div class="settings-item">
+          <div class="settings-label">
+            <span>视频壁纸</span>
+            <button id="video-cancel-btn" type="button" class="settings-btn-danger" style="display:none">取消视频</button>
+          </div>
+          <div class="settings-input-row">
+            <input id="video-url-input" placeholder="输入视频 URL" type="url">
+            <button id="video-url-btn" type="button">应用</button>
+          </div>
+          <button id="video-file-btn" type="button" class="settings-btn-secondary">📁 选择本地视频</button>
+          <input type="file" id="video-file-input" accept="video/*" style="display:none">
+          <p class="settings-hint">设置视频动态壁纸，视频将循环静音播放。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Music Overlay -->
+  <div id="music-overlay">
+    <div class="music-card">
+      <div class="music-header">
+        <span>🎵 音乐播放器</span>
+        <button class="music-close" onclick="closeMusic()">&times;</button>
+      </div>
+      <div class="music-search-bar">
+        <input id="music-search-input" placeholder="搜索歌曲或歌手..." autocomplete="off">
+        <button id="music-search-btn" type="button">搜索</button>
+      </div>
+      <div class="music-results" id="music-results">
+        <div class="music-empty">输入歌曲名开始搜索</div>
+      </div>
+      <div class="music-player" id="music-player" style="display:none">
+        <div class="music-player-info">
+          <img id="music-cover" src="" alt="" onerror="this.style.visibility='hidden'">
+          <div class="music-player-text">
+            <div id="music-now-name">未播放</div>
+            <div id="music-now-artist"></div>
+          </div>
+        </div>
+        <div class="music-progress">
+          <span id="music-time-current">0:00</span>
+          <input type="range" id="music-progress-bar" min="0" max="100" value="0" step="0.1">
+          <span id="music-time-total">0:00</span>
+        </div>
+        <div class="music-controls">
+          <button id="music-prev" type="button" title="上一首">⏮</button>
+          <button id="music-play" type="button" title="播放/暂停">▶</button>
+          <button id="music-next" type="button" title="下一首">⏭</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <!-- Mobile bottom bar -->
   <div id="mobile-bottom-bar">
     <button class="mbb-btn" id="mbb-sound" title="提示音">🔊</button>
     <button class="mbb-btn" id="mbb-dark" title="暗色模式">🌙</button>
     <button class="mbb-btn" id="mbb-search" title="搜索">🔍</button>
-    <button class="mbb-btn" id="mbb-more" title="更多">⚙️</button>
+    <button class="mbb-btn" id="mbb-more" title="更多">···</button>
   </div>
 </body>
 
