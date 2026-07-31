@@ -60,6 +60,48 @@ body {
   height: 100vh;
 }
 
+/* ---- Chat-page protective overrides ------------------------------------------------
+   亚克力主题(acrylic-theme.css)会全局覆盖 body/button/*/modal 等样式，
+   聊天页(chat-page)作为聊天专用布局，必须保留 height:100vh/overflow:hidden
+   和圆形浮动按钮。这里使用 body.chat-page 高特异性保证永远优先于亚克力。
+   ---------------------------------------------------------------------------------- */
+body.chat-page {
+  /* 防止 acrylic body { min-height, position:relative, gradient, overflow:auto } 破坏 */
+  height: 100vh !important;
+  min-height: 100vh !important;
+  overflow: hidden !important;
+  position: static !important;
+}
+
+body.chat-page::before {
+  /* 防止 acrylic body::before 全屏渐变伪元素拦截点击/遮挡背景图 */
+  display: none !important;
+  content: none !important;
+}
+
+/* 聊天页内的浮动按钮、输入区按钮不跟随 acrylic 全局大圆角/大padding按钮样式 */
+body.chat-page .floating-btn,
+body.chat-page #more-menu-btn,
+body.chat-page #tag-warehouse-btn {
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  line-height: 36px !important;
+  font-size: 14px !important;
+  border-radius: 50% !important;
+  border-width: 1px !important;
+  background: var(--surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.chat-page .floating-btn::before,
+body.chat-page #more-menu-btn::before,
+body.chat-page #tag-warehouse-btn::before {
+  display: none !important;
+  content: none !important;
+}
+
 /* ---- Mobile bottom bar: hidden on desktop by default ---- */
 #mobile-bottom-bar {
   display: none;

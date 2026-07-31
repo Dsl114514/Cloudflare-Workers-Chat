@@ -13,9 +13,9 @@ import { showSuccess, showInfo, showError } from './state.js';
 
 // Window 兼容 — 重模块用延迟加载存根
 function lazyMod(name, fnName) {
-  return function(...args) {
+  return function (...args) {
     import('./' + name + '.js').then(m => {
-      if (m[fnName]) try { m[fnName](...args); } catch(e) { showError("模块错误: " + e.message); }
+      if (m[fnName]) try { m[fnName](...args); } catch (e) { showError("模块错误: " + e.message); }
     }).catch(e => showError("加载模块失败: " + e.message));
   };
 }
@@ -65,7 +65,7 @@ document.body.addEventListener("click", (e) => {
     navigator.clipboard.writeText(code.textContent).then(() => {
       btn.textContent = "已复制"; btn.classList.add("copied");
       setTimeout(() => { btn.textContent = "复制"; btn.classList.remove("copied"); }, 2000);
-    }).catch(() => {});
+    }).catch(() => { });
   }
 });
 
@@ -76,7 +76,7 @@ document.getElementById("fav-close")?.addEventListener("click", toggleFavoritesP
 // 精华消息 - moved to more-menu
 // 定时消息管理 - moved to more-menu
 
-window._showScheduledList = function(list) {
+window._showScheduledList = function (list) {
   if (!list || list.length === 0) { showInfo("当前没有定时消息"); return; }
   let existing = document.getElementById("sched-list-panel");
   if (existing) { existing.remove(); return; }
@@ -99,7 +99,7 @@ window._showScheduledList = function(list) {
     row.querySelector("[data-sched-id]").addEventListener("click", (e) => {
       e.stopPropagation();
       if (state.currentWebSocket) {
-        state.currentWebSocket.send(JSON.stringify({type: "schedule-cancel", id: s.id}));
+        state.currentWebSocket.send(JSON.stringify({ type: "schedule-cancel", id: s.id }));
         row.remove();
         if (listDiv.children.length === 0) { overlay.remove(); showSuccess("所有定时消息已取消"); }
       }
@@ -164,7 +164,7 @@ const THEMES = {
   acrylic: { name: '亚克力主题', file: '/static/styles/acrylic-theme.css', icon: '✨' }
 };
 
-let currentTheme = localStorage.getItem('cloudchat-theme') || 'classic';
+let currentTheme = localStorage.getItem('cloudchat-theme') || 'acrylic';
 
 // 如果保存的是亚克力主题，加载它
 if (currentTheme === 'acrylic') {
@@ -323,7 +323,7 @@ document.addEventListener("visibilitychange", () => {
 });
 
 // 私信回车发送
-document.addEventListener("keydown", function(e) {
+document.addEventListener("keydown", function (e) {
   if (e.target && e.target.id === "dm-input" && e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendDM(); }
 });
 
