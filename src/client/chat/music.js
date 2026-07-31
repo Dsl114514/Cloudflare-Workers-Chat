@@ -69,14 +69,16 @@ export async function searchMusic(keywords) {
   const container = document.getElementById("music-results");
   container.innerHTML = '<div class="music-empty">搜索中...</div>';
   try {
-    const data = await apiGet("/search", { keywords: keywords.trim(), limit: 30 });
+    const data = await apiGet("/cloudsearch", { keywords: keywords.trim(), limit: 30 });
     const songs = (data && data.result && data.result.songs) || [];
     if (!songs.length) { container.innerHTML = '<div class="music-empty">未找到相关歌曲</div>'; return; }
     queue = songs.map(s => ({
       id: s.id,
       name: s.name,
-      artist: (s.artists || []).map(a => a.name).join(" / "),
-      album: (s.album && s.album.name) || ""
+      artist: (s.ar || []).map(a => a.name).join(" / "),
+      album: (s.al && s.al.name) || "",
+      cover: (s.al && s.al.picUrl) || "",
+      duration: s.dt || 0
     }));
     renderResults();
   } catch (e) {
@@ -131,8 +133,14 @@ export async function playIndex(idx) {
     if (!d || !d.url) { showError("无法获取播放链接（可能无版权）"); return; }
     a.src = d.url;
     a.play().catch(() => showError("自动播放被浏览器拦截，请点击播放按钮"));
-    // 获取封面
-    fetchCover(song.id);
+    // 封面：优先用搜索结果中的 picUrl，没有则回退 /song/detail
+    if (song.cover) {
+      const img = document.getElementById("music-cover");
+      img.src = song.cover;
+      img.style.visibility = "visible";
+    } else {
+      fetchCover(song.id);
+    }
   } catch (e) {
     showError("播放失败：" + e.message);
   }
