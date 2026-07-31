@@ -45,8 +45,6 @@ persist = true
 head_sampling_rate = 1
 
 [vars]
-ADMIN_SECRET_KEY = ""
-ADMIN_KEY = ""
 AI_BASE_URL = "https://api.deepseek.com/v1"
 AI_MODEL = "deepseek-v4-flash"
 AI_SYSTEM_PROMPT = "你是一个友好的助手，请用中文回答。"
