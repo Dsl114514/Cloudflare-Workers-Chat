@@ -4,10 +4,80 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>更新日志 - CloudChat</title>
-<link rel="stylesheet" href="/static/styles/all-styles.css">
 <link rel="manifest" href="/manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#4a6cf7">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f0f2f5; color: #1a1a2e; padding: 20px; max-width: 800px; margin: 0 auto;
+}
+.header {
+  text-align: center; padding: 30px 0 20px;
+}
+.header h1 { font-size: 28px; font-weight: 700; color: #4a6cf7; margin-bottom: 6px; }
+.header p { color: #888; font-size: 14px; }
+.header .back-link {
+  display: inline-block; margin-top: 12px; color: #4a6cf7; text-decoration: none;
+  font-size: 14px; padding: 6px 16px; border: 1px solid #4a6cf7; border-radius: 20px;
+  transition: all 0.2s;
+}
+.header .back-link:hover { background: #4a6cf7; color: #fff; }
+.version-group { margin-bottom: 24px; }
+.version-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+  padding: 12px 16px; background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  cursor: pointer; user-select: none; transition: box-shadow 0.2s;
+}
+.version-header:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.version-header .version-tag {
+  background: #4a6cf7; color: #fff; font-size: 12px; font-weight: 600;
+  padding: 3px 10px; border-radius: 12px; white-space: nowrap;
+}
+.version-header .version-date { color: #999; font-size: 13px; }
+.version-header .version-arrow { margin-left: auto; color: #ccc; font-size: 14px; transition: transform 0.2s; }
+.version-header .version-arrow.open { transform: rotate(90deg); }
+.version-body { display: none; padding: 0 4px; }
+.version-body.open { display: block; }
+.feature-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 14px; background: #fff; border-radius: 8px; margin-bottom: 4px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.feature-item .icon { font-size: 16px; width: 24px; text-align: center; flex-shrink: 0; margin-top: 1px; }
+.feature-item .text { font-size: 14px; line-height: 1.5; color: #333; flex: 1; }
+.feature-item .text .tag {
+  display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 4px;
+  margin-right: 4px; font-weight: 600;
+}
+.tag-new { background: #e8f5e9; color: #2e7d32; }
+.tag-fix { background: #fde8e8; color: #c62828; }
+.tag-improve { background: #e3f2fd; color: #1565c0; }
+.tag-feature { background: #fff3e0; color: #e65100; }
+.pinned-announcement {
+  background: linear-gradient(135deg, #fff8e1, #fff3cd);
+  border: 1px solid #ffe082;
+  border-radius: 10px;
+  padding: 4px 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.15);
+}
+.pinned-announcement .feature-item {
+  background: transparent;
+  box-shadow: none;
+  margin-bottom: 0;
+}
+.pinned-announcement .feature-item.highlight {
+  font-size: 15px;
+}
+@media (max-width: 600px) {
+  body { padding: 12px; }
+  .header h1 { font-size: 22px; }
+  .version-header { padding: 10px 12px; flex-wrap: wrap; }
+  .feature-item { padding: 6px 10px; }
+}
+</style>
 </head>
 <body>
 
@@ -24,11 +94,24 @@
 
 <div class="version-group">
   <div class="version-header" onclick="toggle(this)">
-    <span class="version-tag">v1.21</span>
-    <span class="version-date">2026-07-31</span>
+    <span class="version-tag">v1.21.5</span>
+    <span class="version-date">2026-08-01</span>
     <span class="version-arrow open">▶</span>
   </div>
   <div class="version-body open">
+    <div class="feature-item"><span class="icon">🌍</span><span class="text"><span class="tag tag-feature">新增</span>多语言 i18n — 界面中/英切换，登录页选择语言（覆盖登录界面/设置面板/常用文案）</span></div>
+    <div class="feature-item"><span class="icon">🤖</span><span class="text"><span class="tag tag-feature">新增</span>AI 读取对话上下文 — /ai 会结合房间最近10条消息回答，更贴合聊天语境</span></div>
+    <div class="feature-item"><span class="icon">🚀</span><span class="text"><span class="tag tag-feature">新增</span>应急回滚 — 超管聊天框输入 /rollback &lt;版本号&gt; &lt;超管密钥&gt; 一键回滚部署到存档稳定版</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.21</span>
+    <span class="version-date">2026-07-31</span>
+    <span class="version-arrow">▶</span>
+  </div>
+  <div class="version-body">
     <div class="feature-item"><span class="icon">🔒</span><span class="text"><span class="tag tag-fix">安全</span>修复游戏刷分 — 服务端校验下注记录，限制单局倍率/频率/每日净赢上限</span></div>
     <div class="feature-item"><span class="icon">🛡️</span><span class="text"><span class="tag tag-fix">安全</span>修复商城/任务/抽奖/兑换越权 — 所有积分写操作强制登录校验，杜绝操作任意账号</span></div>
     <div class="feature-item"><span class="icon">🧼</span><span class="text"><span class="tag tag-fix">安全</span>修复存储型 XSS — 用户名/消息/房间名/红包/精华/定时消息渲染统一转义</span></div>
@@ -80,9 +163,9 @@
   <div class="version-header" onclick="toggle(this)">
     <span class="version-tag">v1.20</span>
     <span class="version-date">2026-07-30</span>
-    <span class="version-arrow open">▶</span>
+    <span class="version-arrow">▶</span>
   </div>
-  <div class="version-body open">
+  <div class="version-body">
     <div class="feature-item"><span class="icon">📜</span><span class="text"><span class="tag tag-feature">新增</span>操作日志系统 — 管理后台可审计所有管理员操作</span></div>
     <div class="feature-item"><span class="icon">🧧</span><span class="text"><span class="tag tag-feature">新增</span>积分红包 — 拼手气/固定金额红包，聊天室内抢红包</span></div>
     <div class="feature-item"><span class="icon">📦</span><span class="text"><span class="tag tag-feature">新增</span>FileBucket 桶存储 — 文件数据从主 DO 分离，7 天自动过期</span></div>
@@ -436,6 +519,5 @@ function toggle(header) {
 // 默认展开最新版本
 </script>
 
-<script src="/static/theme-switch.js"></script>
 </body>
 </html>
