@@ -1,5 +1,5 @@
 // 私信面板
-import { state } from './state.js';
+import { state, t } from './state.js';
 import { formatTime, addChatMessage } from './renderers.js';
 import { showToast, showError } from './state.js';
 

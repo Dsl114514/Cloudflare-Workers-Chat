@@ -1,5 +1,5 @@
 // 房间列表模块
-import { state } from './state.js';
+import { state, t } from './state.js';
 import { escapeHtml } from './renderers.js';
 import { updateAccountBar } from './auth.js';
 import { startChat } from './core.js';

@@ -1,6 +1,6 @@
 // ⏱️ 动作游戏组 — 打地鼠 / 速算挑战 / 反应测试 / 叠叠乐
 import { gs, gameApi, updateBalance, registerGame, playGameSound } from './game-core.js';
-import { state, showError } from './state.js';
+import { state, showError, t } from './state.js';
 
 // ========== 🌊 打地鼠 ==========
 

@@ -1,3 +1,4 @@
+import { t } from './state.js';
 // VIP/TAG 系统
 export const TAG_COLORS = {
   red: "#e74c3c", blue: "#3498db", green: "#2ecc71",

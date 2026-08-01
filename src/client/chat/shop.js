@@ -1,5 +1,5 @@
 // 商城弹窗
-import { state } from './state.js';
+import { state, t } from './state.js';
 import { escapeHtml, updatePointsDisplay } from './renderers.js';
 import { getAuthName, getAuthToken, isAuthenticated } from './auth.js';
 import { TAG_COLORS } from './vip.js';

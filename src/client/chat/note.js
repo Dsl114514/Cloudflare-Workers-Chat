@@ -1,5 +1,5 @@
 // 用户备注(本地) - 给其他用户设置本地别名
-import { state } from './state.js';
+import { state, t } from './state.js';
 import { addChatMessage } from './renderers.js';
 import { showSuccess } from './state.js';
 

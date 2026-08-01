@@ -1,6 +1,6 @@
 // 🃏 卡牌/记忆游戏组 — 21点 / 记忆翻牌 / 颜色序列记忆
 import { gs, gameApi, updateBalance, registerGame, playGameSound } from './game-core.js';
-import { state, showError } from './state.js';
+import { state, showError, t } from './state.js';
 
 // ========== 🃏 21点 ==========
 

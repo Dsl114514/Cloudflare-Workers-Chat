@@ -1,5 +1,5 @@
 // 用户右键菜单
-import { state } from './state.js';
+import { state, t } from './state.js';
 import { addChatMessage, updatePointsDisplay } from './renderers.js';
 import { openDM } from './dm.js';
 import { getNote, setNote } from './note.js';

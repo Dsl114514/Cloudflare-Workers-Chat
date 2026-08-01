@@ -1,5 +1,5 @@
 // 设置面板 — 背景透明度 / 磨砂程度 / 界面色调 / 自定义壁纸 / 视频壁纸
-import { showError, showInfo, setLang, getLang, applyI18n } from './state.js';
+import { showError, showInfo, setLang, getLang, applyI18n, t } from './state.js';
 
 const BG_TINT_KEY = "bgTint";
 const BG_BLUR_KEY = "bgBlur";

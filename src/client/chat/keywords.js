@@ -1,5 +1,5 @@
 // 关键词提醒 - 自定义关键词，出现时高亮+通知
-import { state } from './state.js';
+import { state, t } from './state.js';
 import { flashTitle, playMentionSound } from './ui.js';
 
 const STORAGE_KEY = "chat_keywords";

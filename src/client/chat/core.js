@@ -1,5 +1,5 @@
 // startChat 核心初始化
-import { state } from './state.js';
+import { state, t } from './state.js';
 import { join } from './websocket.js';
 import { handleCommand } from './commands.js';
 import { addChatMessage } from './renderers.js';

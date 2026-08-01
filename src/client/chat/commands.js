@@ -1,5 +1,5 @@
 // 斜杠命令处理
-import { state } from './state.js';
+import { state, t } from './state.js';
 import { addChatMessage, updatePointsDisplay, applyRoomBackground } from './renderers.js';
 import { renderTextToAsciiCanvas } from './ascii.js';
 import { showToast, showSuccess, showError, showInfo } from './state.js';

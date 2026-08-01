@@ -1,5 +1,5 @@
 // 搜索系统
-import { state } from './state.js';
+import { state, t } from './state.js';
 
 export function toggleSearch() {
   let bar = document.getElementById("search-bar");

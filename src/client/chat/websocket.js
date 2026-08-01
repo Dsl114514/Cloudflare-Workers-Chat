@@ -1,5 +1,5 @@
 // WebSocket 连接 + 消息调度
-import { state } from './state.js';
+import { state, t } from './state.js';
 import { addChatMessage, addChatImage, addChatFile, renderPoll, formatTime, markdownToHtml, escapeHtml, updateRosterCount, applyRoomBackground, updatePointsDisplay, createColoredTag } from './renderers.js';
 import { modifyOwnTag, playMsgSound, showTyping, flashTitle, checkAtMention, updateTitleUnread } from './ui.js';
 import { showUserMenu } from './menu.js';

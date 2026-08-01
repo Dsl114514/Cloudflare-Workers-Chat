@@ -1,6 +1,6 @@
 // 🧩 网格游戏组 — 扫雷 / 2048 / 舒尔特方格 / 打靶 / 打飞碟
 import { gs, gameApi, updateBalance, registerGame, playGameSound } from './game-core.js';
-import { state, showError } from './state.js';
+import { state, showError, t } from './state.js';
 
 // ========== 💣 扫雷 ==========
 

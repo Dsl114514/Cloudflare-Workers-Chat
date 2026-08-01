@@ -1,5 +1,5 @@
 // 抽奖弹窗
-import { state } from './state.js';
+import { state, t } from './state.js';
 import { escapeHtml } from './renderers.js';
 
 export function openLottery() {

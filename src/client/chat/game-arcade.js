@@ -1,6 +1,6 @@
 // 🏓 动作街机组 — 打砖块 / 接水果 / 飞越障碍 / 保龄球
 import { gs, gameApi, updateBalance, registerGame, playGameSound } from './game-core.js';
-import { state, showError } from './state.js';
+import { state, showError, t } from './state.js';
 
 // ========== 🏓 打砖块 ==========
 

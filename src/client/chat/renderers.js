@@ -1,5 +1,5 @@
 // 消息渲染 - addChatMessage, addChatImage, addChatFile, 投票, markdown 等
-import { state } from './state.js';
+import { state, t } from './state.js';
 import { TAG_COLORS, getVipLevel, createVipBadge } from './vip.js';
 import { modifyOwnTag, startReply, recallMessage, checkAtMention, showLightbox } from './ui.js';
 import { showUserMenu } from './menu.js';

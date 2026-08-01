@@ -1,5 +1,5 @@
 // 🎮 小游戏核心 — 共享状态、API、面板管理、注册系统、音效
-import { state } from './state.js';
+import { state, t } from './state.js';
 
 // ========== 音效 ==========
 

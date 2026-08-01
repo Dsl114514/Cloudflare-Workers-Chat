@@ -1,5 +1,5 @@
 // 快捷短语
-import { state } from './state.js';
+import { state, t } from './state.js';
 
 const STORAGE_KEY = "chat_quick_phrases";
 const DEFAULT_PHRASES = ["👍", "😂", t("好的"), t("收到"), t("谢谢"), "👌"];

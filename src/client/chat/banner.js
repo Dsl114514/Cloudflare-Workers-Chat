@@ -1,5 +1,5 @@
 // 欢迎横幅 - 高亮用户进入时滚动显示欢迎信息
-import { state } from './state.js';
+import { state, t } from './state.js';
 
 console.log('[banner] module loaded');
 

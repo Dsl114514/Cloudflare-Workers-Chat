@@ -1,5 +1,5 @@
 // 附件/文件管理面板
-import { state } from './state.js';
+import { state, t } from './state.js';
 
 export function toggleFilesPanel() {
   let existing = document.getElementById("files-panel");

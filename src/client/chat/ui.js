@@ -1,5 +1,5 @@
 // UI 通用组件 - 声音、输入提示、lightbox、标题闪烁、回复、撤回等
-import { state } from './state.js';
+import { state, t } from './state.js';
 import { addChatMessage } from './renderers.js';
 import { showToast, showSuccess, showError, showInfo } from './state.js';
 

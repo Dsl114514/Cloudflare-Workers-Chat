@@ -1,6 +1,6 @@
 // 🎰 简单游戏组 — 老虎机 / 猜大小 / 石头剪刀布 / 幸运转盘
 import { gs, gameApi, updateBalance, registerGame, playGameSound } from './game-core.js';
-import { state, showError } from './state.js';
+import { state, showError, t } from './state.js';
 
 // ========== 🎰 老虎机 ==========
 

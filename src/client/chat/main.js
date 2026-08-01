@@ -1,5 +1,5 @@
 // 入口模块 — 只导入首屏必需模块，重模块延迟加载
-import { state } from './state.js';
+import { state, t } from './state.js';
 import { escapeHtml } from './renderers.js';
 import { startNameChooser } from './auth.js';
 import { startRoomList } from './rooms.js';
