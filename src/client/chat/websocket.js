@@ -1,6 +1,6 @@
 // WebSocket 连接 + 消息调度
 import { state, t } from './state.js';
-import { addChatMessage, addChatImage, addChatFile, renderPoll, formatTime, markdownToHtml, escapeHtml, updateRosterCount, applyRoomBackground, updatePointsDisplay, createColoredTag } from './renderers.js';
+import { addChatMessage, addChatImage, addChatFile, renderPoll, formatTime, markdownToHtml, escapeHtml, updateRosterCount, applyRoomBackground, updatePointsDisplay, createColoredTag, attachSignature } from './renderers.js';
 import { modifyOwnTag, playMsgSound, showTyping, flashTitle, checkAtMention, updateTitleUnread } from './ui.js';
 import { showUserMenu } from './menu.js';
 import { addToDMCache, updateDmBadge } from './dm.js';
@@ -48,6 +48,13 @@ export function join() {
 
   ws.addEventListener("message", event => {
     let data = JSON.parse(event.data);
+
+    // 💥 房间销毁通知：服务端销毁房间时全员收到，直接跳首页（不依赖 CloseEvent.reason）
+    if (data.type === "destroyed") {
+      addChatMessage(null, t("* 房间已销毁，正在离开..."));
+      setTimeout(() => document.location.href = "/", 500);
+      return;
+    }
 
     // 频道体系：频道列表 / 切换历史
     if (data.type === "channels") {
@@ -452,6 +459,7 @@ export function join() {
         wrapper.querySelector(".username").textContent = data.from;
         wrapper.querySelector(".bubble").textContent = "🔒 " + data.message;
         wrapper.querySelector(".username").addEventListener("click", (e) => { e.stopPropagation(); showUserMenu(data.from, e.clientX, e.clientY); });
+        attachSignature(wrapper.querySelector(".username"), data.from); // 个人签名：私聊消息旁展示 + 悬停
         if (data.timestamp) {
           let ts = document.createElement("span");
           ts.className = "msg-time";
@@ -506,10 +514,12 @@ export function join() {
 
   ws.addEventListener("close", event => {
     if (event.reason === "kicked") { addChatMessage(null, t("* 你已被踢出房间，即将刷新页面...")); setTimeout(() => document.location.reload(), 200); return; }
+    if (event.reason === "destroyed") { addChatMessage(null, t("* 房间已销毁，正在离开...")); setTimeout(() => document.location.href = "/", 500); return; }
     rejoin();
   });
   ws.addEventListener("error", event => {
     if (event.reason === "kicked") { addChatMessage(null, t("* 你已被踢出房间，即将刷新页面...")); setTimeout(() => document.location.reload(), 200); return; }
+    if (event.reason === "destroyed") { addChatMessage(null, t("* 房间已销毁，正在离开...")); setTimeout(() => document.location.href = "/", 500); return; }
     rejoin();
   });
 }

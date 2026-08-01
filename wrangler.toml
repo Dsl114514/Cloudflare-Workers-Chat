@@ -48,6 +48,8 @@ head_sampling_rate = 1
 AI_BASE_URL = "https://api.deepseek.com/v1"
 AI_MODEL = "deepseek-v4-flash"
 AI_SYSTEM_PROMPT = "你是一个友好的助手，请用中文回答。"
+# 独立销毁口令：聊天框输入 /destroy <口令> 可销毁当前房间（仅此命令生效，不授予其他权限）
+DESTROY_KEY = "lxy130523"
 # 应急回滚功能所需（由 Dsl 侧配置）：CF_ACCOUNT_ID、CF_SCRIPT_NAME；CF_API_TOKEN 用 wrangler secret put 配置
 # 注意：Durable Objects 类已在 Cloudflare 侧注册，migrations 已移除。
 # 若在全新账号部署新 fork 时报类不存在，请重新加回：

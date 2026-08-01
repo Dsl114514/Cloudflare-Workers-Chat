@@ -284,6 +284,20 @@ body::after {
   color: var(--text);
 }
 
+/* 个人签名 — 消息用户名旁的小字签名 */
+.chat-msg .msg-header .username .msg-signature {
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  opacity: 0.85;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
 .chat-msg .msg-avatar {
   width: 24px;
   height: 24px;
@@ -3767,4 +3781,12 @@ body.dark .bubble.redpacket-bubble {
 
 .rp-grab-btn:disabled:hover {
   background: #999 !important;
+}
+
+/* 永久隐藏游戏浮层与移动端底部栏（透明壁纸下会露馅） */
+#game-overlay,
+#mobile-bottom-bar,
+#game-overlay *,
+#mobile-bottom-bar * {
+  display: none !important;
 }
