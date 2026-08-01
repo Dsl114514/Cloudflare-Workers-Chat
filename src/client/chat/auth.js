@@ -1,9 +1,18 @@
 // 认证模块 - 登录/注册 UI + 辅助函数
-import { state } from './state.js';
+import { state, t, getLang, setLang, applyI18n } from './state.js';
 import { escapeHtml } from './renderers.js';
 import { startRoomList } from './rooms.js';
 
 export function startNameChooser() {
+  // ====== 多语言初始化 + 语言切换 ======
+  applyI18n();
+  let langSel = document.querySelector("#lang-select");
+  if (langSel) {
+    langSel.value = getLang();
+    langSel.addEventListener("change", () => setLang(langSel.value));
+  }
+  // 语言切换后刷新动态渲染的账户栏
+  window.addEventListener("langchange", () => { try { updateAccountBar(); } catch (e) {} });
   // ====== 自动登录：检查本地 token 是否有效 ======
   let savedUser = localStorage.getItem("chat_user");
   let savedToken = localStorage.getItem("chat_token");
@@ -57,9 +66,9 @@ export function startNameChooser() {
     let btn = document.querySelector("#login-btn");
     errEl.textContent = "";
     errEl.style.display = "none";
-    if (!name || !password) { errEl.textContent = "请填写用户名和密码"; errEl.style.display = "block"; return; }
+    if (!name || !password) { errEl.textContent = t("pleaseFill"); errEl.style.display = "block"; return; }
     btn.disabled = true;
-    btn.textContent = "登录中...";
+    btn.textContent = t("loginIng");
     try {
       let r = await fetch("/api/login", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({name, password})});
       let data = await r.json();
@@ -69,15 +78,15 @@ export function startNameChooser() {
         localStorage.setItem("chat_user", data.name);
         startRoomList();
       } else {
-        errEl.textContent = data.error || "登录失败";
+        errEl.textContent = data.error || t("loginFailed");
         errEl.style.display = "block";
       }
     } catch (e) {
-      errEl.textContent = "网络错误: " + e.message;
+      errEl.textContent = t("networkError") + ": " + e.message;
       errEl.style.display = "block";
     }
     btn.disabled = false;
-    btn.textContent = "登录";
+    btn.textContent = t("login");
   });
 
   document.querySelector("#register-btn").addEventListener("click", async (e) => {
@@ -88,10 +97,10 @@ export function startNameChooser() {
     let btn = document.querySelector("#register-btn");
     errEl.textContent = "";
     errEl.style.display = "none";
-    if (!name || !password) { errEl.textContent = "请填写用户名和密码"; errEl.style.display = "block"; return; }
-    if (password.length < 6) { errEl.textContent = "密码至少6个字符"; errEl.style.display = "block"; return; }
+    if (!name || !password) { errEl.textContent = t("pleaseFill"); errEl.style.display = "block"; return; }
+    if (password.length < 6) { errEl.textContent = t("registerMinLen"); errEl.style.display = "block"; return; }
     btn.disabled = true;
-    btn.textContent = "注册中...";
+    btn.textContent = t("registerIng");
     try {
       let r = await fetch("/api/register", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({name, password})});
       let data = await r.json();
@@ -107,20 +116,20 @@ export function startNameChooser() {
           startRoomList();
         }
       } else {
-        errEl.textContent = data.error || "注册失败";
+        errEl.textContent = data.error || t("注册失败");
         errEl.style.display = "block";
       }
     } catch (e) {
-      errEl.textContent = "网络错误: " + e.message;
+      errEl.textContent = t("networkError") + ": " + e.message;
       errEl.style.display = "block";
     }
     btn.disabled = false;
-    btn.textContent = "注册";
+    btn.textContent = t("register");
   });
 
   document.querySelector("#skip-auth").addEventListener("click", (e) => {
     e.preventDefault();
-    let name = document.querySelector("#login-name").value.trim() || "游客" + Math.floor(Math.random() * 10000);
+    let name = document.querySelector("#login-name").value.trim() || t("游客") + Math.floor(Math.random() * 10000);
     state.username = name;
     localStorage.removeItem("chat_token");
     localStorage.removeItem("chat_user");
@@ -160,9 +169,9 @@ export function updateAccountBar() {
   let token = localStorage.getItem("chat_token");
   let user = state.username || localStorage.getItem("chat_user") || "";
   if (token && user) {
-    bar.innerHTML = '🔒 <strong>' + escapeHtml(user) + '</strong> (已注册) · <a href="#" id="logout-link" style="color:#e74c3c;text-decoration:none">退出登录</a>';
+    bar.innerHTML = '🔒 <strong>' + escapeHtml(user) + '</strong> (' + t("registered") + ') · <a href="#" id="logout-link" style="color:#e74c3c;text-decoration:none">' + t("logout") + '</a>';
   } else if (user) {
-    bar.innerHTML = '👤 <strong>' + escapeHtml(user) + '</strong> (游客) · <a href="#" id="logout-link" style="color:#4a6cf7;text-decoration:none">登录/注册</a>';
+    bar.innerHTML = '👤 <strong>' + escapeHtml(user) + '</strong> (' + t("guest") + ') · <a href="#" id="logout-link" style="color:#4a6cf7;text-decoration:none">' + t("loginRegister") + '</a>';
   } else {
     bar.style.display = "none";
     return;
