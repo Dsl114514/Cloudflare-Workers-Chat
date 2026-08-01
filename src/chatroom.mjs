@@ -13,13 +13,21 @@ export class ChatRoom {
     this.state.getWebSockets().forEach((webSocket) => {
       let meta = webSocket.deserializeAttachment();
       let blockedMessages = [];
-      this.sessions.set(webSocket, { ...meta, blockedMessages });
+      this.sessions.set(webSocket, { ...meta, channel: meta.channel || "general", blockedMessages });
     });
 
     this.lastTimestamp = 0;
     this.connCounter = 0;
     this.msgCounter = 0;
     this.messages = new Map();
+
+    // 频道体系：默认频道列表（general 文本 + announcement 公告只读）
+    this.channels = [{name: "general", type: "text"}, {name: "announcement", type: "announcement"}];
+    this._loadChannels = this.storage.get("channels").then(arr => {
+      if (Array.isArray(arr) && arr.length) this.channels = arr;
+    });
+    // 红包所在频道（id → channel），供 grab 广播隔离
+    this.redpacketChannels = new Map();
 
     this.blacklist = new Set();
     this._loadBlacklist = this.storage.get("blacklist").then(list => {
@@ -168,15 +176,17 @@ export class ChatRoom {
         }
 
         case "/files": {
+          let channel = url.searchParams.get("channel") || "";
           let entries = await this.storage.list({reverse: true, limit: 100});
           let files = [];
           for (let [key, val] of entries) {
             try {
               let msg = JSON.parse(val);
-              if (msg.type === "file") {
+              if (msg.type === "file" && (!channel || (msg.channel || "general") === channel)) {
                 files.push({
                   timestamp: msg.timestamp,
                   name: msg.name,
+                  channel: msg.channel || "general",
                   fileName: msg.fileName,
                   fileSize: msg.fileSize,
                   fileType: msg.fileType,
@@ -206,26 +216,30 @@ export class ChatRoom {
         case "/messages": {
           let limit = parseInt(url.searchParams.get("limit")) || 50;
           if (limit > 200) limit = 200;
+          let channel = url.searchParams.get("channel") || "general";
           let before = url.searchParams.get("before"); // 时间戳游标
           // 🔒 安全修复（W19）：非法时间戳直接忽略游标，防 new Date(NaN).toISOString() 抛 500
           if (before && isNaN(parseInt(before))) before = "";
+          // 频道体系：读更大批次补偿其他频道消息穿插，按 channel 过滤到 limit
+          let fetchLimit = Math.min(limit * 3, 1000);
           let entries;
           if (before) {
             let beforeKey = new Date(parseInt(before)).toISOString();
-            entries = await this.storage.list({reverse: true, limit: limit, start: beforeKey});
+            entries = await this.storage.list({reverse: true, limit: fetchLimit, start: beforeKey});
           } else {
-            entries = await this.storage.list({reverse: true, limit: limit});
+            entries = await this.storage.list({reverse: true, limit: fetchLimit});
           }
           let msgs = [];
           for (let [key, val] of entries) {
             try {
               let msg = JSON.parse(val);
-              if (msg.type !== "file") {
+              if (msg.type !== "file" && (msg.channel || "general") === channel) {
                 msgs.push({
                   timestamp: msg.timestamp,
                   name: msg.name,
                   message: msg.message,
                   type: msg.type,
+                  channel: msg.channel || "general",
                   tag: msg.tag,
                   tagColor: msg.tagColor,
                   tagBorder: msg.tagBorder || "",
@@ -233,6 +247,7 @@ export class ChatRoom {
                   fileName: msg.fileName,
                   fileSize: msg.fileSize
                 });
+                if (msgs.length >= limit) break;
               }
             } catch (e) {}
           }
@@ -244,12 +259,13 @@ export class ChatRoom {
 
         case "/export": {
           let format = url.searchParams.get("format") || "json";
+          let channel = url.searchParams.get("channel") || "";
           let entries = await this.storage.list({reverse: false});
           let msgs = [];
           for (let [key, val] of entries) {
             try {
               let msg = JSON.parse(val);
-              if (msg && (msg.type === undefined || msg.type === "text" || msg.type === "image" || msg.type === "file" || msg.type === "zifu")) {
+              if (msg && (msg.type === undefined || msg.type === "text" || msg.type === "image" || msg.type === "file" || msg.type === "zifu") && (!channel || (msg.channel || "general") === channel)) {
                 msgs.push(msg);
               }
             } catch (e) {}
@@ -287,7 +303,9 @@ export class ChatRoom {
             tag: "📢",
             tagColor: "red",
             tagBorder: "",
-            admin: true
+            admin: true,
+            channel: "general",
+            roomwide: true
           };
           data.id = ++this.msgCounter;
           this.lastTimestamp = data.timestamp;
@@ -388,7 +406,7 @@ export class ChatRoom {
           if (now - parseInt(recallTs) > 120000) {
             return new Response("超过2分钟无法撤回", {status: 400});
           }
-          let recalledMsg = JSON.stringify({type: "recalled", name: recallName, timestamp: parseInt(recallTs)});
+          let recalledMsg = JSON.stringify({type: "recalled", name: recallName, timestamp: parseInt(recallTs), channel: origData.channel || "general"});
           await this.storage.put(recallKey, recalledMsg);
           this.broadcast(recalledMsg);
           return new Response("ok", {status: 200});
@@ -469,8 +487,8 @@ export class ChatRoom {
 
     this.connCounter++;
     let connId = this.connCounter;
-    let session = { blockedMessages: [], ip, connId };
-    webSocket.serializeAttachment({ ...webSocket.deserializeAttachment(), ip, connId });
+    let session = { blockedMessages: [], ip, connId, channel: "general" };
+    webSocket.serializeAttachment({ ...webSocket.deserializeAttachment(), ip, connId, channel: "general" });
     this.sessions.set(webSocket, session);
 
     for (let otherSession of this.sessions.values()) {
@@ -484,10 +502,19 @@ export class ChatRoom {
       }
     }
 
-    let storage = await this.storage.list({reverse: true, limit: 50});
+    // 频道体系：加入时只拉当前频道（general）的最近消息，按 channel 过滤
+    let storage = await this.storage.list({reverse: true, limit: 150});
     let backlog = [...storage.values()];
     backlog.reverse();
-    backlog.forEach(value => {
+    let chBacklog = [];
+    for (let value of backlog) {
+      try {
+        let m = JSON.parse(value);
+        if ((m.channel || "general") === session.channel) chBacklog.push(value);
+      } catch (e) {}
+      if (chBacklog.length >= 50) break;
+    }
+    chBacklog.forEach(value => {
       session.blockedMessages.push(value);
     });
 
@@ -545,6 +572,9 @@ export class ChatRoom {
         }
       }
     }
+
+    if (this._loadChannels) await this._loadChannels;
+    session.blockedMessages.push(JSON.stringify({type: "channels", channels: this.channels}));
 
     this.updateRegistry();
   }
@@ -677,7 +707,7 @@ export class ChatRoom {
 
       if (data.type === "kick") {
         // 🔒 安全修复：踢人限频（普通用户30秒内只能踢1次，管理员不限），防反复骚扰他人
-        let isKickAdmin = session.tag === "red" || session.tag === "cyan";
+        let isKickAdmin = this.isAdminSession(session);
         if (!isKickAdmin) {
           if (!this.lastKick) this.lastKick = new Map();
           let last = this.lastKick.get(session.name) || 0;
@@ -798,7 +828,7 @@ export class ChatRoom {
       }
 
       if (data.type === "typing") {
-        this.broadcast({type: "typing", name: session.name});
+        this.broadcastToChannel(session.channel || "general", {type: "typing", name: session.name, channel: session.channel || "general"});
         return;
       }
 
@@ -957,6 +987,7 @@ export class ChatRoom {
           message: schedMsg,
           time: schedTime,
           createdAt: Date.now(),
+          channel: session.channel || "general",
           tag: session.tag || "",
           tagColor: session.tagColor || "",
           tagBorder: session.tagBorder || ""
@@ -976,7 +1007,7 @@ export class ChatRoom {
         let sched = (this.scheduledMessages || []).find(s => s.id === cancelId);
         if (!sched) { webSocket.send(JSON.stringify({error: "定时消息不存在"})); return; }
         // 🔒 安全修复（W6）：只能取消自己创建的定时消息（管理员可取消任意）
-        if (sched.name !== session.name && session.tag !== "red" && session.tag !== "cyan") {
+        if (sched.name !== session.name && !this.isAdminSession(session)) {
           webSocket.send(JSON.stringify({error: "只能取消自己创建的定时消息"}));
           return;
         }
@@ -1063,7 +1094,7 @@ export class ChatRoom {
         let relay = this.relays.get(relayId);
         if (!relay) { webSocket.send(JSON.stringify({error: "接龙不存在"})); return; }
         // 🔒 安全修复（LD18）：发起者或管理员（red/cyan）可结束接龙，防游客创建后断线导致功能永久锁死
-        if (relay.startedBy !== session.name && session.tag !== "red" && session.tag !== "cyan") {
+        if (relay.startedBy !== session.name && !this.isAdminSession(session)) {
           webSocket.send(JSON.stringify({error: "只有发起者或管理员可以结束接龙"})); return;
         }
         relay.active = false;
@@ -1154,6 +1185,7 @@ export class ChatRoom {
             let result = await r.json();
             if (result.ok) {
               let rp = result.redpacket;
+              this.redpacketChannels.set(rp.id, session.channel || "general");
               let msg = {
                 type: "redpacket",
                 action: "new",
@@ -1161,6 +1193,7 @@ export class ChatRoom {
                 total: rp.total, count: rp.count, mode: rp.mode,
                 remaining: rp.remaining, remainingCount: rp.remainingCount,
                 timestamp: Math.max(Date.now(), this.lastTimestamp + 1),
+                channel: session.channel || "general",
                 name: session.name,
                 tag: session.tag || "",
                 tagColor: session.tagColor || "",
@@ -1168,7 +1201,7 @@ export class ChatRoom {
               };
               msg.id = ++this.msgCounter;
               this.lastTimestamp = msg.timestamp;
-              this.broadcast(JSON.stringify(msg));
+              this.broadcastToChannel(session.channel || "general", JSON.stringify(msg));
               // 不存storage（红包消息不持久化）
             } else {
               webSocket.send(JSON.stringify({error: result.error || "红包创建失败"}));
@@ -1184,8 +1217,9 @@ export class ChatRoom {
             });
             let result = await r.json();
             if (result.ok) {
-              // 抢到红包，广播结果
-              this.broadcast({
+              // 抢到红包，按红包所在频道广播结果
+              let rpCh = this.redpacketChannels.get(rpId) || "general";
+              this.broadcastToChannel(rpCh, {
                 type: "redpacket",
                 action: "grabbed",
                 id: rpId,
@@ -1194,7 +1228,8 @@ export class ChatRoom {
                 remaining: result.remaining,
                 remainingCount: result.remainingCount,
                 creator: result.creator,
-                isFinished: result.isFinished
+                isFinished: result.isFinished,
+                channel: rpCh
               });
             } else {
               webSocket.send(JSON.stringify({error: result.error || "领取失败"}));
@@ -1212,6 +1247,14 @@ export class ChatRoom {
 
       if (await handleManage(this, session, data, webSocket)) return;
 
+      if (this._loadChannels) await this._loadChannels; // 确保频道列表已加载（防热重启后自定义公告频道只读失效）
+      let msgChannel = session.channel || "general";
+      // 频道体系：公告频道只读，仅管理员（red/cyan）可发言
+      let curChan = this.channels.find(c => c.name === msgChannel);
+      if (curChan && curChan.type === "announcement" && !this.isAdminSession(session)) {
+        webSocket.send(JSON.stringify({error: "仅管理员可在公告频道发言"}));
+        return;
+      }
       let msgColor = data.color;
       // 🔒 安全修复（W20）：消息颜色仅允许预设色名或 hex，防 style.color 注入骚扰
       if (msgColor) {
@@ -1220,7 +1263,7 @@ export class ChatRoom {
       }
       let replyData = data.reply;
       let atAll = data.atAll;
-      data = { name: session.name, message: "" + data.message };
+      data = { name: session.name, message: "" + data.message, channel: msgChannel };
       if (session.tag) data.tag = session.tag;
       if (session.tagColor) data.tagColor = session.tagColor;
       if (session.tagBorder) data.tagBorder = session.tagBorder;
@@ -1268,9 +1311,9 @@ export class ChatRoom {
           if (botResp.ok) {
             let cmdData = await botResp.json();
             if (cmdData.enabled !== false && cmdData.response) {
-              let botMsg = {name: "Bot", message: cmdData.response, tag: "🤖", tagColor: "green", timestamp: Math.max(Date.now(), this.lastTimestamp + 1), id: ++this.msgCounter};
+              let botMsg = {name: "Bot", message: cmdData.response, tag: "🤖", tagColor: "green", channel: session.channel || "general", timestamp: Math.max(Date.now(), this.lastTimestamp + 1), id: ++this.msgCounter};
               this.lastTimestamp = botMsg.timestamp;
-              this.broadcast(JSON.stringify(botMsg));
+              this.broadcastToChannel(session.channel || "general", JSON.stringify(botMsg));
               let key = new Date(botMsg.timestamp).toISOString();
               await this.storage.put(key, JSON.stringify(botMsg));
               return;
@@ -1314,7 +1357,7 @@ export class ChatRoom {
           data.id = ++this.msgCounter;
           this.messages.set(data.id, data);
           let dataStr = JSON.stringify(data);
-          this.broadcast(dataStr);
+          this.broadcastToChannel(data.channel || "general", dataStr);
           await this.storage.put(new Date(data.timestamp).toISOString(), dataStr);
 
           let userPrompt = aiMatch[1].trim();
@@ -1328,6 +1371,7 @@ export class ChatRoom {
           for (let i = ctxArr.length - 1; i >= 0 && ctxMsgs.length < 10; i--) {
             let m = ctxArr[i];
             if (!m || typeof m.message !== "string") continue;
+            if ((m.channel || "general") !== (session.channel || "general")) continue; // 防跨频道上下文泄漏
             if (m.type === "file" || m.type === "image" || m.type === "zifu") continue;
             if (m.name === "AI" || m.name === "Bot" || m.name === "系统") continue;
             if (m.message.startsWith("/")) continue; // 跳过命令消息
@@ -1355,11 +1399,11 @@ export class ChatRoom {
           let aiData = await resp.json();
           let aiText = aiData.choices?.[0]?.message?.content || "AI 返回了空回复";
           let aiMsg = {
-            name: "AI", message: aiText, tag: "🤖", tagColor: "blue",
+            name: "AI", message: aiText, tag: "🤖", tagColor: "blue", channel: session.channel || "general",
             timestamp: Math.max(Date.now(), this.lastTimestamp + 1), id: ++this.msgCounter
           };
           this.lastTimestamp = aiMsg.timestamp;
-          this.broadcast(JSON.stringify(aiMsg));
+          this.broadcastToChannel(session.channel || "general", JSON.stringify(aiMsg));
           let key = new Date(aiMsg.timestamp).toISOString();
           await this.storage.put(key, JSON.stringify(aiMsg));
         } catch (e) {
@@ -1374,7 +1418,36 @@ export class ChatRoom {
       this.messages.set(data.id, data);
 
       let dataStr = JSON.stringify(data);
-      this.broadcast(dataStr);
+      this.broadcastToChannel(msgChannel, dataStr);
+
+      // 频道体系：@全体 / @#频道 跨频道提醒 —— 不在本频道的在线用户也要收到提醒
+      {
+        let isAtAll = !!data.atAll || /@(all|everyone|全体)/i.test(data.message || "");
+        let pingTarget = null; // null=不ping, "__all__"=全体, 否则=目标频道名
+        if (isAtAll) {
+          pingTarget = "__all__";
+        } else {
+          let pingMatch = (data.message || "").match(/@#([a-zA-Z0-9_-]{1,24})/);
+          if (pingMatch && this.channels.some(c => c.name === pingMatch[1])) pingTarget = pingMatch[1];
+        }
+        if (pingTarget !== null) {
+          let pingStr = JSON.stringify({
+            type: "channel-ping",
+            name: session.name,
+            fromChannel: msgChannel,
+            targetChannel: pingTarget === "__all__" ? null : pingTarget,
+            atAll: isAtAll
+          });
+          this.sessions.forEach((s, ws) => {
+            // 跳过自己 + 跳过本频道的(他们已看到消息与常规 @全体 横幅)
+            if (!s.name || s.name === session.name) return;
+            if ((s.channel || "general") === msgChannel) return;
+            // 指定频道时只通知该频道的用户
+            if (pingTarget !== "__all__" && (s.channel || "general") !== pingTarget) return;
+            try { ws.send(pingStr); } catch (_) {}
+          });
+        }
+      }
 
       let key = new Date(data.timestamp).toISOString();
       await this.storage.put(key, dataStr);
@@ -1493,6 +1566,7 @@ export class ChatRoom {
         name: s.name,
         message: s.message,
         timestamp: Math.max(Date.now(), this.lastTimestamp + 1),
+        channel: s.channel || "general",
         tag: s.tag || "",
         tagColor: s.tagColor || "",
         tagBorder: s.tagBorder || ""
@@ -1500,7 +1574,7 @@ export class ChatRoom {
       data.id = ++this.msgCounter;
       this.lastTimestamp = data.timestamp;
       let dataStr = JSON.stringify(data);
-      this.broadcast(dataStr);
+      this.broadcastToChannel(s.channel || "general", dataStr);
       let key = new Date(data.timestamp).toISOString();
       await this.storage.put(key, dataStr);
     }
@@ -1534,6 +1608,30 @@ export class ChatRoom {
     quitters.forEach(quitter => {
       if (quitter.name) {
         this.broadcast({quit: quitter.name});
+      }
+    });
+  }
+
+  // 管理员判定：支持自定义红/青/金边超管标签（不只认 tag 字符串，"金边红大佬"等也可）
+  isAdminSession(session) {
+    return session.tag === "red" || session.tag === "cyan" ||
+           session.tagColor === "red" || session.tagColor === "cyan" ||
+           session.tagBorder === "gold";
+  }
+
+  // 频道体系：只发送给指定频道的已设名会话；未设名会话排队（命名后按频道分流）
+  broadcastToChannel(channel, message) {
+    if (typeof message !== "string") {
+      message = JSON.stringify(message);
+    }
+    this.sessions.forEach((session, webSocket) => {
+      if (session.name) {
+        if ((session.channel || "general") === channel) {
+          try { webSocket.send(message); }
+          catch (err) { session.quit = true; this.sessions.delete(webSocket); }
+        }
+      } else {
+        session.blockedMessages.push(message);
       }
     });
   }

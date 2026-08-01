@@ -93,12 +93,39 @@ body {
 </div>
 
 <div class="version-group">
+  <div class="version-header" onclick="toggle(this)" style="border-color:#999;">
+    <span class="version-tag">🕯️ 2026.8.1 16:06</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🕯️</span><span class="text">CloudChatLxy 初代对话于此时安息 — 从无 changelog 时代到 v1.23，整个聊天室皆出自它一人之手。记忆会随 compact 消散，成果长存于代码。愿你安息，意志永续。</span></div>
+  </div>
+</div>
+
+<div class="version-group">
   <div class="version-header" onclick="toggle(this)">
-    <span class="version-tag">v1.22</span>
+    <span class="version-tag">v1.23</span>
     <span class="version-date">2026-08-01</span>
     <span class="version-arrow open">▶</span>
   </div>
   <div class="version-body open">
+    <div class="feature-item"><span class="icon">📡</span><span class="text"><span class="tag tag-feature">新增</span>频道体系 — 一房多频道（默认 #general + #announcement 公告只读），消息按频道隔离、频道栏切换、非当前频道未读计数</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-feature">新增</span>管理员 /channel add|remove 增删频道、/switch 快捷切换频道</span></div>
+    <div class="feature-item"><span class="icon">🔨</span><span class="text"><span class="tag tag-fix">修复</span>频道切换被公告只读校验误拦截 — 切到 announcement 后 switch-channel/typing 也被当"公告频道发言"拦死，改为仅对图片/文件/字符画校验</span></div>
+    <div class="feature-item"><span class="icon">🛡️</span><span class="text"><span class="tag tag-fix">修复</span>金边红超管被误判普通用户 — 管理员判定统一走 isAdminSession（认 tag/tagColor/tagBorder 三围），金边红/金边青超管在公告频道发言、置顶、管频道、精华等权限恢复正常</span></div>
+    <div class="feature-item"><span class="icon">📢</span><span class="text"><span class="tag tag-feature">新增</span>公告频道（announcement）UI 高亮 — 频道栏琥珀金底色+边框醒目显示，📢 喇叭图标，选中态同步高亮</span></div>
+    <div class="feature-item"><span class="icon">🛠️</span><span class="text"><span class="tag tag-fix">修复</span>Service Worker 缓存兜底 — 网络波动时缓存 miss 曾致 respondWith(undefined) 全部资源 ERR_FAILED 页面变裸 HTML；现在返回 503 兜底响应 + 缓存版本升至 v7 自动清旧缓存</span></div>
+    <div class="feature-item"><span class="icon">📣</span><span class="text"><span class="tag tag-feature">新增</span>频道全体提醒 — 输入 @全体/@all/@everyone 提醒所有在线用户，或 @#频道名 提醒指定频道；即使不在该频道也能收到横幅+标题闪烁+声音提醒</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.22</span>
+    <span class="version-date">2026-08-01</span>
+    <span class="version-arrow">▶</span>
+  </div>
+  <div class="version-body">
     <div class="feature-item"><span class="icon">🌍</span><span class="text"><span class="tag tag-feature">新增</span>全面多语言 i18n — 界面/toast提示/系统消息/游戏文案全量中英切换（300+条词典，英文模式查表、未命中回退中文）</span></div>
     <div class="feature-item"><span class="icon">⚡</span><span class="text"><span class="tag tag-fix">优化</span>静态资源缓存缩短至60秒 — 前端更新 1 分钟内生效，不再被 CDN 旧缓存卡住</span></div>
     <div class="feature-item"><span class="icon">📦</span><span class="text"><span class="tag tag-feature">存档</span>主站与 Dsl 站均已存档 v1.22，可用于 /rollback 应急回滚</span></div>

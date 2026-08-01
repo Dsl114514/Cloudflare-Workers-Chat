@@ -45,6 +45,7 @@ import CHAT_GAME_CARDS from "./client/chat/game-cards.js";
 import CHAT_GAME_BOARD from "./client/chat/game-board.js";
 import CHAT_GAME_ACTION from "./client/chat/game-action.js";
 import CHAT_GAME_ARCADE from "./client/chat/game-arcade.js";
+import CHAT_CHANNELS from "./client/chat/channels.js";
 import CHAT_STYLE from "./client/chat/style.css";
 import CHAT_GAME_STYLE from "./client/chat/game-style.css";
 import ALL_STYLES from "./client/styles/all-styles.css";
@@ -111,6 +112,7 @@ const CHAT_MODULES = {
   "chat/game-board.js": CHAT_GAME_BOARD,
   "chat/game-action.js": CHAT_GAME_ACTION,
   "chat/game-arcade.js": CHAT_GAME_ARCADE,
+  "chat/channels.js": CHAT_CHANNELS,
 };
 
 const ADMIN_MODULES = {
@@ -272,10 +274,10 @@ export default {
 
       if (path[0] === "sw.js") {
         return new Response(
-          `const CACHE="cloudchat-v6";
+          `const CACHE="cloudchat-v7";
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(["/","/admin/"])));self.skipWaiting();});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE).map(x=>caches.delete(x)))));self.clients.claim();});
-self.addEventListener("fetch",e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});`,
+self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith(fetch(e.request).catch(()=>caches.match(e.request).then(m=>m||new Response("网络不可用",{status:503,headers:{"Content-Type":"text/plain"}}))));});`,
           {headers: {"Content-Type": "application/javascript", "Cache-Control": "no-cache"}}
         );
       }
