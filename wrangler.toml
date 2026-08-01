@@ -48,11 +48,9 @@ head_sampling_rate = 1
 AI_BASE_URL = "https://api.deepseek.com/v1"
 AI_MODEL = "deepseek-v4-flash"
 AI_SYSTEM_PROMPT = "你是一个友好的助手，请用中文回答。"
-# 注意：新 fork 部署时如果报 "Cannot apply delete-class migration to class 'RateLimiter'",
-# 说明 RateLimiter 在你的仓库中不存在，请把以下所有 migrations 替换为一行:
+# 应急回滚功能所需（由 Dsl 侧配置）：CF_ACCOUNT_ID、CF_SCRIPT_NAME；CF_API_TOKEN 用 wrangler secret put 配置
+# 注意：Durable Objects 类已在 Cloudflare 侧注册，migrations 已移除。
+# 若在全新账号部署新 fork 时报类不存在，请重新加回：
 #   [[migrations]]
 #   tag = "v1"
 #   new_sqlite_classes = ["ChatRoom", "RoomRegistry", "VersionArchive", "FileBucket"]
-[[migrations]]
-tag = "v1"
-new_sqlite_classes = ["ChatRoom", "RoomRegistry", "VersionArchive", "FileBucket"]
