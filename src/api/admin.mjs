@@ -5,6 +5,7 @@ import { handleAdminRooms } from "./admin/rooms.mjs";
 import { handleAdminUsers } from "./admin/users.mjs";
 import { handleAdminIpBan } from "./admin/ip-ban.mjs";
 import { handleAdminPoints } from "./admin/points.mjs";
+import { handleAdminExp } from "./admin/exp.mjs";
 import { handleAdminShop } from "./admin/shop.mjs";
 import { handleAdminTasks } from "./admin/tasks.mjs";
 import { handleAdminTags } from "./admin/tags.mjs";
@@ -16,6 +17,7 @@ import { handleAdminEmoji } from "./admin/emoji.mjs";
 import { handleAdminRedeem } from "./admin/redeem.mjs";
 import { handleAdminLog } from "./admin/log.mjs";
 import { handleAdminMute } from "./admin/mute.mjs";
+import { handleAdminWebhooks } from "./admin/webhooks.mjs";
 
 // M7：登录爆破限流（IP → {count, resetTs}），同 IP 10 分钟内失败 ≥20 次封禁
 // 局限：Workers 多实例不共享，属缓解措施
@@ -29,6 +31,25 @@ function safeEqual(a, b) {
   let r = 0;
   for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return r === 0;
+}
+
+// 🕶️ 匿名券管理：发放（anon-grant）、审计日志（anon-log）—— 转发 registry，保留 ?auth= 供 registry 鉴权
+async function handleAdminAnon(path, request, env, url) {
+  try {
+    let action = path[1] === "anon-grant" ? "grant" : (path[1] === "anon-log" ? "log" : null);
+    if (!action) return null;
+    let rid = env.registry.idFromName("global");
+    let stub = env.registry.get(rid);
+    let qs = new URLSearchParams(url.search);
+    qs.delete("key"); // 管理密钥不转发（registry 用 auth 鉴权，auth 由上级已注入保留）
+    if (action === "grant" && !qs.has("count")) qs.set("count", "1");
+    let r = await stub.fetch(new URL("https://dummy-url/anon/" + action + "?" + qs.toString()));
+    let ct = r.headers.get("Content-Type") || "";
+    if (ct.includes("application/json")) return new Response(await r.text(), {status: r.status, headers: {"Content-Type": "application/json"}});
+    return new Response(await r.text(), {status: r.status});
+  } catch (e) {
+    return new Response(JSON.stringify({error: "匿名服务暂时不可用"}), {status: 500, headers: {"Content-Type": "application/json"}});
+  }
 }
 
 // 操作日志助手
@@ -124,7 +145,7 @@ export async function handleAdmin(path, request, env) {
   // destroy-room（销毁房间）、delete-user（删用户）、redeem（兑换码铸币）、log（审计日志）、
   // kick-protect、global-blacklist、room-users-detail（含真实IP）等破坏性/超管专属操作仅限 super（ADMIN_SECRET_KEY）
   // M1 修复：移除 "points"——积分管理（set/add/batch 任意 name+amount）仅限 super（ADMIN_SECRET_KEY），普通 admin 不参与铸币
-  const adminAllowedPaths = ["clear-room", "kick-user", "auth-check", "room-users", "blacklist", "room-files", "room-file-data", "room-messages", "shop", "tasks", "task", "announcement", "user-tags", "tag", "bot", "lottery", "room-password", "emoji", "message", "mute", "unmute", "mute-list"];
+  const adminAllowedPaths = ["clear-room", "kick-user", "auth-check", "room-users", "blacklist", "room-files", "room-file-data", "room-messages", "shop", "tasks", "task", "announcement", "user-tags", "tag", "bot", "lottery", "room-password", "emoji", "message", "level-style", "mute", "unmute", "mute-list", "webhook", "anon-grant", "anon-log"];
 
   if (path[1] === "auth-check") {
     return new Response(JSON.stringify({level: permission}), {
@@ -133,8 +154,8 @@ export async function handleAdmin(path, request, env) {
   }
 
   if (permission === "admin" && !adminAllowedPaths.includes(path[1])) {
-    // M1 联动：积分端点仅 super 可写；普通 admin 允许只读查询（get/all 供 dashboard 统计），禁止 set/add/batch 铸币
-    if (!(path[1] === "points" && ["get", "all"].includes(path[2]))) {
+    // M1 联动：积分/经验端点仅 super 可写；普通 admin 允许只读查询（get/all 供 dashboard 统计），禁止 set/add/batch 改值
+    if (!((path[1] === "points" || path[1] === "exp") && ["get", "all"].includes(path[2]))) {
       return new Response("无权限访问此管理功能。", { status: 403 });
     }
   }
@@ -156,6 +177,9 @@ export async function handleAdmin(path, request, env) {
   if (!result && path[1] === "points")
     result = await handleAdminPoints(path, request, env, url);
 
+  if (!result && path[1] === "exp")
+    result = await handleAdminExp(path, request, env, url);
+
   if (!result && path[1] === "shop")
     result = await handleAdminShop(path, request, env, url);
 
@@ -171,7 +195,7 @@ export async function handleAdmin(path, request, env) {
   if (!result && path[1] === "bot")
     result = await handleAdminBot(path, request, env, url);
 
-  if (!result && ["announcement", "blacklist", "message", "send-message"].includes(path[1]))
+  if (!result && ["announcement", "blacklist", "message", "send-message", "level-style"].includes(path[1]))
     result = await handleAdminMessages(path, request, env, url);
 
   if (!result && path[1] === "admin-key")
@@ -191,6 +215,12 @@ export async function handleAdmin(path, request, env) {
 
   if (!result && ["mute", "unmute", "mute-list"].includes(path[1]))
     result = await handleAdminMute(path, request, env, url);
+
+  if (!result && path[1] === "webhook")
+    result = await handleAdminWebhooks(path, request, env, url);
+
+  if (!result && ["anon-grant", "anon-log"].includes(path[1]))
+    result = await handleAdminAnon(path, request, env, url);
 
   if (result) {
     // 🔒 安全修复（A4）：记录管理操作日志（此前 logAdminAction 从未被调用，审计形同虚设）

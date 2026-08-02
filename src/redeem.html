@@ -4,9 +4,82 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>兑换积分 - CloudChat</title>
-<link rel="stylesheet" href="/static/styles/all-styles.css">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#4a6cf7">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f0f2f5; color: #1a1a2e; padding: 20px; max-width: 500px; margin: 0 auto;
+  min-height: 100vh;
+}
+.header { text-align: center; padding: 40px 0 24px; }
+.header h1 { font-size: 26px; font-weight: 800; color: #4a6cf7; margin-bottom: 4px; }
+.header p { color: #888; font-size: 14px; }
+.header .back-link {
+  display: inline-block; margin-top: 12px; color: #4a6cf7; text-decoration: none;
+  font-size: 14px; padding: 6px 16px; border: 1px solid #4a6cf7; border-radius: 20px;
+  transition: all 0.2s;
+}
+.header .back-link:hover { background: #4a6cf7; color: #fff; }
+.card {
+  background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  padding: 28px 24px;
+}
+.card .label { font-size: 13px; color: #888; margin-bottom: 4px; }
+.input-group { display: flex; gap: 8px; margin: 12px 0; }
+.input-group input {
+  flex: 1; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 12px;
+  font-size: 18px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  outline: none; text-align: center; transition: border-color 0.2s;
+  font-family: 'Courier New', monospace;
+}
+.input-group input:focus { border-color: #4a6cf7; }
+.input-group button {
+  padding: 12px 28px; background: #4a6cf7; color: #fff; border: none;
+  border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer;
+  white-space: nowrap; transition: all 0.2s;
+}
+.input-group button:hover { background: #3b5de7; }
+.input-group button:disabled { background: #a0b0f0; cursor: not-allowed; }
+.result-box {
+  margin-top: 16px; padding: 16px; border-radius: 12px; display: none;
+  font-size: 14px; line-height: 1.6;
+}
+.result-box.success { display: block; background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+.result-box.error { display: block; background: #fde8e8; color: #c62828; border: 1px solid #ef9a9a; }
+.result-box .pts-highlight { font-size: 22px; font-weight: 800; display: block; margin: 8px 0; }
+.user-info {
+  display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+  background: #f8f9fe; border-radius: 12px; margin-bottom: 16px;
+}
+.user-info .avatar {
+  width: 40px; height: 40px; border-radius: 50%; background: #4a6cf7;
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; flex-shrink: 0;
+}
+.user-info .info { flex: 1; }
+.user-info .name { font-weight: 600; font-size: 15px; }
+.user-info .pts-label { font-size: 12px; color: #888; }
+.user-info .pts { font-weight: 700; color: #f39c12; }
+.history { margin-top: 20px; }
+.history h3 { font-size: 14px; color: #888; margin-bottom: 8px; }
+.history-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 14px; background: #fff; border-radius: 10px; margin-bottom: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05); font-size: 13px;
+}
+.history-item .h-code { font-family: monospace; font-weight: 700; color: #4a6cf7; }
+.history-item .h-pts { font-weight: 700; color: #f39c12; }
+.history-item .h-time { color: #999; font-size: 12px; }
+.history-empty { color: #bbb; font-size: 13px; text-align: center; padding: 20px; }
+@media (max-width: 600px) {
+  body { padding: 12px; }
+  .header h1 { font-size: 20px; }
+  .input-group { flex-direction: column; }
+  .input-group button { width: 100%; }
+}
+</style>
 </head>
 <body>
 
@@ -159,6 +232,5 @@ async function loadHistory() {
 
 loadUser();
 </script>
-<script src="/static/theme-switch.js"></script>
 </body>
 </html>

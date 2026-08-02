@@ -4,7 +4,7 @@ import { checkAuthAndLoad, isSuper, showSuperSections } from './auth.js';
 import {
   loadGlobalUsers, globalKick, banUser, unbanUser, loadBannedList,
   loadIpBannedList, banIpByInput, banIp, unbanIp, loadGlobalBlacklist,
-  setPoints, blacklistUser, unblacklistUser, deleteUser
+  setPoints, grantAnon, blacklistUser, unblacklistUser, deleteUser
 } from './users.js';
 import { loadHistoryUsers } from './history.js';
 import { loadAdminKeyInfo, changeAdminKey, resetAdminKey } from './key.js';
@@ -13,6 +13,11 @@ import {
   deductPtsToolbar, setPtsInline, addPtsInline, deductPtsInline,
   toggleAllCheckboxes, updateSelectedCount, batchAdd, batchDeduct, exportPointsCSV
 } from './points.js';
+import {
+  loadExpSection, searchExpUser, setExpToolbar, addExpToolbar,
+  deductExpToolbar, setExpInline, addExpInline, deductExpInline
+} from './exp.js';
+import { loadLevelStyleSection, onLevelStyleRoomChange, setLevelStyle, clearLevelStyle } from './levelstyle.js';
 import { loadShopSection, addShopItem, toggleShopItem, deleteShopItem } from './shop.js';
 import { loadTaskSection, addTaskItem, toggleTaskItem, deleteTaskItem } from './tasks.js';
 import { loadUserTags, setTag, removeTag } from './tags.js';
@@ -32,6 +37,7 @@ import { sendMessage, quickSendMessage } from './sendmessage.js';
 import { loadRedeemSection, generateRedeemCodes, addRedeemCode, deleteRedeemCode } from './redeem.js';
 import { loadKickProtected, kickProtectAdd, kickProtectRemove } from './kickprotect.js';
 import { loadLogSection, clearLog } from './log.js';
+import { loadWebhooksSection, genWebhook, delWebhook } from './webhooks.js';
 
 // ======== 暴露到 window 供 onclick 调用 ========
 
@@ -53,6 +59,7 @@ window.loadUserTags = loadUserTags;
 
 // 积分
 window.searchPointsUser = searchPointsUser;
+window.grantAnon = grantAnon;
 window.setPointsToolbar = setPtsToolbar;
 window.addPointsToolbar = addPtsToolbar;
 window.deductPointsToolbar = deductPtsToolbar;
@@ -64,6 +71,20 @@ window.updateSelectedCount = updateSelectedCount;
 window.batchAdd = batchAdd;
 window.batchDeduct = batchDeduct;
 window.exportPointsCSV = exportPointsCSV;
+
+// 经验等级
+window.searchExpUser = searchExpUser;
+window.setExpToolbar = setExpToolbar;
+window.addExpToolbar = addExpToolbar;
+window.deductExpToolbar = deductExpToolbar;
+window.setExpInline = setExpInline;
+window.addExpInline = addExpInline;
+window.deductExpInline = deductExpInline;
+
+// 房间等级样式
+window.onLevelStyleRoomChange = onLevelStyleRoomChange;
+window.setLevelStyle = setLevelStyle;
+window.clearLevelStyle = clearLevelStyle;
 
 // 商店
 window.addShopItem = addShopItem;
@@ -109,6 +130,10 @@ window.deleteBot = deleteBot;
 // 发送消息
 window.sendMessage = sendMessage;
 window.quickSendMessage = quickSendMessage;
+
+// 房间 Webhook
+window.genWebhook = genWebhook;
+window.delWebhook = delWebhook;
 
 // IP 分组
 window.loadIpGroup = loadIpGroup;
@@ -164,6 +189,7 @@ document.querySelector("#login-btn").addEventListener("click", async () => {
       loadHistoryUsers();
       loadAdminKeyInfo();
       loadPointsSection();
+      loadExpSection();
     }
     startAutoRefresh();
 	    navigateTo(getCurrentRoute(), false);

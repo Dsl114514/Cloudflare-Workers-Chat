@@ -18,6 +18,8 @@ export async function loadGlobalUsers() {
     if (entries.length === 0) { container.innerHTML = '<div style="color:#888;padding:8px 0">暂无在线用户</div>'; return; }
     let pointsMap = {};
     try { let pr = await fetch("/api/admin/points/all?key=" + encodeURIComponent(state.adminKey)); pointsMap = await pr.json(); } catch (e) {}
+    let expMap = {};
+    try { let er = await fetch("/api/admin/exp/all?key=" + encodeURIComponent(state.adminKey)); expMap = await er.json(); } catch (e) {}
     let html = '';
     entries.forEach(([user, rooms]) => {
       let userTag = tagMap[user] || '';
@@ -26,6 +28,7 @@ export async function loadGlobalUsers() {
       let userIp = userIpMap[user] || '';
       let ipHtml = userIp ? ' <span style="color:#999;font-size:85%">(' + escapeHtml(userIp) + ')</span>' : '';
       let userPoints = pointsMap[user] || 0;
+      let expInfo = expMap[user] || {exp: 0, level: 1};
       let escUser = user.replace(/'/g, "\\'");
       let safeId = user.replace(/[^a-zA-Z0-9]/g, '_');
       let tagHtml = tagText
@@ -34,12 +37,14 @@ export async function loadGlobalUsers() {
             + '<option value="">默认</option>'
             + Object.keys(TAG_COLORS).map(c => '<option value="' + c + '">' + c + '</option>').join('')
             + '</select><button class="tag-set-btn" onclick="setTag(this,\'' + escUser + '\')">设置</button>';
-      html += '<div class="global-user-item"><span class="name">' + escapeHtml(user) + ipHtml + tagHtml + '</span>' +
+      let lvBadge = '<span class="tag-badge" style="background:#9b59b6" title="等级 ' + (expInfo.level || 1) + ' / 经验 ' + (expInfo.exp || 0) + '">Lv.' + (expInfo.level || 1) + '</span>';
+      html += '<div class="global-user-item"><span class="name">' + escapeHtml(user) + ipHtml + lvBadge + tagHtml + '</span>' +
         '<span class="rooms">房间: ' + rooms.map(r => '#' + r).join(', ') + '</span>' +
         '<span style="display:flex;align-items:center;gap:4px">' +
         '<span class="points-badge" style="color:#e67e22;font-weight:bold">' + userPoints + '</span>' +
         '<input class="tag-input" placeholder="积分" id="pts-input-' + safeId + '" style="width:50px">' +
         '<button class="tag-set-btn" onclick="setPoints(\'' + escUser + '\')">设置</button>' +
+        '<button class="tag-set-btn" onclick="grantAnon(\'' + escUser + '\')" title="发放匿名券">🕶️发券</button>' +
         '<button class="kick-btn" onclick="globalKick(\'' + escUser + '\')">全局踢出</button>' +
         '<button class="ban-btn" onclick="banUser(\'' + escUser + '\')">封禁</button>' +
         '<button class="ban-btn" onclick="blacklistUser(\'' + escUser + '\')">拉黑</button></span></div>';
@@ -152,6 +157,20 @@ export async function setPoints(user) {
     let r = await fetch("/api/admin/points/set?key=" + encodeURIComponent(state.adminKey) + "&name=" + encodeURIComponent(user) + "&amount=" + amount);
     alert(await r.text());
     loadGlobalUsers();
+  } catch (e) { alert("操作失败: " + e.message); }
+}
+
+// 🕶️ 发放匿名券（管理操作，普通 admin 可用）
+export async function grantAnon(user) {
+  let count = prompt("给 " + user + " 发放几张匿名券？", "1");
+  if (count === null) return;
+  count = parseInt(count, 10);
+  if (isNaN(count) || count < 1 || count > 1000) { alert("请输入 1-1000 之间的数量"); return; }
+  try {
+    let r = await fetch("/api/admin/anon-grant?key=" + encodeURIComponent(state.adminKey) + "&name=" + encodeURIComponent(user) + "&count=" + count);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    let data = await r.json();
+    alert("已给 " + user + " 发放 " + count + " 张匿名券，当前共 " + data.anonCoupons + " 张");
   } catch (e) { alert("操作失败: " + e.message); }
 }
 

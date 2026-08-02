@@ -4,9 +4,61 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>站点统计 - CloudChat</title>
-<link rel="stylesheet" href="/static/styles/all-styles.css">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#4a6cf7">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f0f2f5; color: #1a1a2e; padding: 20px; max-width: 720px; margin: 0 auto;
+  min-height: 100vh;
+}
+.header { text-align: center; padding: 30px 0 20px; }
+.header h1 { font-size: 26px; font-weight: 700; color: #4a6cf7; margin-bottom: 4px; }
+.header p { color: #888; font-size: 14px; }
+.header .back-link {
+  display: inline-block; margin-top: 10px; color: #4a6cf7; text-decoration: none;
+  font-size: 14px; padding: 6px 16px; border: 1px solid #4a6cf7; border-radius: 20px;
+  transition: all 0.2s;
+}
+.header .back-link:hover { background: #4a6cf7; color: #fff; }
+.loading { text-align: center; padding: 60px 20px; color: #999; font-size: 15px; }
+.stats-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0;
+}
+.stat-card {
+  background: #fff; border-radius: 14px; padding: 20px; text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06); transition: all 0.2s;
+}
+.stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); transform: translateY(-2px); }
+.stat-card .icon { font-size: 28px; margin-bottom: 6px; }
+.stat-card .num { font-size: 30px; font-weight: 800; color: #4a6cf7; }
+.stat-card .label { font-size: 13px; color: #888; margin-top: 2px; }
+.stat-card.full { grid-column: 1 / -1; }
+.section-title {
+  font-size: 16px; font-weight: 700; margin: 20px 0 10px; display: flex; align-items: center; gap: 6px;
+}
+.leaderboard-mini { list-style: none; }
+.lb-item {
+  display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+  background: #fff; border-radius: 8px; margin-bottom: 3px; font-size: 13px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.lb-item .lb-rank { width: 24px; font-weight: 700; color: #999; flex-shrink: 0; }
+.lb-item .lb-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-item .lb-points { font-weight: 600; color: #4a6cf7; }
+.lb-item.top1 .lb-rank { color: #ffd700; }
+.lb-item.top2 .lb-rank { color: #c0c0c0; }
+.lb-item.top3 .lb-rank { color: #cd7f32; }
+.empty-state { text-align: center; padding: 40px 20px; color: #999; }
+.empty-state .big-icon { font-size: 42px; margin-bottom: 8px; }
+@media (max-width: 600px) {
+  body { padding: 12px; }
+  .header h1 { font-size: 20px; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .stat-card .num { font-size: 24px; }
+}
+</style>
 </head>
 <body>
 
@@ -67,6 +119,5 @@ async function load() {
 }
 load();
 </script>
-<script src="/static/theme-switch.js"></script>
 </body>
 </html>

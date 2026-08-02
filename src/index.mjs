@@ -47,6 +47,7 @@ import CHAT_GAME_BOARD from "./client/chat/game-board.js";
 import CHAT_GAME_ACTION from "./client/chat/game-action.js";
 import CHAT_GAME_ARCADE from "./client/chat/game-arcade.js";
 import CHAT_CHANNELS from "./client/chat/channels.js";
+import CHAT_ACHIEVEMENTS from "./client/chat/achievements.js";
 import CHAT_STYLE from "./client/chat/style.css";
 import CHAT_GAME_STYLE from "./client/chat/game-style.css";
 import ALL_STYLES from "./client/styles/all-styles.css";
@@ -61,6 +62,8 @@ import ADMIN_USERS from "./client/admin/users.js";
 import ADMIN_HISTORY from "./client/admin/history.js";
 import ADMIN_TAGS from "./client/admin/tags.js";
 import ADMIN_POINTS from "./client/admin/points.js";
+import ADMIN_EXP from "./client/admin/exp.js";
+import ADMIN_LEVELSTYLE from "./client/admin/levelstyle.js";
 import ADMIN_SHOP from "./client/admin/shop.js";
 import ADMIN_TASKS from "./client/admin/tasks.js";
 import ADMIN_LOTTERY from "./client/admin/lottery.js";
@@ -75,6 +78,7 @@ import ADMIN_USERMODAL from "./client/admin/usermodal.js";
 import ADMIN_REDEEM from "./client/admin/redeem.js";
 import ADMIN_KICKPROTECT from "./client/admin/kickprotect.js";
 import ADMIN_LOG from "./client/admin/log.js";
+import ADMIN_WEBHOOKS from "./client/admin/webhooks.js";
 
 // i18n 已内联进 state.js；此 re-export 兼容仍引用 ./i18n.js 的旧前端缓存，避免登录模块加载失败
 const CHAT_I18N = 'export { t, getLang, setLang, applyI18n, LANG_KEY } from "./state.js";';
@@ -114,6 +118,7 @@ const CHAT_MODULES = {
   "chat/game-action.js": CHAT_GAME_ACTION,
   "chat/game-arcade.js": CHAT_GAME_ARCADE,
   "chat/channels.js": CHAT_CHANNELS,
+  "chat/achievements.js": CHAT_ACHIEVEMENTS,
 };
 
 const ADMIN_MODULES = {
@@ -126,6 +131,8 @@ const ADMIN_MODULES = {
   "admin/history.js": ADMIN_HISTORY,
   "admin/tags.js": ADMIN_TAGS,
   "admin/points.js": ADMIN_POINTS,
+  "admin/exp.js": ADMIN_EXP,
+  "admin/levelstyle.js": ADMIN_LEVELSTYLE,
   "admin/shop.js": ADMIN_SHOP,
   "admin/tasks.js": ADMIN_TASKS,
   "admin/lottery.js": ADMIN_LOTTERY,
@@ -140,6 +147,7 @@ const ADMIN_MODULES = {
   "admin/redeem.js": ADMIN_REDEEM,
   "admin/kickprotect.js": ADMIN_KICKPROTECT,
   "admin/log.js": ADMIN_LOG,
+  "admin/webhooks.js": ADMIN_WEBHOOKS,
 };
 
 import { handleErrors } from "./utils.mjs";
@@ -335,6 +343,9 @@ self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWi
 
 // ============ API 路由分发 ============
 
+// 🔗 通用 Webhook 入站限频（内存级缓解，多实例不共享，防单实例刷屏）
+const webhookRate = new Map();
+
 async function handleApi(apiPath, request, env) {
   switch (apiPath[0]) {
     case "rooms":
@@ -397,6 +408,52 @@ async function handleApi(apiPath, request, env) {
 
     case "game":
       return handleGame(apiPath, request, env);
+
+    // 🔗 通用 Webhook 入站：POST /api/webhook/<room>?secret=xxx&channel=xxx
+    // body: {content, sender?, channel?}；secret 也可放 X-Webhook-Secret header
+    case "webhook": {
+      let url = new URL(request.url);
+      let roomName = apiPath[1];
+      if (!roomName) return new Response(JSON.stringify({error: "缺少房间名"}), {status: 400, headers: {"Content-Type": "application/json"}});
+      if (request.method !== "POST") return new Response(JSON.stringify({error: "请使用POST"}), {status: 405, headers: {"Content-Type": "application/json"}});
+      let rid = env.registry.idFromName("global");
+      let stub = env.registry.get(rid);
+      let secret = url.searchParams.get("secret") || request.headers.get("X-Webhook-Secret") || "";
+      // 校验房间 webhook secret（常量时间比较在 registry 层）
+      let verify = await stub.fetch(new URL("https://dummy-url/room/webhook-verify"), {
+        method: "POST",
+        body: JSON.stringify({room: roomName, secret}),
+        headers: {"Content-Type": "application/json"}
+      });
+      let vd;
+      try { vd = await verify.json(); } catch (e) { vd = {}; }
+      if (!vd.ok) return new Response(JSON.stringify({error: vd.error || "Webhook校验失败"}), {status: 403, headers: {"Content-Type": "application/json"}});
+      // 限频：每房间每 5 秒 1 条
+      let now = Date.now();
+      if (now - (webhookRate.get(roomName) || 0) < 5000) {
+        return new Response(JSON.stringify({error: "发送过于频繁，请5秒后再试"}), {status: 429, headers: {"Content-Type": "application/json"}});
+      }
+      webhookRate.set(roomName, now);
+      // 解析 body
+      let body;
+      try { body = await request.json(); } catch (e) {
+        return new Response(JSON.stringify({error: "请求体不是合法JSON"}), {status: 400, headers: {"Content-Type": "application/json"}});
+      }
+      let content = (body.content === undefined ? "" : String(body.content)).slice(0, 500);
+      if (!content.trim()) return new Response(JSON.stringify({error: "缺少消息内容"}), {status: 400, headers: {"Content-Type": "application/json"}});
+      let sender = (body.sender === undefined ? "Webhook" : String(body.sender)).slice(0, 30);
+      let channel = (body.channel === undefined ? "" : String(body.channel)).slice(0, 24);
+      // 转发到房间 DO（仿 admin send-message 链路）
+      let roomId;
+      if (roomName.match(/^[0-9a-f]{64}$/)) roomId = env.rooms.idFromString(roomName);
+      else if (roomName.length <= 32) roomId = env.rooms.idFromName(roomName);
+      else return new Response(JSON.stringify({error: "无效房间名"}), {status: 400, headers: {"Content-Type": "application/json"}});
+      let roomStub = env.rooms.get(roomId);
+      let doUrl = "https://dummy-url/broadcast-message?text=" + encodeURIComponent(content) + "&sender=" + encodeURIComponent(sender) + "&webhook=1";
+      if (channel) doUrl += "&channel=" + encodeURIComponent(channel);
+      let r = await roomStub.fetch(new URL(doUrl));
+      return new Response(await r.text(), {status: r.status});
+    }
 
     case "emoji": {
       let rid = env.registry.idFromName("global");
@@ -473,6 +530,11 @@ async function handleApi(apiPath, request, env) {
 
       if (apiPath[1] === "profile") {
         let r = await stub.fetch(new URL("https://dummy-url/user-profile?name=" + encodeURIComponent(name)));
+        return new Response(await r.text(), {headers: {"Content-Type": "application/json"}});
+      }
+      if (apiPath[1] === "achievements") {
+        let token = url.searchParams.get("token") || "";
+        let r = await stub.fetch(new URL("https://dummy-url/user/achievements?name=" + encodeURIComponent(name) + "&token=" + encodeURIComponent(token)));
         return new Response(await r.text(), {headers: {"Content-Type": "application/json"}});
       }
       if (apiPath[1] === "avatar" && request.method === "POST") {

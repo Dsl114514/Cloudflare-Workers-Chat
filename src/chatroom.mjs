@@ -2,6 +2,9 @@ import { handleErrors } from "./utils.mjs";
 import { handleMedia } from "./chatroom/media.mjs";
 import { handleManage } from "./chatroom/manage.mjs";
 
+// 🔒 安全修复（W20）：颜色白名单（色名 + #hex），消息颜色/房间等级样式统一使用
+const SAFE_COLOR_RE = /^(red|blue|green|purple|pink|cyan|gray|grey|orange|yellow|teal|indigo|brown|lime|deeporange|rose|crimson|coral|gold|amber|forest|seagreen|turquoise|steel|royalblue|mediumpurple|darkviolet|chocolate|olive|firebrick|slateblue|darkcyan|mediumseagreen|indianred|cadetblue|#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?)$/;
+
 // ⚠️ 安全说明（L12）：本 DO 的 /blacklist/*、/do-kick、/do-clear、/do-destroy、/broadcast-message、
 // /tag-update、/set-announcement、/message/recall 等端点无自身鉴权，仅依赖 api/ 层路由白名单单点兜底，
 // 当前房间名+DO id 不可枚举，无法被外部直接连到。纵深防御需 api/admin 层配合改造，本次保留现状不动。
@@ -41,6 +44,12 @@ export class ChatRoom {
     this.announcement = "";
     this._loadAnnouncement = this.storage.get("announcement").then(text => {
       if (text) this.announcement = text;
+    });
+
+    // 🏅 房间等级样式：{ "<level>": {color, icon, text} }，level 为 1-999 整数键
+    this.levelStyles = {};
+    this._loadLevelStyles = this.storage.get("levelStyles").then(r => {
+      if (r && typeof r === "object") this.levelStyles = r;
     });
 
     this.destroyed = false;
@@ -357,6 +366,16 @@ export class ChatRoom {
           let text = url.searchParams.get("text");
           let sender = url.searchParams.get("sender") || "系统公告";
           if (!text) return new Response("请提供消息内容", {status: 400});
+          // 🔗 通用 Webhook 增强：可选 channel 参数（合法且存在的频道才生效，否则 general）+ webhook 来源标记
+          let channelParam = url.searchParams.get("channel") || "";
+          let isWebhook = url.searchParams.get("webhook") === "1";
+          let targetChannel = "general";
+          if (channelParam) {
+            if (this._loadChannels) await this._loadChannels;
+            if (/^[a-zA-Z0-9_-]{1,24}$/.test(channelParam) && this.channels.some(c => c.name === channelParam)) {
+              targetChannel = channelParam;
+            }
+          }
 
           let timestamp = Date.now();
           let data = {
@@ -368,13 +387,18 @@ export class ChatRoom {
             tagColor: "red",
             tagBorder: "",
             admin: true,
-            channel: "general",
+            channel: targetChannel,
             roomwide: true
           };
+          if (isWebhook) data.webhook = true;
           data.id = ++this.msgCounter;
           this.lastTimestamp = data.timestamp;
           let dataStr = JSON.stringify(data);
-          this.broadcast(dataStr);
+          if (channelParam) {
+            this.broadcastToChannel(targetChannel, dataStr);
+          } else {
+            this.broadcast(dataStr);
+          }
           let key = new Date(data.timestamp).toISOString();
           await this.storage.put(key, dataStr);
           return new Response("消息已发送到房间 " + (this.roomName || "未知"), {status: 200});
@@ -513,6 +537,40 @@ export class ChatRoom {
           });
         }
 
+        // 🏅 房间等级样式：设置/更新某等级徽章样式（颜色白名单 + 图标/文字限长拒 HTML）
+        case "/set-level-styles": {
+          let level = parseInt(url.searchParams.get("level"), 10);
+          let color = url.searchParams.get("color") || "";
+          let icon = url.searchParams.get("icon") || "";
+          let text = url.searchParams.get("text") || "";
+          if (!(level >= 1 && level <= 999)) return new Response("等级无效", {status: 400});
+          // 防护：颜色过白名单（非法置空）；图标 ≤4 字符、文字 ≤10 字符且拒 HTML 特殊字符
+          if (color && !SAFE_COLOR_RE.test(String(color))) color = "";
+          if (icon.length > 4 || /[<>&"']/.test(icon)) icon = "";
+          if (text.length > 10 || /[<>&"']/.test(text)) text = "";
+          if (!this.levelStyles || typeof this.levelStyles !== "object") this.levelStyles = {};
+          if (color || icon || text) {
+            this.levelStyles[String(level)] = {color, icon, text};
+          } else {
+            delete this.levelStyles[String(level)]; // 三项全空视为清除该等级样式
+          }
+          await this.storage.put("levelStyles", this.levelStyles);
+          this.broadcast({type: "level-styles", styles: this.levelStyles});
+          return new Response("等级样式已更新", {status: 200});
+        }
+
+        // 🏅 房间等级样式：清除单个等级样式
+        case "/clear-level-style": {
+          let level = parseInt(url.searchParams.get("level"), 10);
+          if (!(level >= 1 && level <= 999)) return new Response("等级无效", {status: 400});
+          if (this.levelStyles && typeof this.levelStyles === "object") {
+            delete this.levelStyles[String(level)];
+            await this.storage.put("levelStyles", this.levelStyles);
+            this.broadcast({type: "level-styles", styles: this.levelStyles});
+          }
+          return new Response("等级样式已清除", {status: 200});
+        }
+
         case "/get-pinned": {
           return new Response(JSON.stringify({pinned: this.pinnedMessage}), {
             status: 200, headers: {"Content-Type": "application/json"}
@@ -648,6 +706,12 @@ export class ChatRoom {
 
     if (this._loadChannels) await this._loadChannels;
     session.blockedMessages.push(JSON.stringify({type: "channels", channels: this.channels}));
+
+    // 🏅 房间等级样式：加入时推送当前配置（前端据此渲染各等级徽章）
+    if (this._loadLevelStyles) await this._loadLevelStyles;
+    if (this.levelStyles && Object.keys(this.levelStyles).length > 0) {
+      session.blockedMessages.push(JSON.stringify({type: "level-styles", styles: this.levelStyles}));
+    }
 
     this.updateRegistry();
   }
@@ -1468,11 +1532,11 @@ export class ChatRoom {
       let msgColor = data.color;
       // 🔒 安全修复（W20）：消息颜色仅允许预设色名或 hex，防 style.color 注入骚扰
       if (msgColor) {
-        const SAFE_COLOR_RE = /^(red|blue|green|purple|pink|cyan|gray|grey|orange|yellow|teal|indigo|brown|lime|deeporange|rose|crimson|coral|gold|amber|forest|seagreen|turquoise|steel|royalblue|mediumpurple|darkviolet|chocolate|olive|firebrick|slateblue|darkcyan|mediumseagreen|indianred|cadetblue|#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?)$/;
         if (!SAFE_COLOR_RE.test(String(msgColor))) msgColor = "";
       }
       let replyData = data.reply;
       let atAll = data.atAll;
+      let anonFlag = !!data.anon;
       data = { name: session.name, message: "" + data.message, channel: msgChannel };
       if (session.tag) data.tag = session.tag;
       if (session.tagColor) data.tagColor = session.tagColor;
@@ -1750,6 +1814,69 @@ export class ChatRoom {
           webSocket.send(JSON.stringify({error: "AI 请求失败: " + e.message}));
         }
         return;
+      }
+
+      // 🕶️ 匿名马甲：消耗一张匿名券，消息以「匿名」身份展示（真实身份由 registry /anon/use 写审计日志）。
+      // 放在命令（/bot /ai /gh /destroy /rollback）全部 return 之后，命令消息不消耗匿名券。
+      if (anonFlag) {
+        if (!session.authenticated) {
+          webSocket.send(JSON.stringify({error: "请先登录后再使用匿名发言"}));
+          return;
+        }
+        try {
+          let rid = this.env.registry.idFromName("global");
+          let stub = this.env.registry.get(rid);
+          let useResp = await stub.fetch("https://dummy-url/anon/use", {
+            method: "POST",
+            body: JSON.stringify({name: session.name, token: session.token || "", channel: msgChannel}),
+            headers: {"Content-Type": "application/json"}
+          });
+          if (!useResp.ok) {
+            let errText = await useResp.text();
+            let errObj = {};
+            try { errObj = JSON.parse(errText); } catch (e) {}
+            webSocket.send(JSON.stringify({error: errObj.error || "匿名券不足，可在商店购买"}));
+            return;
+          }
+        } catch (e) {
+          webSocket.send(JSON.stringify({error: "匿名服务暂时不可用"}));
+          return;
+        }
+        data.name = "匿名";
+        data.tag = "🕶️";
+        data.tagColor = "purple";
+        data.tagBorder = "";
+        data.avatar = "";
+        data.anon = true;
+      }
+
+      // ⭐ 发言经验：注册用户发言 +1 经验（每 session 15 秒限频），升级/新成就通过 WS 推送。
+      // 广播消息带 level 字段，前端在用户名旁显示 Lv 徽章。
+      if (session.authenticated && session.name && session.token) {
+        let nowExp = Date.now();
+        if (!session.lastExpTs || nowExp - session.lastExpTs >= 15000) {
+          session.lastExpTs = nowExp;
+          try {
+            let rid = this.env.registry.idFromName("global");
+            let stub = this.env.registry.get(rid);
+            let xpResp = await stub.fetch("https://dummy-url/xp/grant", {
+              method: "POST",
+              body: JSON.stringify({name: session.name, token: session.token || "", amount: 1, stats: "msg"}),
+              headers: {"Content-Type": "application/json"}
+            });
+            if (xpResp.ok) {
+              let xpData = await xpResp.json();
+              // 匿名发言不广播等级（避免泄露真实用户等级），经验照发
+              if (xpData && xpData.level && !anonFlag) data.level = xpData.level;
+              if (xpData && xpData.leveledUp) {
+                try { webSocket.send(JSON.stringify({type: "xp-update", exp: xpData.exp, level: xpData.level, leveledUp: true, newLevel: xpData.newLevel})); } catch (e) {}
+              }
+              if (xpData && xpData.achievements && xpData.achievements.length) {
+                try { webSocket.send(JSON.stringify({type: "achievement", achievements: xpData.achievements})); } catch (e) {}
+              }
+            }
+          } catch (e) {}
+        }
       }
 
       data.timestamp = Math.max(Date.now(), this.lastTimestamp + 1);
