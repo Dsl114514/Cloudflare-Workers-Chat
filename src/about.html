@@ -4,10 +4,92 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>关于 CloudChat</title>
-<link rel="stylesheet" href="/static/styles/all-styles.css">
 <link rel="manifest" href="/manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#4a6cf7">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f0f2f5; color: #1a1a2e;
+}
+/* Hero */
+.hero {
+  background: linear-gradient(135deg, #4a6cf7 0%, #6c5ce7 50%, #a855f7 100%);
+  color: #fff; padding: 60px 20px 50px; text-align: center; position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 30px 30px; pointer-events: none;
+}
+.hero h1 { font-size: 38px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
+.hero .subtitle { font-size: 16px; opacity: 0.85; margin-bottom: 20px; }
+.hero .version-badge {
+  display: inline-block; background: rgba(255,255,255,0.2); backdrop-filter: blur(4px);
+  padding: 4px 14px; border-radius: 20px; font-size: 13px; margin-bottom: 20px;
+}
+.hero .nav-links { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.hero .nav-links a {
+  display: inline-block; padding: 8px 20px; border-radius: 24px; font-size: 14px; font-weight: 500;
+  text-decoration: none; transition: all 0.2s;
+  background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+}
+.hero .nav-links a:hover { background: #fff; color: #4a6cf7; transform: translateY(-1px); }
+.container { max-width: 780px; margin: 0 auto; padding: 30px 20px 60px; }
+/* Sections */
+.section { margin-bottom: 28px; }
+.section h2 {
+  font-size: 20px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+.section h2::after { content: ''; flex: 1; height: 1px; background: #e0e0e0; margin-left: 8px; }
+.section p, .section li { font-size: 14px; line-height: 1.8; color: #444; }
+/* Feature cards */
+.features { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.feature-card {
+  background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: all 0.2s;
+}
+.feature-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); transform: translateY(-2px); }
+.feature-card .fc-icon { font-size: 28px; margin-bottom: 8px; }
+.feature-card .fc-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: #1a1a2e; }
+.feature-card .fc-desc { font-size: 13px; color: #666; line-height: 1.6; }
+/* Tech stack */
+.tech-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.tech-item {
+  background: #fff; padding: 8px 16px; border-radius: 10px; font-size: 13px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 6px;
+}
+.tech-item .tech-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+/* Stats */
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.stat-card {
+  background: #fff; border-radius: 12px; padding: 18px; text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.stat-card .stat-num { font-size: 28px; font-weight: 800; color: #4a6cf7; }
+.stat-card .stat-label { font-size: 13px; color: #888; margin-top: 4px; }
+/* Timeline */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 4px; bottom: 4px; width: 2px; background: #e0e0e0; }
+.timeline-item { position: relative; margin-bottom: 14px; padding-left: 16px; }
+.timeline-item::before {
+  content: ''; position: absolute; left: -20px; top: 6px; width: 10px; height: 10px;
+  border-radius: 50%; background: #4a6cf7; border: 2px solid #fff; box-shadow: 0 0 0 2px #4a6cf7;
+}
+.timeline-item .tl-date { font-size: 12px; color: #999; margin-bottom: 2px; }
+.timeline-item .tl-text { font-size: 14px; color: #333; }
+.timeline-item .tl-text code { font-family: 'SF Mono', 'Fira Code', monospace; background: #eef0f8; padding: 1px 5px; border-radius: 4px; font-size: 12px; color: #4a6cf7; }
+/* Footer */
+.footer { text-align: center; padding: 20px; font-size: 13px; color: #aaa; border-top: 1px solid #e8e8e8; margin-top: 20px; }
+.footer a { color: #4a6cf7; text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+@media (max-width: 600px) {
+  .hero h1 { font-size: 28px; }
+  .features { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
 </head>
 <body>
 
@@ -146,6 +228,5 @@
   Built with ☁️ Cloudflare Workers · ❤️ 2026
 </div>
 
-<script src="/static/theme-switch.js"></script>
 </body>
 </html>

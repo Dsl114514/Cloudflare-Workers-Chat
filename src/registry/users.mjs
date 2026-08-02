@@ -1,5 +1,6 @@
 // 用户注册/登录/认证 + user-seen/ips
-import { sha256, getVipLevel, getVipFeatures } from "../utils.mjs";
+import { sha256, getVipLevel, getVipFeatures, tokenValid, levelForExp } from "../utils.mjs";
+import { ACHIEVEMENTS } from "./achievements.mjs";
 
 // 🔒 安全修复（LD11）：常量时间字符串比较，防 token 时序侧信道
 function safeEqual(a, b) {
@@ -56,22 +57,34 @@ export async function handleUsers(reg, request, url) {
       if (password.length < 6) return new Response(JSON.stringify({error: "密码至少6个字符"}), {status: 400});
       if (reg.registeredUsers.has(name)) return new Response(JSON.stringify({error: "用户名已被注册"}), {status: 409});
       // 🔒 安全修复（E4）：每 IP 每日最多注册 3 个账号，防批量注册小号铸币
+      // 🔒 安全修复（L13b）：registerByIp 计数器持久化到 storage（DO 重启不丢失）。
+      // 在 users.mjs 内自包含懒加载/保存（不动 registry.mjs / persistence.mjs 主加载链）。
       let rip = body.ip || "";
       if (rip) {
-        if (!reg.registerByIp) reg.registerByIp = new Map();
+        if (!reg.registerByIp) {
+          reg.registerByIp = new Map();
+          try {
+            let raw = await reg.storage.get("registerByIp");
+            if (raw) {
+              let parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) reg.registerByIp = new Map(parsed);
+            }
+          } catch (e) {}
+        }
         let today = new Date().toISOString().slice(0, 10);
         let rec = reg.registerByIp.get(rip);
         if (!rec || rec.date !== today) rec = {date: today, count: 0};
         if (rec.count >= 3) return new Response(JSON.stringify({error: "注册太频繁，请稍后再试"}), {status: 429});
         rec.count++;
         reg.registerByIp.set(rip, rec);
+        try { await reg.storage.put("registerByIp", JSON.stringify([...reg.registerByIp])); } catch (e) {}
       }
       // 🔒 安全修复（LD10）：每用户随机盐 + sha256(salt+password)，防离线爆破/彩虹表
       let saltBytes = new Uint8Array(16);
       crypto.getRandomValues(saltBytes);
       let salt = Array.from(saltBytes, b => b.toString(16).padStart(2, '0')).join('');
       let hash = await sha256(salt + password);
-      reg.registeredUsers.set(name, {passwordHash: hash, salt, token: null, tokenExpiry: null, avatar: "", bio: ""});
+      reg.registeredUsers.set(name, {passwordHash: hash, salt, token: null, tokenExpiry: null, avatar: "", bio: "", anonCoupons: 0, exp: 0, achievements: [], stats: {msgCount: 0, checkinCount: 0, gameWins: 0, shopCount: 0}});
       await reg.saveRegisteredUsers();
       return new Response(JSON.stringify({ok: true}));
     }
@@ -182,6 +195,8 @@ export async function handleUsers(reg, request, url) {
       }
       let pts = reg.userPoints.get(name) || 0;
       let vip = getVipLevel(tag);
+      let uExp = user ? (user.exp || 0) : 0;
+      let lvl = levelForExp(uExp);
       return new Response(JSON.stringify({
         name,
         avatar: user ? (user.avatar || "") : "",
@@ -190,7 +205,51 @@ export async function handleUsers(reg, request, url) {
         points: pts,
         registered: !!user,
         registeredAt: user ? (user.registeredAt || null) : null,
+        anonCoupons: user ? (user.anonCoupons || 0) : 0,
+        exp: uExp,
+        level: lvl.level,
+        expCurrent: lvl.current,
+        expNext: lvl.next,
+        achievements: user ? (Array.isArray(user.achievements) ? user.achievements : []) : [],
+        stats: user ? (user.stats || {msgCount: 0, checkinCount: 0, gameWins: 0, shopCount: 0}) : {msgCount: 0, checkinCount: 0, gameWins: 0, shopCount: 0},
         vip: vip ? {level: vip.id, label: vip.label, tier: vip.tier} : null
+      }), {headers: {"Content-Type": "application/json"}});
+    }
+
+    // ⭐ 经验发放端点：注册用户调用（token 鉴权），amount 经验 + 可选 stats 计数。
+    // stats ∈ {msg, checkin, game, shop}，对应 grantExp 内的 statsKey。
+    case "/xp/grant": {
+      if (request.method !== "POST") return new Response(JSON.stringify({error: "请使用POST"}), {status: 405});
+      let body = await request.json();
+      let name = body.name;
+      if (!name) return new Response(JSON.stringify({error: "请提供用户名"}), {status: 400});
+      let user = reg.registeredUsers.get(name);
+      if (!tokenValid(user, body.token || "")) return new Response(JSON.stringify({error: "身份验证失败"}), {status: 403});
+      let amount = parseInt(body.amount) || 0;
+      if (amount < 0 || amount > 100) return new Response(JSON.stringify({error: "经验值无效"}), {status: 400});
+      let statsKey = ["msg", "checkin", "game", "shop"].includes(body.stats) ? body.stats : null;
+      let res = await reg.grantExp(name, amount, statsKey);
+      return new Response(JSON.stringify(res), {headers: {"Content-Type": "application/json"}});
+    }
+
+    // ⭐ 成就查询端点（公开只读，需 token 鉴权）：返回经验/等级/统计/已解锁成就 + 成就定义表
+    case "/user/achievements": {
+      let name = url.searchParams.get("name");
+      let token = url.searchParams.get("token") || "";
+      if (!name) return new Response(JSON.stringify({error: "请提供用户名"}), {status: 400});
+      let user = reg.registeredUsers.get(name);
+      if (!tokenValid(user, token)) return new Response(JSON.stringify({error: "身份验证失败"}), {status: 403});
+      let stats = user.stats || {msgCount: 0, checkinCount: 0, gameWins: 0, shopCount: 0};
+      let lvl = levelForExp(user.exp || 0);
+      return new Response(JSON.stringify({
+        name,
+        exp: user.exp || 0,
+        level: lvl.level,
+        expCurrent: lvl.current,
+        expNext: lvl.next,
+        stats,
+        achievements: Array.isArray(user.achievements) ? user.achievements : [],
+        definitions: ACHIEVEMENTS
       }), {headers: {"Content-Type": "application/json"}});
     }
 
@@ -285,8 +344,10 @@ export async function handleUsers(reg, request, url) {
 
       let vip = getVipLevel(tag);
       let vipFeatures = getVipFeatures(vip);
+      let uExp = uiUser ? (uiUser.exp || 0) : 0;
+      let uLvl = levelForExp(uExp);
 
-      let result = {banned, ipBanned, registered, authenticated, tag, color, border, avatar: userAvatar, bio: userBio, vip: vip ? {level: vip.id, label: vip.label, tier: vip.tier, features: vipFeatures} : null};
+      let result = {banned, ipBanned, registered, authenticated, tag, color, border, avatar: userAvatar, bio: userBio, anonCoupons: uiUser ? (uiUser.anonCoupons || 0) : 0, exp: uExp, level: uLvl.level, expCurrent: uLvl.current, expNext: uLvl.next, achievements: uiUser ? (Array.isArray(uiUser.achievements) ? uiUser.achievements : []) : [], stats: uiUser ? (uiUser.stats || {msgCount: 0, checkinCount: 0, gameWins: 0, shopCount: 0}) : {msgCount: 0, checkinCount: 0, gameWins: 0, shopCount: 0}, vip: vip ? {level: vip.id, label: vip.label, tier: vip.tier, features: vipFeatures} : null};
       if (savePromises.length) Promise.all(savePromises).catch(() => {});
       return new Response(JSON.stringify(result), {
         headers: {"Content-Type": "application/json"}

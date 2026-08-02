@@ -13,6 +13,7 @@ function toBigInt(val) {
       let [base, exp] = s.split('e');
       let e = parseInt(exp, 10);
       if (e < 0) return 0n;
+      if (e > 100000) return 0n; // 防 DoS：指数过大直接拒绝
       let dot = base.indexOf('.');
       if (dot === -1) {
         s = base + '0'.repeat(e);
@@ -80,7 +81,8 @@ export async function handleRedeem(reg, request, url) {
         message: "兑换成功！获得 " + pts + " 积分"
       }), {headers: {"Content-Type": "application/json"}});
     } catch (e) {
-      return new Response(JSON.stringify({error: e.message}), {status: 500});
+      // 🔒 L1 脱敏：不向客户端回传内部错误详情
+      return new Response(JSON.stringify({error: "服务器内部错误"}), {status: 500});
     }
   }
 
@@ -125,7 +127,8 @@ export async function handleRedeem(reg, request, url) {
         headers: {"Content-Type": "application/json"}
       });
     } catch (e) {
-      return new Response(JSON.stringify({error: e.message}), {status: 500});
+      // 🔒 L1 脱敏：不向客户端回传内部错误详情
+      return new Response(JSON.stringify({error: "服务器内部错误"}), {status: 500});
     }
   }
 
@@ -139,7 +142,8 @@ export async function handleRedeem(reg, request, url) {
 
       if (!code) return new Response(JSON.stringify({error: "请输入兑换码"}), {status: 400});
       if (points <= 0n) return new Response(JSON.stringify({error: "积分必须大于0"}), {status: 400});
-      if (code.length < 4) return new Response(JSON.stringify({error: "兑换码至少4位"}), {status: 400});
+      // 🔒 L18 修复：自定义码至少 8 位，防 4 位码可爆破（自动生成的 8 位码不受影响）
+      if (code.length < 8) return new Response(JSON.stringify({error: "兑换码至少8位"}), {status: 400});
       if (reg.redeemCodes.has(code)) return new Response(JSON.stringify({error: "兑换码已存在"}), {status: 400});
 
       reg.redeemCodes.set(code, {
@@ -156,7 +160,8 @@ export async function handleRedeem(reg, request, url) {
         headers: {"Content-Type": "application/json"}
       });
     } catch (e) {
-      return new Response(JSON.stringify({error: e.message}), {status: 500});
+      // 🔒 L1 脱敏：不向客户端回传内部错误详情
+      return new Response(JSON.stringify({error: "服务器内部错误"}), {status: 500});
     }
   }
 
@@ -181,7 +186,8 @@ export async function handleRedeem(reg, request, url) {
       await saveRedeemCodes(reg.storage, reg.redeemCodes);
       return new Response(JSON.stringify({ok: true}), {headers: {"Content-Type": "application/json"}});
     } catch (e) {
-      return new Response(JSON.stringify({error: e.message}), {status: 500});
+      // 🔒 L1 脱敏：不向客户端回传内部错误详情
+      return new Response(JSON.stringify({error: "服务器内部错误"}), {status: 500});
     }
   }
 

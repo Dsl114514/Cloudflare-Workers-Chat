@@ -1,359 +1,441 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>帮助中心 - CloudChat</title>
-  <link rel="stylesheet" href="/static/styles/all-styles.css">
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#10131d">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>帮助中心 - CloudChat</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#4a6cf7">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f0f2f5; color: #1a1a2e; padding: 20px; max-width: 860px; margin: 0 auto;
+}
+.header {
+  text-align: center; padding: 30px 0 20px;
+}
+.header h1 { font-size: 28px; font-weight: 700; color: #4a6cf7; margin-bottom: 6px; }
+.header p { color: #888; font-size: 14px; }
+.header .back-link {
+  display: inline-block; margin-top: 12px; color: #4a6cf7; text-decoration: none;
+  font-size: 14px; padding: 6px 16px; border: 1px solid #4a6cf7; border-radius: 20px;
+  transition: all 0.2s;
+}
+.header .back-link:hover { background: #4a6cf7; color: #fff; }
+.search-bar {
+  max-width: 400px; margin: 16px auto 0;
+  position: relative;
+}
+.search-bar input {
+  width: 100%; padding: 10px 14px 10px 38px; border: 1px solid #ddd; border-radius: 24px;
+  font-size: 14px; outline: none; transition: border-color 0.2s; background: #fff;
+}
+.search-bar input:focus { border-color: #4a6cf7; }
+.search-bar .search-icon { position: absolute; left: 14px; top: 10px; color: #aaa; font-size: 16px; }
+.category { margin-bottom: 24px; }
+.cat-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  padding: 10px 16px; background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  cursor: pointer; user-select: none;
+}
+.cat-header:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.cat-header .cat-icon { font-size: 20px; }
+.cat-header .cat-title { font-size: 15px; font-weight: 600; flex: 1; }
+.cat-header .cat-count { font-size: 12px; color: #999; margin-right: 8px; }
+.cat-header .cat-arrow { color: #ccc; font-size: 14px; transition: transform 0.2s; }
+.cat-header .cat-arrow.open { transform: rotate(90deg); }
+.cat-body { display: none; padding: 0 4px; }
+.cat-body.open { display: block; }
+.cmd-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 14px; background: #fff; border-radius: 8px; margin-bottom: 4px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04); transition: box-shadow 0.15s;
+}
+.cmd-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.cmd-item .cmd-syntax {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 13px; background: #f5f6fa; padding: 2px 10px; border-radius: 6px;
+  color: #4a6cf7; white-space: nowrap; flex-shrink: 0; margin-top: 1px;
+  font-weight: 500;
+}
+.cmd-item .cmd-desc { font-size: 14px; color: #333; flex: 1; }
+.cmd-item .cmd-desc .highlight { color: #e65100; background: #fff3e0; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+.cmd-item .cmd-extra {
+  flex-shrink: 0; font-size: 11px; color: #999; margin-top: 2px;
+}
+.tag-admin { background: #fde8e8; color: #c62828; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.tag-shortcut { background: #e8f5e9; color: #2e7d32; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.tag-feature { background: #e3f2fd; color: #1565c0; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.tag-hotkey { background: #f3e5f5; color: #7b1fa2; padding: 1px 6px; border-radius: 4px; font-family: monospace; font-size: 11px; font-weight: 600; }
+/* nav tabs */
+.nav-tabs { display: flex; gap: 4px; justify-content: center; margin: 16px 0 20px; flex-wrap: wrap; }
+.nav-tabs a {
+  padding: 6px 16px; border-radius: 20px; font-size: 13px; text-decoration: none;
+  transition: all 0.2s; color: #555; background: #fff; border: 1px solid #e0e0e0;
+}
+.nav-tabs a:hover, .nav-tabs a.active { background: #4a6cf7; color: #fff; border-color: #4a6cf7; }
+/* example boxes */
+.example-box {
+  background: #f8f9fe; border-left: 3px solid #4a6cf7; border-radius: 6px;
+  padding: 10px 14px; margin: 6px 0; font-size: 13px; color: #555;
+}
+.example-box code { font-family: 'SF Mono', 'Fira Code', monospace; background: #eef0f8; padding: 1px 5px; border-radius: 4px; font-size: 12px; color: #4a6cf7; }
+.feature-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; margin: 8px 0;
+}
+.feature-grid .fg-item {
+  background: #fff; border-radius: 8px; padding: 8px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  font-size: 13px; display: flex; align-items: center; gap: 6px;
+}
+.feature-grid .fg-item .fg-icon { font-size: 16px; width: 22px; text-align: center; }
+.feature-grid .fg-item .fg-label { color: #333; }
+.no-result { text-align: center; padding: 30px; color: #999; font-size: 15px; display: none; }
+@media (max-width: 600px) {
+  body { padding: 12px; }
+  .header h1 { font-size: 22px; }
+  .cmd-item { flex-wrap: wrap; }
+  .cmd-item .cmd-syntax { white-space: normal; word-break: break-all; }
+  .feature-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
 </head>
+<body>
 
-<body class="acrylic-applied">
+<div class="header">
+  <h1>📖 帮助中心</h1>
+  <p>CloudChat 全部命令与功能参考</p>
+  <a class="back-link" href="/">← 返回聊天室</a>
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search" placeholder="搜索命令、功能..." oninput="filterCommands()">
+  </div>
+</div>
 
-  <div class="header">
-    <h1>📖 帮助中心</h1>
-    <p>CloudChat 全部命令与功能参考</p>
-    <a class="back-link" href="/">← 返回聊天室</a>
-    <div class="search-bar">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="search" placeholder="搜索命令、功能..." oninput="filterCommands()">
+<div class="nav-tabs">
+  <a href="#" class="active" onclick="return scrollToCat('cat-commands')">💬 聊天命令</a>
+  <a href="#" onclick="return scrollToCat('cat-actions')">🖱️ 消息操作</a>
+  <a href="#" onclick="return scrollToCat('cat-menu')">👤 用户菜单</a>
+  <a href="#" onclick="return scrollToCat('cat-toolbar')">🔧 工具栏</a>
+  <a href="#" onclick="return scrollToCat('cat-hotkeys')">⌨️ 快捷键</a>
+  <a href="#" onclick="return scrollToCat('cat-admin')">⚡ 管理命令</a>
+</div>
+
+<!-- ===== 聊天命令 ===== -->
+<div class="category" id="cat-commands">
+  <div class="cat-header" onclick="toggle(this)">
+    <span class="cat-icon">💬</span>
+    <span class="cat-title">聊天命令</span>
+    <span class="cat-count">12项</span>
+    <span class="cat-arrow open">▶</span>
+  </div>
+  <div class="cat-body open">
+    <div class="cmd-item">
+      <span class="cmd-syntax">/ai &lt;问题&gt;</span>
+      <span class="cmd-desc">与 AI 智能对话。基于 DeepSeek API，支持连续对话上下文</span>
+      <span class="cmd-extra"><span class="tag-feature">AI</span></span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">/help</span>
+      <span class="cmd-desc">在聊天中显示所有可用命令的简要列表</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">/w &lt;用户名&gt; &lt;消息&gt;</span>
+      <span class="cmd-desc">向指定用户发送私信（悄悄话），只有对方能看到</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">/whisper &lt;用户名&gt; &lt;消息&gt;</span>
+      <span class="cmd-desc"><code>/w</code> 的完整写法，同上</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">/pay &lt;用户名&gt; &lt;数量&gt;</span>
+      <span class="cmd-desc">将自己的积分转账给指定用户。需要先登录</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">/color [颜色]</span>
+      <span class="cmd-desc">设置自己的显示名字颜色。支持: 红色/橙色/金色/绿色/青色/蓝色/紫色/粉色/黑色/白色/灰色，或 <code>#hex</code> 值。不指定参数则查看当前颜色</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">/bg [颜色/url]</span>
+      <span class="cmd-desc">设置聊天区域背景（仅自己可见）。<code>/bg clear</code> 或 <code>/bg reset</code> 恢复默认</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">/draw [奖池名]</span>
+      <span class="cmd-desc">参与抽奖。不指定奖池则显示选择界面。消耗积分抽取奖品</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">/pools</span>
+      <span class="cmd-desc">查看所有可用的抽奖奖池、费用和奖品信息</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">/jl [主题/数字/结束]</span>
+      <span class="cmd-desc">接力聊天模式。不带参数查看进行中的接力，<code>/jl &lt;主题&gt;</code> 创建新接力，<code>/jl &lt;编号&gt; &lt;内容&gt;</code> 接龙，<code>/jl 结束</code> 结束当前接力</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">/clean</span>
+      <span class="cmd-desc">清空自己屏幕上的聊天记录（不影响服务器和其他人）</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">/zifu &lt;文字&gt;</span>
+      <span class="cmd-desc">将文字转为 ASCII 字符画并发送。最多 15 个字符</span>
+      <span class="cmd-extra"><span class="tag-feature">娱乐</span></span>
+    </div>
+    <div class="example-box">
+      💡 <strong>提示：</strong> 输入 <code>@</code> 会弹出在线用户列表，按 ↑↓ 选择，Enter 选中。输入 <code>@all</code> 或 <code>@everyone</code> 可 @全体成员，所有人会收到通知。
     </div>
   </div>
+</div>
 
-  <div class="nav-tabs">
-    <a href="#" class="active" onclick="return scrollToCat('cat-commands')">💬 聊天命令</a>
-    <a href="#" onclick="return scrollToCat('cat-actions')">🖱️ 消息操作</a>
-    <a href="#" onclick="return scrollToCat('cat-menu')">👤 用户菜单</a>
-    <a href="#" onclick="return scrollToCat('cat-toolbar')">🔧 工具栏</a>
-    <a href="#" onclick="return scrollToCat('cat-hotkeys')">⌨️ 快捷键</a>
-    <a href="#" onclick="return scrollToCat('cat-admin')">⚡ 管理命令</a>
+<!-- ===== 消息操作 ===== -->
+<div class="category" id="cat-actions">
+  <div class="cat-header" onclick="toggle(this)">
+    <span class="cat-icon">🖱️</span>
+    <span class="cat-title">消息操作</span>
+    <span class="cat-count">10项</span>
+    <span class="cat-arrow open">▶</span>
   </div>
-
-  <!-- ===== 聊天命令 ===== -->
-  <div class="category" id="cat-commands">
-    <div class="cat-header" onclick="toggle(this)">
-      <span class="cat-icon">💬</span>
-      <span class="cat-title">聊天命令</span>
-      <span class="cat-count">12项</span>
-      <span class="cat-arrow open">▶</span>
+  <div class="cat-body open">
+    <div class="cmd-item">
+      <span class="cmd-syntax">⋮ → 回复</span>
+      <span class="cmd-desc">引用回复指定消息，对方会收到通知。点击消息上的回复栏可取消</span>
     </div>
-    <div class="cat-body open">
-      <div class="cmd-item">
-        <span class="cmd-syntax">/ai &lt;问题&gt;</span>
-        <span class="cmd-desc">与 AI 智能对话。基于 DeepSeek API，支持连续对话上下文</span>
-        <span class="cmd-extra"><span class="tag-feature">AI</span></span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">/help</span>
-        <span class="cmd-desc">在聊天中显示所有可用命令的简要列表</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">/w &lt;用户名&gt; &lt;消息&gt;</span>
-        <span class="cmd-desc">向指定用户发送私信（悄悄话），只有对方能看到</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">/whisper &lt;用户名&gt; &lt;消息&gt;</span>
-        <span class="cmd-desc"><code>/w</code> 的完整写法，同上</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">/pay &lt;用户名&gt; &lt;数量&gt;</span>
-        <span class="cmd-desc">将自己的积分转账给指定用户。需要先登录</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">/color [颜色]</span>
-        <span class="cmd-desc">设置自己的显示名字颜色。支持: 红色/橙色/金色/绿色/青色/蓝色/紫色/粉色/黑色/白色/灰色，或 <code>#hex</code>
-          值。不指定参数则查看当前颜色</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">/bg [颜色/url]</span>
-        <span class="cmd-desc">设置聊天区域背景（仅自己可见）。<code>/bg clear</code> 或 <code>/bg reset</code> 恢复默认</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">/draw [奖池名]</span>
-        <span class="cmd-desc">参与抽奖。不指定奖池则显示选择界面。消耗积分抽取奖品</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">/pools</span>
-        <span class="cmd-desc">查看所有可用的抽奖奖池、费用和奖品信息</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">/jl [主题/数字/结束]</span>
-        <span class="cmd-desc">接力聊天模式。不带参数查看进行中的接力，<code>/jl &lt;主题&gt;</code>
-          创建新接力，<code>/jl &lt;编号&gt; &lt;内容&gt;</code> 接龙，<code>/jl 结束</code> 结束当前接力</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">/clean</span>
-        <span class="cmd-desc">清空自己屏幕上的聊天记录（不影响服务器和其他人）</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">/zifu &lt;文字&gt;</span>
-        <span class="cmd-desc">将文字转为 ASCII 字符画并发送。最多 15 个字符</span>
-        <span class="cmd-extra"><span class="tag-feature">娱乐</span></span>
-      </div>
-      <div class="example-box">
-        💡 <strong>提示：</strong> 输入 <code>@</code> 会弹出在线用户列表，按 ↑↓ 选择，Enter 选中。输入 <code>@all</code> 或
-        <code>@everyone</code> 可 @全体成员，所有人会收到通知。
-      </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">⋮ → 转发</span>
+      <span class="cmd-desc">将消息转发给另一个用户（私信形式），接收方可看到原文引用</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">⋮ → 收藏</span>
+      <span class="cmd-desc">将消息加入收藏，通过 ⭐ 按钮在收藏面板中查看</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">⋮ → 标记</span>
+      <span class="cmd-desc">给消息添加左边框高亮（仅自己可见），方便临时定位</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">⋮ → 翻译</span>
+      <span class="cmd-desc">将消息内容翻译为中文（基于 DeepSeek API），结果内联显示在消息下方</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">⋮ → 复制链接</span>
+      <span class="cmd-desc">生成该条消息的固定链接，复制到剪贴板</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">点击表情回应</span>
+      <span class="cmd-desc">点击消息下方的 😊 图标，选择 emoji 表情添加回应。可选：👍❤️😂😮🎉🔥👀💯</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">编辑 ✏️</span>
+      <span class="cmd-desc">发送 2 分钟内可编辑自己的消息，消息框变为 textarea 修改</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">撤回 ↩️</span>
+      <span class="cmd-desc">发送 2 分钟内可撤回自己的消息</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">点击时间戳</span>
+      <span class="cmd-desc">点击消息时间戳可添加临时标记（📍），方便后续定位</span>
+    </div>
+    <div class="example-box">
+      💡 <strong>提示：</strong> 管理员的 <code>置顶 📌</code> 和 <code>精华 ⭐</code> 操作也在消息菜单中。
     </div>
   </div>
+</div>
 
-  <!-- ===== 消息操作 ===== -->
-  <div class="category" id="cat-actions">
-    <div class="cat-header" onclick="toggle(this)">
-      <span class="cat-icon">🖱️</span>
-      <span class="cat-title">消息操作</span>
-      <span class="cat-count">10项</span>
-      <span class="cat-arrow open">▶</span>
+<!-- ===== 用户菜单 ===== -->
+<div class="category" id="cat-menu">
+  <div class="cat-header" onclick="toggle(this)">
+    <span class="cat-icon">👤</span>
+    <span class="cat-title">用户菜单</span>
+    <span class="cat-count">8项</span>
+    <span class="cat-arrow open">▶</span>
+  </div>
+  <div class="cat-body open">
+    <div class="feature-grid">
+      <div class="fg-item"><span class="fg-icon">@</span><span class="fg-label">@提及 - 插入用户名到输入框</span></div>
+      <div class="fg-item"><span class="fg-icon">💬</span><span class="fg-label">私信 - 打开私聊面板</span></div>
+      <div class="fg-item"><span class="fg-icon">💰</span><span class="fg-label">转账积分 - 赠送积分给该用户</span></div>
+      <div class="fg-item"><span class="fg-icon">📝</span><span class="fg-label">备注 - 设置本地别名（仅自己可见）</span></div>
+      <div class="fg-item"><span class="fg-icon">🚫</span><span class="fg-label">屏蔽 - 过滤该用户所有消息</span></div>
+      <div class="fg-item"><span class="fg-icon">👤</span><span class="fg-label">用户主页 - 查看头像/积分/标签/简介</span></div>
     </div>
-    <div class="cat-body open">
-      <div class="cmd-item">
-        <span class="cmd-syntax">⋮ → 回复</span>
-        <span class="cmd-desc">引用回复指定消息，对方会收到通知。点击消息上的回复栏可取消</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">⋮ → 转发</span>
-        <span class="cmd-desc">将消息转发给另一个用户（私信形式），接收方可看到原文引用</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">⋮ → 收藏</span>
-        <span class="cmd-desc">将消息加入收藏，通过 ⭐ 按钮在收藏面板中查看</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">⋮ → 标记</span>
-        <span class="cmd-desc">给消息添加左边框高亮（仅自己可见），方便临时定位</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">⋮ → 翻译</span>
-        <span class="cmd-desc">将消息内容翻译为中文（基于 DeepSeek API），结果内联显示在消息下方</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">⋮ → 复制链接</span>
-        <span class="cmd-desc">生成该条消息的固定链接，复制到剪贴板</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">点击表情回应</span>
-        <span class="cmd-desc">点击消息下方的 😊 图标，选择 emoji 表情添加回应。可选：👍❤️😂😮🎉🔥👀💯</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">编辑 ✏️</span>
-        <span class="cmd-desc">发送 2 分钟内可编辑自己的消息，消息框变为 textarea 修改</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">撤回 ↩️</span>
-        <span class="cmd-desc">发送 2 分钟内可撤回自己的消息</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">点击时间戳</span>
-        <span class="cmd-desc">点击消息时间戳可添加临时标记（📍），方便后续定位</span>
-      </div>
-      <div class="example-box">
-        💡 <strong>提示：</strong> 管理员的 <code>置顶 📌</code> 和 <code>精华 ⭐</code> 操作也在消息菜单中。
-      </div>
+    <div class="example-box" style="margin-top:6px;">
+      🔑 <strong>管理员额外操作：</strong> 踢出 👢、封禁 🚫、封禁IP 🔨、修改标签 🏷️、批量踢出 👢
     </div>
   </div>
+</div>
 
-  <!-- ===== 用户菜单 ===== -->
-  <div class="category" id="cat-menu">
-    <div class="cat-header" onclick="toggle(this)">
-      <span class="cat-icon">👤</span>
-      <span class="cat-title">用户菜单</span>
-      <span class="cat-count">8项</span>
-      <span class="cat-arrow open">▶</span>
+<!-- ===== 工具栏 ===== -->
+<div class="category" id="cat-toolbar">
+  <div class="cat-header" onclick="toggle(this)">
+    <span class="cat-icon">🔧</span>
+    <span class="cat-title">工具栏功能</span>
+    <span class="cat-count">10项</span>
+    <span class="cat-arrow open">▶</span>
+  </div>
+  <div class="cat-body open">
+    <div class="feature-grid">
+      <div class="fg-item"><span class="fg-icon">😊</span><span class="fg-label">表情选择器 - 插入 emoji 和自定义表情</span></div>
+      <div class="fg-item"><span class="fg-icon">🖼️</span><span class="fg-label">图片上传 - 压缩后发送图片</span></div>
+      <div class="fg-item"><span class="fg-icon">📎</span><span class="fg-label">文件上传 - 发送任意文件（≤15MB）</span></div>
+      <div class="fg-item"><span class="fg-icon">⏰</span><span class="fg-label">定时消息 - 设定未来发送的消息</span></div>
+      <div class="fg-item"><span class="fg-icon">📊</span><span class="fg-label">创建投票 - 发起投票（2-5选项）</span></div>
+      <div class="fg-item"><span class="fg-icon">🔔</span><span class="fg-label">关键词提醒 - 设置关键词，命中时闪烁标题</span></div>
+      <div class="fg-item"><span class="fg-icon">📂</span><span class="fg-label">附件管理 - 浏览聊天中的图片/文件</span></div>
+      <div class="fg-item"><span class="fg-icon"><b>T</b></span><span class="fg-label">Markdown 工具栏 - 一键加粗/斜体/代码等</span></div>
     </div>
-    <div class="cat-body open">
-      <div class="feature-grid">
-        <div class="fg-item"><span class="fg-icon">@</span><span class="fg-label">@提及 - 插入用户名到输入框</span></div>
-        <div class="fg-item"><span class="fg-icon">💬</span><span class="fg-label">私信 - 打开私聊面板</span></div>
-        <div class="fg-item"><span class="fg-icon">💰</span><span class="fg-label">转账积分 - 赠送积分给该用户</span></div>
-        <div class="fg-item"><span class="fg-icon">📝</span><span class="fg-label">备注 - 设置本地别名（仅自己可见）</span></div>
-        <div class="fg-item"><span class="fg-icon">🚫</span><span class="fg-label">屏蔽 - 过滤该用户所有消息</span></div>
-        <div class="fg-item"><span class="fg-icon">👤</span><span class="fg-label">用户主页 - 查看头像/积分/标签/简介</span></div>
-      </div>
-      <div class="example-box" style="margin-top:6px;">
-        🔑 <strong>管理员额外操作：</strong> 踢出 👢、封禁 🚫、封禁IP 🔨、修改标签 🏷️、批量踢出 👢
-      </div>
+    <div class="example-box" style="margin-top:6px;">
+      💡 点击输入框旁的 <code>➕</code> 按钮展开/收起二级工具栏。Markdown 支持：<code>**加粗**</code> <code>*斜体*</code> <code>`代码`</code> <code>```代码块```</code> <code>$LaTeX$</code>
     </div>
   </div>
+</div>
 
-  <!-- ===== 工具栏 ===== -->
-  <div class="category" id="cat-toolbar">
-    <div class="cat-header" onclick="toggle(this)">
-      <span class="cat-icon">🔧</span>
-      <span class="cat-title">工具栏功能</span>
-      <span class="cat-count">10项</span>
-      <span class="cat-arrow open">▶</span>
+<!-- ===== 快捷键 ===== -->
+<div class="category" id="cat-hotkeys">
+  <div class="cat-header" onclick="toggle(this)">
+    <span class="cat-icon">⌨️</span>
+    <span class="cat-title">键盘快捷键</span>
+    <span class="cat-count">12项</span>
+    <span class="cat-arrow open">▶</span>
+  </div>
+  <div class="cat-body open">
+    <div class="cmd-item">
+      <span class="cmd-syntax">↑ / ↓</span>
+      <span class="cmd-desc">无提及菜单时：向上/向下滚动聊天区域（50px）</span>
     </div>
-    <div class="cat-body open">
-      <div class="feature-grid">
-        <div class="fg-item"><span class="fg-icon">😊</span><span class="fg-label">表情选择器 - 插入 emoji 和自定义表情</span></div>
-        <div class="fg-item"><span class="fg-icon">🖼️</span><span class="fg-label">图片上传 - 压缩后发送图片</span></div>
-        <div class="fg-item"><span class="fg-icon">📎</span><span class="fg-label">文件上传 - 发送任意文件（≤15MB）</span></div>
-        <div class="fg-item"><span class="fg-icon">⏰</span><span class="fg-label">定时消息 - 设定未来发送的消息</span></div>
-        <div class="fg-item"><span class="fg-icon">📊</span><span class="fg-label">创建投票 - 发起投票（2-5选项）</span></div>
-        <div class="fg-item"><span class="fg-icon">🔔</span><span class="fg-label">关键词提醒 - 设置关键词，命中时闪烁标题</span></div>
-        <div class="fg-item"><span class="fg-icon">📂</span><span class="fg-label">附件管理 - 浏览聊天中的图片/文件</span></div>
-        <div class="fg-item"><span class="fg-icon"><b>T</b></span><span class="fg-label">Markdown 工具栏 -
-            一键加粗/斜体/代码等</span></div>
-      </div>
-      <div class="example-box" style="margin-top:6px;">
-        💡 点击输入框旁的 <code>➕</code> 按钮展开/收起二级工具栏。Markdown 支持：<code>**加粗**</code> <code>*斜体*</code> <code>`代码`</code>
-        <code>```代码块```</code> <code>$LaTeX$</code>
-      </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">↑ / ↓</span>
+      <span class="cmd-desc">提及菜单打开时：在 @用户列表中上下选择</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">Page Up / Page Down</span>
+      <span class="cmd-desc">按一个视口高度上/下翻页滚动</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">Enter / Tab</span>
+      <span class="cmd-desc">提及菜单打开时：选中当前高亮的用户</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">Enter</span>
+      <span class="cmd-desc">发送消息（搜索框中：跳转到下一个结果）</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">Shift+Enter</span>
+      <span class="cmd-desc">搜索框中：跳转到上一个搜索结果</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">Escape</span>
+      <span class="cmd-desc">关闭搜索栏 / 灯箱 / 商城 / 任务面板 / 提及菜单</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">← / →</span>
+      <span class="cmd-desc">灯箱打开时：上一张 / 下一张图片</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">Ctrl+V</span>
+      <span class="cmd-desc">在输入框中粘贴图片（自动捕获并发送）</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">点击 @mention</span>
+      <span class="cmd-desc">点击消息中的 @用户名 可直接弹出用户菜单</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">点击时间戳</span>
+      <span class="cmd-desc">点击消息时间戳添加临时标记 📍</span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">点击代码块 "复制"</span>
+      <span class="cmd-desc">代码块右上角有复制按钮，一键复制代码内容</span>
     </div>
   </div>
+</div>
 
-  <!-- ===== 快捷键 ===== -->
-  <div class="category" id="cat-hotkeys">
-    <div class="cat-header" onclick="toggle(this)">
-      <span class="cat-icon">⌨️</span>
-      <span class="cat-title">键盘快捷键</span>
-      <span class="cat-count">12项</span>
-      <span class="cat-arrow open">▶</span>
+<!-- ===== 管理命令 ===== -->
+<div class="category" id="cat-admin">
+  <div class="cat-header" onclick="toggle(this)">
+    <span class="cat-icon">⚡</span>
+    <span class="cat-title">管理命令</span>
+    <span class="cat-count">7项</span>
+    <span class="cat-arrow">▶</span>
+  </div>
+  <div class="cat-body">
+    <div class="cmd-item">
+      <span class="cmd-syntax">/kick &lt;用户名&gt;</span>
+      <span class="cmd-desc">将用户踢出当前房间 <span class="tag-admin">管理</span></span>
     </div>
-    <div class="cat-body open">
-      <div class="cmd-item">
-        <span class="cmd-syntax">↑ / ↓</span>
-        <span class="cmd-desc">无提及菜单时：向上/向下滚动聊天区域（50px）</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">↑ / ↓</span>
-        <span class="cmd-desc">提及菜单打开时：在 @用户列表中上下选择</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">Page Up / Page Down</span>
-        <span class="cmd-desc">按一个视口高度上/下翻页滚动</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">Enter / Tab</span>
-        <span class="cmd-desc">提及菜单打开时：选中当前高亮的用户</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">Enter</span>
-        <span class="cmd-desc">发送消息（搜索框中：跳转到下一个结果）</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">Shift+Enter</span>
-        <span class="cmd-desc">搜索框中：跳转到上一个搜索结果</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">Escape</span>
-        <span class="cmd-desc">关闭搜索栏 / 灯箱 / 商城 / 任务面板 / 提及菜单</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">← / →</span>
-        <span class="cmd-desc">灯箱打开时：上一张 / 下一张图片</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">Ctrl+V</span>
-        <span class="cmd-desc">在输入框中粘贴图片（自动捕获并发送）</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">点击 @mention</span>
-        <span class="cmd-desc">点击消息中的 @用户名 可直接弹出用户菜单</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">点击时间戳</span>
-        <span class="cmd-desc">点击消息时间戳添加临时标记 📍</span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">点击代码块 "复制"</span>
-        <span class="cmd-desc">代码块右上角有复制按钮，一键复制代码内容</span>
-      </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">/ban &lt;用户名&gt;</span>
+      <span class="cmd-desc">永久封禁用户（名称+IP），跨所有房间 <span class="tag-admin">管理</span></span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">/unban &lt;用户名&gt;</span>
+      <span class="cmd-desc">解除用户封禁 <span class="tag-admin">管理</span></span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">/tag &lt;用户&gt; &lt;标签&gt; [颜色] [边框]</span>
+      <span class="cmd-desc">设置用户显示标签。颜色/边框支持 <code>#hex</code>，标签内可用 <code>[color]text</code> 分段着色 <span class="tag-admin">管理</span></span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">/untag &lt;用户名&gt;</span>
+      <span class="cmd-desc">移除用户的标签 <span class="tag-admin">管理</span></span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">/clear</span>
+      <span class="cmd-desc">清空当前房间所有聊天记录（需要确认）<span class="tag-admin">管理</span></span>
+    </div>
+    <div class="cmd-item">
+      <span class="cmd-syntax">/bkick &lt;用户1&gt;,&lt;用户2&gt;</span>
+      <span class="cmd-desc">批量踢出多个用户，用逗号或空格分隔 <span class="tag-admin">管理</span></span>
+    </div>
+    <div class="example-box">
+      🔑 <strong>管理密钥：</strong> 管理员登录 <a href="/admin" style="color:#4a6cf7;">管理后台</a> 后，在聊天中使用上述命令需要输入管理密钥。
     </div>
   </div>
+</div>
 
-  <!-- ===== 管理命令 ===== -->
-  <div class="category" id="cat-admin">
-    <div class="cat-header" onclick="toggle(this)">
-      <span class="cat-icon">⚡</span>
-      <span class="cat-title">管理命令</span>
-      <span class="cat-count">7项</span>
-      <span class="cat-arrow">▶</span>
-    </div>
-    <div class="cat-body">
-      <div class="cmd-item">
-        <span class="cmd-syntax">/kick &lt;用户名&gt;</span>
-        <span class="cmd-desc">将用户踢出当前房间 <span class="tag-admin">管理</span></span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">/ban &lt;用户名&gt;</span>
-        <span class="cmd-desc">永久封禁用户（名称+IP），跨所有房间 <span class="tag-admin">管理</span></span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">/unban &lt;用户名&gt;</span>
-        <span class="cmd-desc">解除用户封禁 <span class="tag-admin">管理</span></span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">/tag &lt;用户&gt; &lt;标签&gt; [颜色] [边框]</span>
-        <span class="cmd-desc">设置用户显示标签。颜色/边框支持 <code>#hex</code>，标签内可用 <code>[color]text</code> 分段着色 <span
-            class="tag-admin">管理</span></span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">/untag &lt;用户名&gt;</span>
-        <span class="cmd-desc">移除用户的标签 <span class="tag-admin">管理</span></span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">/clear</span>
-        <span class="cmd-desc">清空当前房间所有聊天记录（需要确认）<span class="tag-admin">管理</span></span>
-      </div>
-      <div class="cmd-item">
-        <span class="cmd-syntax">/bkick &lt;用户1&gt;,&lt;用户2&gt;</span>
-        <span class="cmd-desc">批量踢出多个用户，用逗号或空格分隔 <span class="tag-admin">管理</span></span>
-      </div>
-      <div class="example-box">
-        🔑 <strong>管理密钥：</strong> 管理员登录 <a href="/admin" style="color:#8aa1ff;">管理后台</a> 后，在聊天中使用上述命令需要输入管理密钥。
-      </div>
-    </div>
-  </div>
-
-  <script>
-    function toggle(header) {
-      let body = header.nextElementSibling;
-      let arrow = header.querySelector('.cat-arrow');
-      if (body) {
-        body.classList.toggle('open');
-        if (arrow) arrow.classList.toggle('open');
-      }
+<script>
+function toggle(header) {
+  let body = header.nextElementSibling;
+  let arrow = header.querySelector('.cat-arrow');
+  if (body) {
+    body.classList.toggle('open');
+    if (arrow) arrow.classList.toggle('open');
+  }
+}
+function scrollToCat(id) {
+  let el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  return false;
+}
+function filterCommands() {
+  let q = document.getElementById('search').value.trim().toLowerCase();
+  let items = document.querySelectorAll('.cmd-item, .fg-item');
+  let cats = document.querySelectorAll('.category');
+  let hasVisible = {};
+  items.forEach(item => {
+    let text = item.textContent.toLowerCase();
+    let parent = item.closest('.category');
+    let catId = parent ? parent.id : '';
+    if (!q || text.includes(q)) {
+      item.style.display = '';
+      if (catId) hasVisible[catId] = true;
+    } else {
+      item.style.display = 'none';
     }
-    function scrollToCat(id) {
-      let el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return false;
+  });
+  // 隐藏没有匹配项的分类
+  cats.forEach(cat => {
+    let catItems = cat.querySelectorAll('.cmd-item, .fg-item');
+    let anyVisible = Array.from(catItems).some(i => i.style.display !== 'none');
+    let body = cat.querySelector('.cat-body');
+    let header = cat.querySelector('.cat-header');
+    if (!anyVisible && catItems.length > 0) {
+      cat.style.display = 'none';
+    } else {
+      cat.style.display = '';
     }
-    function filterCommands() {
-      let q = document.getElementById('search').value.trim().toLowerCase();
-      let items = document.querySelectorAll('.cmd-item, .fg-item');
-      let cats = document.querySelectorAll('.category');
-      let hasVisible = {};
-      items.forEach(item => {
-        let text = item.textContent.toLowerCase();
-        let parent = item.closest('.category');
-        let catId = parent ? parent.id : '';
-        if (!q || text.includes(q)) {
-          item.style.display = '';
-          if (catId) hasVisible[catId] = true;
-        } else {
-          item.style.display = 'none';
-        }
-      });
-      // 隐藏没有匹配项的分类
-      cats.forEach(cat => {
-        let catItems = cat.querySelectorAll('.cmd-item, .fg-item');
-        let anyVisible = Array.from(catItems).some(i => i.style.display !== 'none');
-        let body = cat.querySelector('.cat-body');
-        let header = cat.querySelector('.cat-header');
-        if (!anyVisible && catItems.length > 0) {
-          cat.style.display = 'none';
-        } else {
-          cat.style.display = '';
-        }
-      });
-    }
-  </script>
-  <script src="/static/theme-switch.js"></script>
+  });
+}
+</script>
 </body>
-
 </html>

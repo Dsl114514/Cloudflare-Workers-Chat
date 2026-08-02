@@ -11,6 +11,7 @@ function toBigInt(val) {
       let sign = 1;
       let e = parseInt(exp, 10);
       if (e < 0) return 0n; // 不支持小数
+      if (e > 100000) return 0n; // 防 DoS：指数过大直接拒绝
       let dot = base.indexOf('.');
       if (dot === -1) {
         // "123e+10" → "123" + "0"*10
@@ -140,11 +141,18 @@ export async function handlePoints(reg, request, url) {
       if (action === "set") {
         nameList.forEach(name => reg.userPoints.set(name, amount < 0n ? "0" : String(amount)));
       } else {
+        // 🔒 L20 修复：扣款余额不足时拒绝（与单用户 /points/add 一致，不钳制为 0）
+        // 先校验全部用户余额充足，再统一扣款；任一不足则整批失败（其余用户不受影响）
+        let denied = [];
+        for (let name of nameList) {
+          if (toBigInt(reg.userPoints.get(name)) + amount < 0n) denied.push(name);
+        }
+        if (denied.length) {
+          return new Response("以下用户积分不足，扣款失败：" + denied.join("、"), { status: 400 });
+        }
         nameList.forEach(name => {
           let current = toBigInt(reg.userPoints.get(name));
-          let result = current + amount;
-          if (result < 0n) result = 0n;
-          reg.userPoints.set(name, String(result));
+          reg.userPoints.set(name, String(current + amount));
         });
       }
       await reg.savePoints();
@@ -160,6 +168,7 @@ export async function handlePoints(reg, request, url) {
       let today = new Date().toISOString().slice(0, 10);
       if (user.lastCheckin === today) return new Response(JSON.stringify({error: "今天已签到，明天再来吧"}), {status: 400});
       // 🔒 安全修复（E4）：每 IP 每日最多签到 3 次，防批量小号签到刷积分
+      // 🔒 L13a 修复：checkinByIp 持久化，DO 重启不重置可刷签到
       if (ip) {
         if (!reg.checkinByIp) reg.checkinByIp = new Map();
         let rec = reg.checkinByIp.get(ip);
@@ -170,12 +179,16 @@ export async function handlePoints(reg, request, url) {
       }
       let reward = 500n;
       user.lastCheckin = today;
+      // 🕶️ 每日签到额外送 1 张匿名券（三渠道之一）
+      user.anonCoupons = (user.anonCoupons || 0) + 1;
       let current = toBigInt(reg.userPoints.get(name));
       let result = current + reward;
       reg.userPoints.set(name, String(result));
-      await Promise.all([reg.saveRegisteredUsers(), reg.savePoints()]);
+      await Promise.all([reg.saveRegisteredUsers(), reg.savePoints(), reg.saveCheckinByIp()]);
       await reg.addLedger(name, reward, "checkin", "每日签到");
-      return new Response(JSON.stringify({ok: true, reward: String(reward), total: String(result), message: "签到成功！获得 " + reward + " 积分"}), {
+      // ⭐ 签到经验：每日签到 +10 经验，计入 checkinCount（成就判定用）
+      try { await reg.grantExp(name, 10, "checkin"); } catch (e) {}
+      return new Response(JSON.stringify({ok: true, reward: String(reward), total: String(result), anonCoupons: user.anonCoupons, message: "签到成功！获得 " + reward + " 积分 + 1 张匿名券"}), {
         headers: {"Content-Type": "application/json"}
       });
     }
@@ -203,9 +216,10 @@ export async function handlePoints(reg, request, url) {
         return new Response(JSON.stringify({error: "积分不足，无法下注"}), {status: 400});
       }
       reg.userPoints.set(name, String(current - BigInt(wager)));
-      // 服务端定局：约 45% 概率赢，奖励为下注 1~25 倍随机（单局上限 10000）
+      // 服务端定局：约 45% 概率赢，奖励为下注 1~2 倍随机（单局上限 10000）
+      // H5 修复：原 1~25 倍为 +EV（期望约 6.1 倍，长期铸币），改为 1~2 倍 → 期望 0.675×wager，负期望稳定
       let won = Math.random() < 0.45;
-      let prize = won ? Math.min(Math.floor(wager * (1 + Math.random() * 24)), 10000) : 0;
+      let prize = won ? Math.min(Math.floor(wager * (1 + Math.random())), 10000) : 0;
       // 每日净赢上限 10000（prize - wager 累计），超出则截断至额度内（至少保本）
       let today = new Date().toISOString().slice(0, 10);
       let daily = reg.gameDailyWin.get(name);
@@ -218,6 +232,7 @@ export async function handlePoints(reg, request, url) {
           awarded = prize;
           daily.total += (prize - wager);
           reg.gameDailyWin.set(name, daily);
+          await reg.saveGameDailyWin(); // H6：每日净赢上限持久化，DO 重启不重置防刷额度
         }
       }
       if (awarded > 0) {
@@ -228,6 +243,8 @@ export async function handlePoints(reg, request, url) {
       await reg.savePoints();
       await reg.addLedger(name, -wager, "game", "游戏下注");
       if (awarded > 0) await reg.addLedger(name, awarded, "game", "游戏获胜");
+      // ⭐ 游戏获胜经验：本局净赢 > 0 时 +5 经验，计入 gameWins（成就判定用）
+      if (awarded > 0) { try { await reg.grantExp(name, 5, "game"); } catch (e) {} }
       return new Response(JSON.stringify({
         ok: true,
         deducted: wager,

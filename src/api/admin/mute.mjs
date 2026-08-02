@@ -3,11 +3,14 @@
 export async function handleAdminMute(path, request, env, url) {
   let registryId = env.registry.idFromName("global");
   let stub = env.registry.get(registryId);
+  // M15：转发带 auth（admin.mjs 已注入 url.auth），registry 守卫校验
+  let auth = encodeURIComponent(url.searchParams.get("auth") || "");
 
   if (path[1] === "mute" && request.method === "POST") {
     let body = await request.json().catch(() => ({}));
-    body.mutedBy = body.mutedBy || url.searchParams.get("operator") || "";
-    let r = await stub.fetch("https://dummy-url/admin/mute", {
+    // 🔒 L5 修复：mutedBy 不信任客户端传入（防审计归因伪造），由服务端固定身份
+    body.mutedBy = "admin";
+    let r = await stub.fetch("https://dummy-url/admin/mute?auth=" + auth, {
       method: "POST",
       body: JSON.stringify(body),
       headers: {"Content-Type": "application/json"}
@@ -18,7 +21,7 @@ export async function handleAdminMute(path, request, env, url) {
 
   if (path[1] === "unmute" && request.method === "POST") {
     let body = await request.json().catch(() => ({}));
-    let r = await stub.fetch("https://dummy-url/admin/unmute", {
+    let r = await stub.fetch("https://dummy-url/admin/unmute?auth=" + auth, {
       method: "POST",
       body: JSON.stringify(body),
       headers: {"Content-Type": "application/json"}
@@ -28,7 +31,7 @@ export async function handleAdminMute(path, request, env, url) {
   }
 
   if (path[1] === "mute-list") {
-    let r = await stub.fetch("https://dummy-url/admin/mute-list");
+    let r = await stub.fetch("https://dummy-url/admin/mute-list?auth=" + auth);
     let text = await r.text();
     return new Response(text, {status: r.status, headers: {"Content-Type": "application/json"}});
   }

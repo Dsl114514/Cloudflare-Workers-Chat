@@ -200,7 +200,9 @@ export async function handleAdminRooms(path, request, env, url) {
       try {
         let registryId = env.registry.idFromName("global");
         let stub = env.registry.get(registryId);
-        let r = await stub.fetch("https://dummy-url/set-password?name=" + encodeURIComponent(roomId) + "&password=" + encodeURIComponent(password));
+        // M15：/set-password 属 registry 管理端点，转发带 auth
+        let auth = encodeURIComponent(url.searchParams.get("auth") || "");
+        let r = await stub.fetch("https://dummy-url/set-password?name=" + encodeURIComponent(roomId) + "&password=" + encodeURIComponent(password) + "&auth=" + auth);
         return new Response(await r.text(), { status: r.status });
       } catch (error) {
         return new Response("操作失败: " + "操作失败", { status: 500 });
@@ -228,7 +230,8 @@ export async function handleAdminRooms(path, request, env, url) {
         } catch (e) {}
         return new Response("房间 " + roomId + " 已销毁", { status: 200 });
       } catch (error) {
-        return new Response("销毁房间失败: " + error.message, { status: 500 });
+        // 🔒 L1 脱敏：不向客户端回传内部错误详情
+        return new Response("销毁房间失败: 服务器内部错误", { status: 500 });
       }
     }
 

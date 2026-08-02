@@ -104,6 +104,96 @@ body {
 
 <div class="version-group">
   <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.30</span>
+    <span class="version-date">2026-08-02</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🔗</span><span class="text"><span class="tag tag-feature">功能</span>通用 Webhook 入站 — 每个房间可生成独立 Webhook 密钥，外部系统（GitHub/监控/通知）POST JSON 即可向房间推送 📢 系统消息，可指定发送者名与目标频道；管理后台新增「🔗 房间Webhook」面板生成/删除/查看</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.31</span>
+    <span class="version-date">2026-08-02</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🕶️</span><span class="text"><span class="tag tag-feature">功能</span>匿名马甲券 — 登录用户消耗一张「匿名券」即可匿名发言，消息显示为「匿名」🕶️ 紫色标签，真实身份仅管理员可在审计日志中查询；匿名券三渠道获得：商店内置商品（50 积分/张，可重复购买）、每日签到赠送 1 张、管理员后台一键发放</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.32</span>
+    <span class="version-date">2026-08-02</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">⭐</span><span class="text"><span class="tag tag-feature">功能</span>经验·等级·成就系统（纯展示）— 注册用户发言 +1 经验（15 秒/条限频）、每日签到 +10、游戏获胜 +5、购物 +2；升级时全员可见名字旁 Lv 徽章 + 升级横幅 🎉，累计经验进度条</span></div>
+    <div class="feature-item"><span class="icon">🏅</span><span class="text"><span class="tag tag-feature">功能</span>成就系统 — 9 项成就：初来乍到/话痨/舌战群儒/签到首日/一周坚持/小试牛刀/剁手党/崭露头角/声名鹊起，解锁实时 toast 提示；更多菜单「🏅 我的成就」面板查看等级、经验进度、四项统计与成就达成进度</span></div>
+    <div class="feature-item"><span class="icon">⭐</span><span class="text"><span class="tag tag-feature">功能</span>管理面板等级管理 — 在线用户列表显示 Lv 徽章；「⭐ 等级管理」页查看全员经验/等级排行，支持查询、设置、增加、扣除单个用户经验（写操作仅超级管理员，普通 admin 只读），调整经验即时触发成就判定</span></div>
+    <div class="feature-item"><span class="icon">🏅</span><span class="text"><span class="tag tag-feature">功能</span>每房间每等级徽章样式自定义 — 管理员可为指定房间的指定等级配置徽章：颜色（白名单色名/hex，非法自动置空）、图标（≤4 字符）、文字（默认 Lv.N，≤10 字符）；配置实时推送该房间所有在线用户，join 时自动同步；前后端双重白名单防护，createElement+textContent 渲染防 XSS</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.29</span>
+    <span class="version-date">2026-08-02</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🗄️</span><span class="text"><span class="tag tag-fix">安全</span>版本存档上传收紧 — 仅超管可上传（防误传含密钥压缩包公开泄露）；体积限制改实际字节校验，chunked 编码不再绕过 50MB 上限</span></div>
+    <div class="feature-item"><span class="icon">🚫</span><span class="text"><span class="tag tag-fix">安全</span>敏感词过滤防绕过 — 支持 leetspeak 数字映射（1→i、0→o、3→e…）与希腊异体字母（μ→u），sh1t/f0ck/fμck 等变体不再漏过，正常文本不误伤</span></div>
+    <div class="feature-item"><span class="icon">👢</span><span class="text"><span class="tag tag-fix">安全</span>游客踢人封堵 — 未设名/未登录会话不能踢人；新增按目标 60 秒限频，换名重连也无法骚扰；管理员踢人不受影响</span></div>
+    <div class="feature-item"><span class="icon">🏷️</span><span class="text"><span class="tag tag-fix">安全</span>特权标签提权封堵 — 商城装备/抽奖发放校验 red/cyan/gold/VIP 特权标签，普通用户无法通过购买或抽奖获得管理员/VIP 权益</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.28</span>
+    <span class="version-date">2026-08-02</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-fix">加固</span>错误信息脱敏 — 服务端各 API 不再把内部异常堆栈返回客户端，统一为「服务器内部错误」，避免辅助侦察</span></div>
+    <div class="feature-item"><span class="icon">🧱</span><span class="text"><span class="tag tag-fix">加固</span>输入校验补全 — 房间历史 limit 上限 200（超大值防内存 DoS）；文件/撤回非法时间戳返回 400 而非 500；空/纯空白消息拦截；Bot 命令 action 白名单</span></div>
+    <div class="feature-item"><span class="icon">🗑️</span><span class="text"><span class="tag tag-fix">修复</span>已删除消息不可再被「编辑」复活原文；同名并发加入竞态修正（先到者保留）；房间历史 JSON 损坏不再拒绝所有新连接</span></div>
+    <div class="feature-item"><span class="icon">🧧</span><span class="text"><span class="tag tag-fix">修复</span>任务发奖顺序 — 先加积分后落完成状态，崩溃重试不丢奖不双发；批量扣款余额不足改为整批拒绝（与单用户一致）</span></div>
+    <div class="feature-item"><span class="icon">🔑</span><span class="text"><span class="tag tag-fix">加固</span>管理密钥回传脱敏（只显后4位）；兑换码最短长度 4→8 位（防爆破）；禁言操作者由服务端固定、审计归因可信</span></div>
+    <div class="feature-item"><span class="icon">🗄️</span><span class="text"><span class="tag tag-fix">加固</span>注册/签到每 IP 每日计数持久化 — DO 重启不再清零可刷小号/刷签到</span></div>
+    <div class="feature-item"><span class="icon">🌐</span><span class="text"><span class="tag tag-fix">修复</span>前端 XSS 转义补全 — 房间信息/关键词面板/个人资料/商城金额/任务奖励/房间人数等动态内容统一 escapeHtml；管理按钮需真实管理密钥才点亮</span></div>
+    <div class="feature-item"><span class="icon">📤</span><span class="text"><span class="tag tag-fix">修复</span>消息功能多项 — 支持 // 开头转义发送 / 文本；WS 消息解析容错（畸形消息不再中断）；DM 私信发送方不再双重显示；商城购买/装备防双击；游戏多模块防重入/防竞态（调色大师双计分、扫雷/2048 下注时序、监听器去重、语言切换即时刷新）</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.27</span>
+    <span class="version-date">2026-08-02</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🔐</span><span class="text"><span class="tag tag-fix">安全</span>管理端 CSRF 防护 — 登录 Cookie 升级为 SameSite=Strict + Secure，跨站请求不再携带管理凭据</span></div>
+    <div class="feature-item"><span class="icon">🛡️</span><span class="text"><span class="tag tag-fix">安全</span>SSRF 十六进制绕过封堵 — URL 预览拦截 IPv4-mapped 十六进制内网地址（::ffff:7f00:1 等），此前可绕过内网访问限制</span></div>
+    <div class="feature-item"><span class="icon">🧹</span><span class="text"><span class="tag tag-fix">修复</span>清空聊天记录不彻底 — 文本消息无 type 字段导致 /clear 删不掉，现按「数字时间戳 + 消息内容」判定，系统数据不受影响</span></div>
+    <div class="feature-item"><span class="icon">🎰</span><span class="text"><span class="tag tag-fix">安全</span>游戏赔率修正 — 原 45% 概率赢 1~25 倍（+EV 长期铸币），改为 1~2 倍（负期望），每日净赢上限持久化（重启不重置防刷额度）</span></div>
+    <div class="feature-item"><span class="icon">💳</span><span class="text"><span class="tag tag-fix">安全</span>积分铸币权限收紧 — 设置/增加/批量积分仅超管可用，普通管理员降为只读；积分管理入口超管专属</span></div>
+    <div class="feature-item"><span class="icon">📒</span><span class="text"><span class="tag tag-fix">安全</span>积分流水加鉴权 — /ledger 需本人 token 验证，堵住公开 IDOR 泄露财务；转账金额校验正整数（负数/超大指数拒绝）</span></div>
+    <div class="feature-item"><span class="icon">🔒</span><span class="text"><span class="tag tag-fix">安全</span>registry 管理端点统一鉴权 — 标签/封禁/兑换码/商城/任务/抽奖/日志/表情/机器人等 30+ 管理端点全部校验管理密钥，堵住内部转发绕过链</span></div>
+    <div class="feature-item"><span class="icon">⏱️</span><span class="text"><span class="tag tag-fix">安全</span>登录爆破限流 — 同 IP 10 分钟失败 ≥20 次返回 429；BigInt 指数 DoS 防护（超大指数直接拒绝）</span></div>
+    <div class="feature-item"><span class="icon">🧧</span><span class="text"><span class="tag tag-fix">修复</span>红包持久化 — 未抢完的红包重启后仍可抢；文件 MIME 白名单补漏（svg/xhtml+xml 等可注入类型全拦）</span></div>
+    <div class="feature-item"><span class="icon">📋</span><span class="text"><span class="tag tag-fix">修复</span>导出/搜索/文件列表默认当前频道 — 不带频道参数不再跨全部频道泄露</span></div>
+    <div class="feature-item"><span class="icon">🖥️</span><span class="text"><span class="tag tag-fix">修复</span>前端多项 — 非当前频道消息不再被丢弃（进缓存+未读）、搜索防抖+过期响应丢弃、历史定位可一键返回实时、管理 key 双源兼容（cookie/localStorage）、游戏切走清理计时器、双击下注防重入</span></div>
+    <div class="feature-item"><span class="icon">🚀</span><span class="text"><span class="tag tag-feature">新增</span>聊天室图标 favicon — 新增 32×32 浏览器标签页图标（蓝底白 C，与 /icon.svg 风格一致），浏览器标签/书签不再显示空白默认图标</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
     <span class="version-tag">v1.26</span>
     <span class="version-date">2026-08-02</span>
     <span class="version-arrow open">▶</span>

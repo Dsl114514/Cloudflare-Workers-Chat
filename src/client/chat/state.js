@@ -60,6 +60,12 @@ export const state = {
   channels: [{name: "general", type: "text"}, {name: "announcement", type: "announcement"}],
   channelCache: {},   // channel -> 非当前频道消息数组（切换时渲染）
   channelUnread: {},  // channel -> 未读计数
+
+  // 🕶️ 匿名马甲
+  anonMode: false,
+
+  // 🏅 房间等级样式：{ "<level>": {color, icon, text} } — WS level-styles 推送时更新
+  levelStyles: {},
 };
 
 export function loadBlockedUsers() {

@@ -1,10 +1,35 @@
 // 消息渲染 - addChatMessage, addChatImage, addChatFile, 投票, markdown 等
 import { state, t, getUserBio } from './state.js';
 import { TAG_COLORS, getVipLevel, createVipBadge } from './vip.js';
-import { modifyOwnTag, startReply, recallMessage, deleteMessage, checkAtMention, showLightbox } from './ui.js';
+import { modifyOwnTag, startReply, recallMessage, deleteMessage, checkAtMention, showLightbox, getAdminKey } from './ui.js';
 import { showUserMenu } from './menu.js';
 import { isFavorited, toggleFavorite } from './favorites.js';
 import { showToast, showSuccess, showError, showInfo } from './state.js';
+
+// ⭐ 等级徽章（纯展示）：level>0 时显示 Lv.N；支持房间自定义样式（颜色/图标/文字）
+// 🏅 样式来自 WS 推送的 state.levelStyles[level] = {color, icon, text}，渲染走 createElement+textContent 防 XSS
+const LV_LIGHT_COLORS = new Set(["yellow", "lime", "gold", "amber", "turquoise", "cyan", "mediumseagreen", "seagreen"]);
+export function createLevelBadge(level) {
+  level = parseInt(level) || 0;
+  if (level < 1) return null;
+  let badge = document.createElement("span");
+  badge.className = "lv-badge";
+  let st = (state.levelStyles && state.levelStyles[String(level)]) || null;
+  let text = "Lv." + level;
+  let icon = "";
+  if (st) {
+    if (st.icon) icon = String(st.icon);
+    if (st.text) text = String(st.text);
+  }
+  badge.textContent = (icon ? icon + " " : "") + text;
+  // 颜色白名单查表兜底（查不到保持默认渐变紫）；浅色用深字保证可读
+  if (st && st.color && TAG_COLORS[st.color]) {
+    badge.style.background = TAG_COLORS[st.color];
+    badge.style.color = LV_LIGHT_COLORS.has(st.color) ? "#333" : "#fff";
+  }
+  badge.title = t("等级 ") + level;
+  return badge;
+}
 
 // 防止 DOM 无限增长：超过 500 条消息时移除最早的
 const MAX_VISIBLE_MSGS = 500;
@@ -342,7 +367,7 @@ export function refreshReplyCounts() {
   });
 }
 
-export function addChatMessage(name, text, tag, tagColor, msgColor, timestamp, reply, tagBorder, msgId, atAll, avatar) {
+export function addChatMessage(name, text, tag, tagColor, msgColor, timestamp, reply, tagBorder, msgId, atAll, avatar, level) {
   if (!name) {
     let p = document.createElement("p");
     p.className = "system-msg";
@@ -386,6 +411,8 @@ export function addChatMessage(name, text, tag, tagColor, msgColor, timestamp, r
     header.appendChild(nameSpan);
     attachSignature(nameSpan, name); // 个人签名：消息旁展示 + 悬停
   }
+  let lb = createLevelBadge(level);
+  if (lb) header.appendChild(lb);
   wrapper.appendChild(header);
   if (reply) wrapper.appendChild(buildReplyQuote(reply));
   let bubble = document.createElement("span");
@@ -433,7 +460,7 @@ export function addChatMessage(name, text, tag, tagColor, msgColor, timestamp, r
   buildActionMenu(wrapper, {
     name, text, timestamp, msgId, tag, tagColor, tagBorder,
     isSelf,
-    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1,
+    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1 && getAdminKey() !== "",
     hasWs: !!state.currentWebSocket,
     roomname: state.roomname
   });
@@ -461,7 +488,7 @@ export function addChatMessage(name, text, tag, tagColor, msgColor, timestamp, r
   state.chatlog.scrollBy(0, 1e8);
 }
 
-export function addChatImage(name, data, tag, tagColor, timestamp, tagBorder, reply, msgId, avatar) {
+export function addChatImage(name, data, tag, tagColor, timestamp, tagBorder, reply, msgId, avatar, level) {
   if (!name) return;
   maybeDateDivider(timestamp); // 日期分组：跨天插入分隔线
   let isSelf = name === state.username;
@@ -496,6 +523,8 @@ export function addChatImage(name, data, tag, tagColor, timestamp, tagBorder, re
     header.appendChild(nameSpan);
     attachSignature(nameSpan, name); // 个人签名：消息旁展示 + 悬停
   }
+  let lb = createLevelBadge(level);
+  if (lb) header.appendChild(lb);
   wrapper.appendChild(header);
   if (reply) wrapper.appendChild(buildReplyQuote(reply));
   let bubble = document.createElement("span");
@@ -515,7 +544,7 @@ export function addChatImage(name, data, tag, tagColor, timestamp, tagBorder, re
   buildActionMenu(wrapper, {
     name, text: t("[图片]"), timestamp, msgId, tag, tagColor, tagBorder,
     isSelf,
-    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1,
+    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1 && getAdminKey() !== "",
     hasWs: !!state.currentWebSocket,
     roomname: state.roomname
   });
@@ -530,7 +559,7 @@ export function addChatImage(name, data, tag, tagColor, timestamp, tagBorder, re
   state.chatlog.scrollBy(0, 1e8);
 }
 
-export function addChatVoice(name, data, duration, tag, tagColor, timestamp, tagBorder, reply, msgId, avatar) {
+export function addChatVoice(name, data, duration, tag, tagColor, timestamp, tagBorder, reply, msgId, avatar, level) {
   if (!name) return;
   maybeDateDivider(timestamp); // 日期分组：跨天插入分隔线
   let isSelf = name === state.username;
@@ -565,6 +594,8 @@ export function addChatVoice(name, data, duration, tag, tagColor, timestamp, tag
     header.appendChild(nameSpan);
     attachSignature(nameSpan, name); // 个人签名
   }
+  let lb = createLevelBadge(level);
+  if (lb) header.appendChild(lb);
   wrapper.appendChild(header);
   if (reply) wrapper.appendChild(buildReplyQuote(reply));
   let bubble = document.createElement("span");
@@ -596,7 +627,7 @@ export function addChatVoice(name, data, duration, tag, tagColor, timestamp, tag
   buildActionMenu(wrapper, {
     name, text: t("[语音]"), timestamp, msgId, tag, tagColor, tagBorder,
     isSelf,
-    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1,
+    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1 && getAdminKey() !== "",
     hasWs: !!state.currentWebSocket,
     roomname: state.roomname
   });
@@ -611,7 +642,7 @@ export function addChatVoice(name, data, duration, tag, tagColor, timestamp, tag
   state.chatlog.scrollBy(0, 1e8);
 }
 
-export function addChatGhCard(name, data, tag, tagColor, timestamp, tagBorder, msgId, avatar) {
+export function addChatGhCard(name, data, tag, tagColor, timestamp, tagBorder, msgId, avatar, level) {
   if (!name) return;
   maybeDateDivider(timestamp); // 日期分组：跨天插入分隔线
   let isSelf = name === state.username;
@@ -646,6 +677,8 @@ export function addChatGhCard(name, data, tag, tagColor, timestamp, tagBorder, m
     header.appendChild(nameSpan);
     attachSignature(nameSpan, name); // 个人签名
   }
+  let lb = createLevelBadge(level);
+  if (lb) header.appendChild(lb);
   wrapper.appendChild(header);
   let bubble = document.createElement("span");
   bubble.className = "bubble gh-card";
@@ -655,7 +688,7 @@ export function addChatGhCard(name, data, tag, tagColor, timestamp, tagBorder, m
   let repo = data && data.repo || "";
   inner.innerHTML =
     '<span style="display:flex;align-items:center;gap:8px;padding:10px 12px;">' +
-      (data && data.avatar ? '<img src="' + data.avatar.replace(/"/g, '&quot;') + '" alt="" style="width:32px;height:32px;border-radius:6px;flex:0 0 32px;">' : '<span style="width:32px;height:32px;border-radius:6px;background:#24292e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 32px;">🐙</span>') +
+      (data && data.avatar ? '<img src="' + escapeHtml(data.avatar) + '" alt="" style="width:32px;height:32px;border-radius:6px;flex:0 0 32px;">' : '<span style="width:32px;height:32px;border-radius:6px;background:#24292e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 32px;">🐙</span>') +
       '<span style="display:block;overflow:hidden;">' +
         '<span style="display:block;font-weight:700;font-size:14px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(repo) + '</span>' +
         (data && data.language ? '<span style="display:block;font-size:11px;color:var(--text-secondary);">' + escapeHtml(data.language) + '</span>' : '') +
@@ -673,7 +706,7 @@ export function addChatGhCard(name, data, tag, tagColor, timestamp, tagBorder, m
   buildActionMenu(wrapper, {
     name, text: "[" + repo + "] ", timestamp, msgId, tag, tagColor, tagBorder,
     isSelf,
-    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1,
+    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1 && getAdminKey() !== "",
     hasWs: !!state.currentWebSocket,
     roomname: state.roomname
   });
@@ -688,7 +721,7 @@ export function addChatGhCard(name, data, tag, tagColor, timestamp, tagBorder, m
   state.chatlog.scrollBy(0, 1e8);
 }
 
-export function addChatFile(name, data, fileName, fileSize, tag, tagColor, timestamp, tagBorder, reply, msgId, avatar) {
+export function addChatFile(name, data, fileName, fileSize, tag, tagColor, timestamp, tagBorder, reply, msgId, avatar, level) {
   if (!name) return;
   maybeDateDivider(timestamp); // 日期分组：跨天插入分隔线
   let isSelf = name === state.username;
@@ -723,6 +756,8 @@ export function addChatFile(name, data, fileName, fileSize, tag, tagColor, times
     header.appendChild(nameSpan);
     attachSignature(nameSpan, name); // 个人签名：消息旁展示 + 悬停
   }
+  let lb = createLevelBadge(level);
+  if (lb) header.appendChild(lb);
   wrapper.appendChild(header);
   if (reply) wrapper.appendChild(buildReplyQuote(reply));
   let bubble = document.createElement("span");
@@ -780,7 +815,7 @@ export function addChatFile(name, data, fileName, fileSize, tag, tagColor, times
   buildActionMenu(wrapper, {
     name, text: t("[文件]"), timestamp, msgId, tag, tagColor, tagBorder,
     isSelf,
-    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1,
+    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1 && getAdminKey() !== "",
     hasWs: !!state.currentWebSocket,
     roomname: state.roomname
   });

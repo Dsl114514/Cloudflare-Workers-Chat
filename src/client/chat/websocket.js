@@ -1,7 +1,7 @@
 // WebSocket 连接 + 消息调度
 import { state, t } from './state.js';
-import { addChatMessage, addChatImage, addChatFile, addChatVoice, addChatGhCard, renderPoll, formatTime, markdownToHtml, escapeHtml, updateRosterCount, applyRoomBackground, updatePointsDisplay, createColoredTag, attachSignature, resetMsgDate, refreshReplyCounts } from './renderers.js';
-import { modifyOwnTag, playMsgSound, showTyping, flashTitle, checkAtMention, updateTitleUnread } from './ui.js';
+import { addChatMessage, addChatImage, addChatFile, addChatVoice, addChatGhCard, renderPoll, formatTime, markdownToHtml, escapeHtml, updateRosterCount, applyRoomBackground, updatePointsDisplay, createColoredTag, attachSignature, resetMsgDate, refreshReplyCounts, createLevelBadge } from './renderers.js';
+import { modifyOwnTag, playMsgSound, showTyping, flashTitle, checkAtMention, updateTitleUnread, getAdminKey } from './ui.js';
 import { showUserMenu } from './menu.js';
 import { addToDMCache, updateDmBadge } from './dm.js';
 import { TAG_COLORS, getVipLevel, createVipBadge } from './vip.js';
@@ -47,7 +47,10 @@ export function join() {
   });
 
   ws.addEventListener("message", event => {
-    let data = JSON.parse(event.data);
+    // L28: 单条畸形消息不应导致整个回调崩溃——解析失败直接忽略
+    let data;
+    try { data = JSON.parse(event.data); }
+    catch (e) { console.warn("[ws] 忽略无法解析的消息:", event.data, e); return; }
 
     // 💥 房间销毁通知：服务端销毁房间时全员收到，直接跳首页（不依赖 CloseEvent.reason）
     if (data.type === "destroyed") {
@@ -60,6 +63,11 @@ export function join() {
     if (data.type === "channels") {
       state.channels = data.channels || state.channels;
       buildChannelBar();
+      return;
+    }
+    // 🏅 房间等级样式：管理员配置变更或加入房间时推送，前端据此渲染各等级徽章
+    if (data.type === "level-styles") {
+      state.levelStyles = (data.styles && typeof data.styles === "object") ? data.styles : {};
       return;
     }
     if (data.type === "channel-history") {
@@ -219,7 +227,7 @@ export function join() {
           if (el) { el.scrollIntoView({behavior: "smooth", block: "center"}); el.classList.add("msg-ref-highlight"); setTimeout(() => el.classList.remove("msg-ref-highlight"), 2000); }
         };
         if (cancelBtn) {
-          cancelBtn.style.display = document.cookie.indexOf("admin_logged=1") !== -1 ? "inline" : "none";
+          cancelBtn.style.display = document.cookie.indexOf("admin_logged=1") !== -1 && getAdminKey() !== "" ? "inline" : "none";
           cancelBtn.onclick = (e) => {
             e.stopPropagation();
             if (state.currentWebSocket) {
@@ -264,7 +272,7 @@ export function join() {
       let imgCh = data.channel || "general";
       if (imgCh !== state.currentChannel) { pushToChannelCache(imgCh, data); bumpChannelUnread(imgCh); return; }
       if (data.timestamp > state.lastSeenTimestamp) {
-        addChatImage(data.name, data.data, data.tag, data.tagColor, data.timestamp, data.tagBorder, data.reply, data.id, data.avatar);
+        addChatImage(data.name, data.data, data.tag, data.tagColor, data.timestamp, data.tagBorder, data.reply, data.id, data.avatar, data.level);
         state.lastSeenTimestamp = data.timestamp;
         refreshReplyCounts();
         if (data.name !== state.username) playMsgSound();
@@ -275,7 +283,7 @@ export function join() {
       let fileCh = data.channel || "general";
       if (fileCh !== state.currentChannel) { pushToChannelCache(fileCh, data); bumpChannelUnread(fileCh); return; }
       if (data.timestamp > state.lastSeenTimestamp) {
-        addChatFile(data.name, data.data, data.fileName, data.fileSize, data.tag, data.tagColor, data.timestamp, data.tagBorder, data.reply, data.id, data.avatar);
+        addChatFile(data.name, data.data, data.fileName, data.fileSize, data.tag, data.tagColor, data.timestamp, data.tagBorder, data.reply, data.id, data.avatar, data.level);
         state.lastSeenTimestamp = data.timestamp;
         refreshReplyCounts();
         checkAtMention(data.fileName || "", data.name);
@@ -287,7 +295,7 @@ export function join() {
       let voiceCh = data.channel || "general";
       if (voiceCh !== state.currentChannel) { pushToChannelCache(voiceCh, data); bumpChannelUnread(voiceCh); return; }
       if (data.timestamp > state.lastSeenTimestamp) {
-        addChatVoice(data.name, data.data, data.duration, data.tag, data.tagColor, data.timestamp, data.tagBorder, data.reply, data.id, data.avatar);
+        addChatVoice(data.name, data.data, data.duration, data.tag, data.tagColor, data.timestamp, data.tagBorder, data.reply, data.id, data.avatar, data.level);
         state.lastSeenTimestamp = data.timestamp;
         refreshReplyCounts();
         if (data.name !== state.username) playMsgSound();
@@ -298,7 +306,7 @@ export function join() {
       let ghCh = data.channel || "general";
       if (ghCh !== state.currentChannel) { pushToChannelCache(ghCh, data); bumpChannelUnread(ghCh); return; }
       if (data.timestamp > state.lastSeenTimestamp) {
-        addChatGhCard(data.name, data, data.tag, data.tagColor, data.timestamp, data.tagBorder, data.id, data.avatar);
+        addChatGhCard(data.name, data, data.tag, data.tagColor, data.timestamp, data.tagBorder, data.id, data.avatar, data.level);
         state.lastSeenTimestamp = data.timestamp;
         refreshReplyCounts();
         if (data.name !== state.username) playMsgSound();
@@ -481,6 +489,16 @@ export function join() {
         state.chatlog.scrollBy(0, 1e8);
         state.lastSeenTimestamp = data.timestamp;
       }
+    } else if (data.type === "xp-update") {
+      // ⭐ 升级推送（纯展示）：显示升级横幅
+      if (data.leveledUp) {
+        import('./achievements.js').then(m => m.showLevelUpBanner(data.newLevel || data.level, data.exp));
+      }
+    } else if (data.type === "achievement") {
+      // ⭐ 成就解锁推送：toast 提示
+      if (data.achievements && data.achievements.length) {
+        import('./achievements.js').then(m => m.showAchievementToast(data.achievements));
+      }
     } else if (data.type === "tag-update") {
       for (let child of state.roster.children) {
         if ((child.dataset.name || child.innerText) == data.name) {
@@ -512,7 +530,8 @@ export function join() {
       }
     } else if (data.type === "whisper") {
       if (data.to) {
-        addChatMessage(null, "* 私聊给 " + data.to + ": " + data.message);
+        // L29: 发送方回显——sendDM 已乐观写入 DM 面板，此处不再于主聊天区重复渲染
+        return;
       } else {
         if (state.blockedUsers.has(data.from)) return;
         addToDMCache(data.from, {from: data.from, message: data.message, timestamp: data.timestamp}, false);
@@ -542,6 +561,9 @@ export function join() {
       }
     } else {
       if (state.blockedUsers.has(data.name)) return;
+      // M18：频道路由优先于 lastSeenTimestamp 检查——非当前频道消息一律入缓存+未读，不因 timestamp 旧被丢弃
+      let txtCh = data.channel || "general";
+      if (txtCh !== state.currentChannel) { pushToChannelCache(txtCh, data); bumpChannelUnread(txtCh); return; }
       if (data.timestamp > state.lastSeenTimestamp) {
         if (!state.isAtBottom && !state._newMsgDividerAdded) {
           state._newMsgDividerAdded = true;
@@ -553,10 +575,7 @@ export function join() {
         }
         checkKeywords(data.message, data.name);
         // 日期分组由 renderers.addChatMessage 统一处理
-        // 频道体系：非当前频道消息入缓存，不渲染
-        let txtCh = data.channel || "general";
-        if (txtCh !== state.currentChannel) { pushToChannelCache(txtCh, data); bumpChannelUnread(txtCh); return; }
-        addChatMessage(data.name, data.message, data.tag, data.tagColor, data.color, data.timestamp, data.reply, data.tagBorder, data.id, data.atAll, data.avatar);
+        addChatMessage(data.name, data.message, data.tag, data.tagColor, data.color, data.timestamp, data.reply, data.tagBorder, data.id, data.atAll, data.avatar, data.level);
         state.lastSeenTimestamp = data.timestamp;
         refreshReplyCounts();
         if (data.atAll && data.name !== state.username) {
