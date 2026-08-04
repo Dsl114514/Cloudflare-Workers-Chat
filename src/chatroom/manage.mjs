@@ -1,5 +1,15 @@
 // 管理类消息处理（pin/edit/highlight/effect/get-scheduled）— 从 chatroom.mjs 提取
 
+// 🔒 安全修复（v1.34）：对外输出消息前剔除敏感字段——_anonOwner（真实身份哈希，防反推匿名者）与
+// fid（文件存储标识）。其余字段全部保留（勿用白名单，防止破坏 redpacket/gh-card 等消息类型）。
+export function stripSensitiveMsg(msg) {
+  if (!msg || typeof msg !== "object") return msg;
+  const m = { ...msg };
+  delete m._anonOwner;
+  delete m.fid;
+  return m;
+}
+
 export async function handleManage(room, session, data, webSocket) {
   // ====== 频道体系：切换频道 ======
   if (data.type === "switch-channel") {
@@ -18,13 +28,17 @@ export async function handleManage(room, session, data, webSocket) {
       try {
         let m = JSON.parse(val);
         if ((m.channel || "general") === target) {
-          msgs.push(m);
+          // 🔒 安全修复（v1.34）：频道历史同样剔除 _anonOwner/fid，防匿名身份哈希经切换频道泄漏
+          msgs.push(stripSensitiveMsg(m));
           if (msgs.length >= 50) break;
         }
       } catch (e) {}
     }
     msgs.reverse();
-    webSocket.send(JSON.stringify({type: "channel-history", channel: target, messages: msgs, channels: room.channels}));
+    // 📌 置顶消息（v1.35）：切频道时附带该频道置顶列表，前端立即渲染无需等待广播
+    if (room._loadPinnedMessages) await room._loadPinnedMessages;
+    let pinned = (room.pinnedMessages && room.pinnedMessages[target]) || [];
+    webSocket.send(JSON.stringify({type: "channel-history", channel: target, messages: msgs, channels: room.channels, pinned}));
     return true;
   }
 
@@ -72,20 +86,29 @@ export async function handleManage(room, session, data, webSocket) {
       webSocket.send(JSON.stringify({error: "仅管理员可置顶消息"}));
       return true;
     }
-    if (room._loadPinned) await room._loadPinned;
-    if (room.pinnedMessage && data.unpin) {
-      room.pinnedMessage = null;
-      await room.storage.delete("pinnedMessage");
-      room.broadcast({type: "pinned", pinned: null});
+    let pinChannel = session.channel || "general";
+    if (data.unpin) {
+      // 取消置顶（v1.35 按频道 + timestamp 指定清除）
+      let unpinTs = parseInt(data.timestamp, 10);
+      if (!unpinTs) {
+        webSocket.send(JSON.stringify({error: "置顶参数错误"}));
+        return true;
+      }
+      await room.removePinnedMessage(pinChannel, unpinTs);
       return true;
     }
     if (!data.text || !data.timestamp) {
       webSocket.send(JSON.stringify({error: "置顶参数错误"}));
       return true;
     }
-    room.pinnedMessage = {name: session.name, text: "" + data.text, timestamp: parseInt(data.timestamp), tag: session.tag || "", tagColor: session.tagColor || "", tagBorder: session.tagBorder || "", pinnedAt: Date.now()};
-    await room.storage.put("pinnedMessage", JSON.stringify(room.pinnedMessage));
-    room.broadcast({type: "pinned", pinned: room.pinnedMessage});
+    // v1.35：置顶快照按 session 当前频道存储（addPinnedMessage 内部持久化 + 按频道广播）
+    await room.addPinnedMessage(pinChannel, {
+      name: session.name,
+      text: "" + data.text,
+      timestamp: parseInt(data.timestamp, 10),
+      tag: session.tag || "", tagColor: session.tagColor || "", tagBorder: session.tagBorder || "",
+      channel: pinChannel, pinnedBy: session.name, pinnedAt: Date.now()
+    });
     return true;
   }
 
@@ -174,14 +197,11 @@ export async function handleManage(room, session, data, webSocket) {
   }
 
   if (data.type === "effect") {
-    // 🔒 安全修复：全屏特效限频（每用户10秒1次），防刷屏骚扰
-    if (!room.lastEffect) room.lastEffect = new Map();
-    let last = room.lastEffect.get(session.name) || 0;
-    if (Date.now() - last < 10000) {
-      webSocket.send(JSON.stringify({error: "特效触发太频繁"}));
-      return true;
-    }
-    room.lastEffect.set(session.name, Date.now());
+    // v1.39 临时移除限频（用户初期测试）。若需防刷屏，可恢复原限频块：
+    //   if (!room.lastEffect) room.lastEffect = new Map();
+    //   let last = room.lastEffect.get(session.name) || 0;
+    //   if (Date.now() - last < 10000) { webSocket.send(JSON.stringify({error: "特效触发太频繁"})); return true; }
+    //   room.lastEffect.set(session.name, Date.now());
     room.broadcast(JSON.stringify({type: "effect", effect: data.effect}));
     return true;
   }

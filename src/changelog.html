@@ -126,6 +126,96 @@ body {
 
 <div class="version-group">
   <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.40</span>
+    <span class="version-date">2026-08-04</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🖥️</span><span class="text"><span class="tag tag-feature">功能</span><b>Hacknet 主题 — 极客终端四大块布局</b>（区别于 v1.38 仅换肤，本次<b>重构界面结构</b>）。布局：左 1/5 <b>在线成员列表</b>、中 3/5 上 3/4 <b>聊天历史</b> + 下 1/4 <b>节点地图</b>、右 1/5 <b>命令终端</b>。配色与视觉元素<b>完全复刻《Hacknet》游戏源码</b>（OpenHacknet）：#008BC7 高亮蓝顶栏、#5FDC53 当前节点绿、等宽字体 + 扫描线 + 黑底，贴图全 CSS/SVG 复刻</span></div>
+    <div class="feature-item"><span class="icon">🗺️</span><span class="text"><span class="tag tag-feature">功能</span><b>节点地图</b> — 每个聊天室一个<b>Hacknet 圆环节点</b>（外光晕 + 深底描边双环 + 中心高光，当前房间绿色 + 白心 + 呼吸脉动），随机散落在整块区域 + 错综复杂的<b>多对多交叉连线</b>（复刻 NetworkMap 拓扑）；每 5 秒自动刷新在线数，<b>点击圆点即进入该房间</b>，可连续切换任意房间</span></div>
+    <div class="feature-item"><span class="icon">💻</span><span class="text"><span class="tag tag-feature">功能</span><b>右侧命令终端</b> — 专门输入斜杠命令（复用全部 / 命令），结果实时回显；<b>命令历史 ↑↓ 翻看</b>、Enter 执行；聊天室所有<b>系统消息（进/退房、封禁、系统指令）分流显示在终端</b>，不再占聊天区</span></div>
+    <div class="feature-item"><span class="icon">💬</span><span class="text"><span class="tag tag-feature">功能</span><b>IRC 化消息</b> — Hacknet 下聊天消息按 IRC 客户端渲染（复刻 IRCSystem.DrawLogEntry）：<b>无气泡文本行</b>「[昵称] 消息」，昵称按用户名哈希取色（10 色板）、消息白色、行底极淡白条纹，自己消息同样显示昵称</span></div>
+    <div class="feature-item"><span class="icon">📌</span><span class="text"><span class="tag tag-feature">功能</span>频道条下方新增<b>灰白房间名横条</b>（显示当前聊天室名，切房实时更新）</span></div>
+    <div class="feature-item"><span class="icon">🎨</span><span class="text"><span class="tag tag-feature">功能</span>主题选择器新增第 6 套预设「Hacknet」；切回其他主题布局完全还原（Hacknet 全部样式限定在 body.theme-hacknet 前缀内，不影响原有主题）。窄屏自动回退经典布局，保证移动端可用</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-feature">功能</span>管理 API 新增 <b>global-kick-all</b>：把所有在线用户从所有聊天室踢出（仅 super 密钥，不销毁房间、不清聊天记录）；同时支持连续切房、Hacknet 下保留明暗切换入口、修复终端/聊天输入框焦点抢占</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.39</span>
+    <span class="version-date">2026-08-03</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🚨</span><span class="text"><span class="tag tag-feature">功能</span>全屏「INCOMING CONNECTION」入侵警告特效 — 输入 <b>/icco</b> 后<b>所有在线用户同时触发</b> 6 秒全屏黑客入侵警告动画，<b>逐行复刻 icco.exe</b>（《Hacknet》经典覆盖层）：使用<b>真实贴图素材</b>（警示三角/底板/斜纹 + Kremlin 标题字体）+ 逐帧布局公式（黑条展开淡入、斜纹无缝滚动、图标按宽高比缩放、文字等比适配）+ 开场与收尾各 0.5 秒闪烁；附带合成音效（提示音 + 低频轰鸣 + 噪声冲击），<b>ESC</b> 可随时取消。分辨率自适应（按屏幕高相对 1080p 缩放）</span></div>
+    <div class="feature-item"><span class="icon">⚙️</span><span class="text"><span class="tag tag-improve">调整</span>特效触发临时移除 10 秒限频（初期测试用，后续可恢复防刷屏）</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.38</span>
+    <span class="version-date">2026-08-03</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🎨</span><span class="text"><span class="tag tag-feature">功能</span>聊天室主题系统 — 设置面板新增「🎨 主题」选择器，内置 4 套风格 + 自定义：<b>经典</b>（默认磨砂玻璃）、<b>液态玻璃</b>（通透玻璃 + 强模糊 + 大圆角 + 高光）、<b>扁平化</b>（无磨砂无阴影 + 硬朗边框 + 随机背景图清晰保留）、<b>深空霓虹</b>（品红→紫→青渐变 + 发光边框）。另有<b>自定义主题</b>：主色 / 文字色 / 次级文字色 / 背景色 / 边框色 / 圆角 / 自己气泡色 / 他人气泡色 8 项自由调色，实时预览并自动保存。主题与明暗模式独立，可自由组合（如 暗色 + 深空霓虹），选择权完全交还用户</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.37</span>
+    <span class="version-date">2026-08-03</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-fix">修复</span>聊天室在线用户管理操作恢复 — 点击房间在线列表中的用户名（或消息上的用户名）弹出用户菜单，管理操作（踢出 / 禁言 / 封禁 / 封禁IP / 修改标签 / 批量踢出）重新显示。此前因安全加固（密钥改存 httpOnly Cookie、JS 不可读）漏同步前端管理员判定，导致登录后台后菜单仍判断"非管理员"；现已改为以 admin_logged Cookie 为准，管理操作请求由服务端 httpOnly Cookie 鉴权</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.36</span>
+    <span class="version-date">2026-08-03</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-fix">修复</span>管理后台用户管理操作入口 — 「房间列表」展开房间的在线用户与「在线用户」列表点击用户名即可弹出管理操作弹窗（此前点击无反应）；弹窗新增「禁言」操作（1分钟/10分钟/1小时/永久，可填原因），配合已有的全局踢出 / 封禁 / 封禁IP / 删除用户，覆盖全部管理操作</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.35</span>
+    <span class="version-date">2026-08-03</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">📌</span><span class="text"><span class="tag tag-feature">功能</span>置顶消息升级为按频道多置顶 — 每个频道最多同时置顶 3 条消息（新置顶顶掉最旧），置顶条显示在聊天区顶部，点击可跳转到原消息；新成员加入 / 切换频道自动推送当前频道置顶；消息 ⋮ 菜单「📌 置顶」与管理后台「📌 置顶消息」面板均可设置/取消，普通管理员可用</span></div>
+    <div class="feature-item"><span class="icon">📢</span><span class="text"><span class="tag tag-feature">功能</span>超长公告横幅滚动 — 房间公告超过 40 字时横幅自动横向滚动展示，鼠标悬停暂停，不再截断</span></div>
+    <div class="feature-item"><span class="icon">⚙️</span><span class="text"><span class="tag tag-feature">管理</span>管理后台房间详情新增「置顶消息」区：按频道查看当前置顶、按「频道 + 消息时间戳」一键置顶、逐条清除</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.34</span>
+    <span class="version-date">2026-08-03</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🔒</span><span class="text"><span class="tag tag-fix">安全</span>文件功能高危修复 — 公开的 /file-data 端点不再返回原始存储消息（仅文件消息且只回元数据，历史文件正文不再可公开回拉）；游客禁止上传文件（需登录）；共享文件桶增加每用户配额（200MB/50 个）与单文件硬上限（20MB），防拖垮全站文件功能</span></div>
+    <div class="feature-item"><span class="icon">🕶️</span><span class="text"><span class="tag tag-fix">安全</span>匿名身份彻底封堵 — 匿名消息的真实身份哈希（_anonOwner）此前可经加入房间的历史消息、切换频道、file-data 三条路径泄露，现统一经 stripSensitiveMsg 剥离，匿名马甲不再可被推算还原</span></div>
+    <div class="feature-item"><span class="icon">💰</span><span class="text"><span class="tag tag-fix">安全</span>铸币边界补齐 — 商店商品价格必须为正整数（负价商品反向加积分被封堵）、任务奖励限 1~100000、抽奖奖池成本限 1~100000，三者均在管理员层与服务端双重校验，普通管理员无法再绕过「积分写入仅限超级管理员」</span></div>
+    <div class="feature-item"><span class="icon">🎫</span><span class="text"><span class="tag tag-fix">安全</span>权限与逻辑加固 — 打特权标签（管理员色/VIP）与灰色封禁仅限超级管理员（堵住 M16 绕过）；定时消息不可投递只读公告频道（普通用户）；投票与私信需登录（堵刷票与冒名）；接龙/字符画加频率限制；红包频道映射持久化（重启不再错播频道）</span></div>
+    <div class="feature-item"><span class="icon">📁</span><span class="text"><span class="tag tag-fix">安全</span>文件存储加固 — 文件桶各端点增加内部签名鉴权（防被外部直连）；文件 ID 检测重复拒绝覆盖（防跨房间数据损坏）；上传增加魔数校验（伪装类型文件被拒）；链接预览限制 256KB；管理端下载文件类型强制为二进制流；兑换码尝试限频、自定义表情大小上限、禁言状态/背包接口脱敏，管理密钥比较改为常量时间</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
     <span class="version-tag">v1.33</span>
     <span class="version-date">2026-08-03</span>
     <span class="version-arrow open">▶</span>

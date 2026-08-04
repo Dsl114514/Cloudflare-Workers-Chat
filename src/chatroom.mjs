@@ -1,6 +1,6 @@
 import { handleErrors } from "./utils.mjs";
 import { handleMedia } from "./chatroom/media.mjs";
-import { handleManage } from "./chatroom/manage.mjs";
+import { handleManage, stripSensitiveMsg } from "./chatroom/manage.mjs";
 
 // 🔒 安全修复（W20）：颜色白名单（色名 + #hex），消息颜色/房间等级样式统一使用
 const SAFE_COLOR_RE = /^(red|blue|green|purple|pink|cyan|gray|grey|orange|yellow|teal|indigo|brown|lime|deeporange|rose|crimson|coral|gold|amber|forest|seagreen|turquoise|steel|royalblue|mediumpurple|darkviolet|chocolate|olive|firebrick|slateblue|darkcyan|mediumseagreen|indianred|cadetblue|#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?)$/;
@@ -48,6 +48,10 @@ export class ChatRoom {
     });
     // 红包所在频道（id → channel），供 grab 广播隔离
     this.redpacketChannels = new Map();
+    // 🔒 安全修复（v1.34）：红包频道映射持久化，防 DO 重启后丢失导致 grab 广播回落到 general
+    this._loadRedpacketChannels = this.storage.get("redpacketChannels").then(arr => {
+      if (Array.isArray(arr)) this.redpacketChannels = new Map(arr);
+    });
 
     this.blacklist = new Set();
     this._loadBlacklist = this.storage.get("blacklist").then(list => {
@@ -70,11 +74,25 @@ export class ChatRoom {
     this._loadDestroyed = this.storage.get("__destroyed__").then(v => {
       if (v === "1") this.destroyed = true;
     });
-    this.pinnedMessage = null;
-    this._loadPinned = this.storage.get("pinnedMessage").then(data => {
-      if (data) {
-        try { this.pinnedMessage = JSON.parse(data); } catch (e) { this.pinnedMessage = null; }
+    // 📌 置顶消息（v1.35 升级为按频道）：{ "<channel>": [pinObj, ...] }，每频道最多 3 条
+    this.pinnedMessages = {};
+    this._loadPinnedMessages = this.storage.get("pinnedMessages").then(async data => {
+      if (data && typeof data === "object") {
+        this.pinnedMessages = data;
+        return;
       }
+      // 迁移：旧版单条全局置顶（pinnedMessage）并入 general 频道，随后删除旧 key
+      try {
+        let old = await this.storage.get("pinnedMessage");
+        if (old) {
+          let p = JSON.parse(old);
+          if (p && p.timestamp) {
+            this.pinnedMessages["general"] = [p];
+            await this.storage.put("pinnedMessages", this.pinnedMessages);
+            await this.storage.delete("pinnedMessage");
+          }
+        }
+      } catch (e) {}
     });
 
     this.scheduledMessages = [];
@@ -254,7 +272,12 @@ export class ChatRoom {
           let key = new Date(parseInt(ts)).toISOString();
           let val = await this.storage.get(key);
           if (!val) return new Response("未找到文件", {status: 404});
-          return new Response(val, {
+          // 🔒 安全修复（v1.34）：文件公开端只给元数据——非 file 消息返回 404，并剔除 base64 正文与敏感字段
+          let m;
+          try { m = JSON.parse(val); } catch (e) { return new Response(JSON.stringify({error: "数据异常"}), {status: 500, headers: {"Content-Type": "application/json"}}); }
+          if (!m || m.type !== "file") return new Response(JSON.stringify({error: "该消息不是文件"}), {status: 404, headers: {"Content-Type": "application/json"}});
+          delete m.data;
+          return new Response(JSON.stringify(stripSensitiveMsg(m)), {
             status: 200, headers: {"Content-Type": "application/json"}
           });
         }
@@ -486,6 +509,18 @@ export class ChatRoom {
           return new Response("聊天记录已清空。", { status: 200 });
         }
 
+        case "/do-kick-all": {
+          // v1.40 运维：踢出本房间全部在线用户（不销毁房间/不清消息），供 admin 全局清场
+          let count = 0;
+          this.sessions.forEach((session, webSocket) => {
+            try { webSocket.close(1000, "kicked"); } catch (e) {}
+            count++;
+          });
+          this.sessions.clear();
+          await this.updateRegistry();
+          return new Response("已踢出 " + count + " 人", { status: 200 });
+        }
+
         case "/do-destroy": {
           // 一键销毁房间：清空消息、断开所有连接
           this.destroyed = true;
@@ -592,8 +627,48 @@ export class ChatRoom {
           return new Response("等级样式已清除", {status: 200});
         }
 
+        // 📌 置顶消息（v1.35）：按频道设置置顶（从 storage 读原消息构造快照，channel 须存在于频道列表）
+        case "/set-pinned": {
+          let pinChannel = "" + (url.searchParams.get("channel") || "general");
+          let pinTs = parseInt(url.searchParams.get("timestamp"), 10);
+          if (!pinTs) return new Response("请提供消息时间戳", {status: 400});
+          if (this._loadChannels) await this._loadChannels;
+          if (!this.channels || !this.channels.some(c => c.name === pinChannel)) {
+            return new Response("频道不存在", {status: 400});
+          }
+          try {
+            let raw = await this.storage.get(new Date(pinTs).toISOString());
+            if (!raw) return new Response("消息不存在", {status: 404});
+            let m = JSON.parse(raw);
+            if ((m.channel || "general") !== pinChannel) return new Response("消息不属于该频道", {status: 400});
+            if (m.type === "deleted" || m.type === "recalled") return new Response("消息已删除或撤回", {status: 400});
+            let safe = stripSensitiveMsg(m);
+            let pinObj = {
+              name: safe.name || "未知",
+              text: safe.message !== undefined ? safe.message : (safe.text || ""),
+              timestamp: pinTs,
+              tag: safe.tag || "", tagColor: safe.tagColor || "", tagBorder: safe.tagBorder || "",
+              channel: pinChannel, pinnedBy: "admin", pinnedAt: Date.now()
+            };
+            await this.addPinnedMessage(pinChannel, pinObj);
+            return new Response("已置顶", {status: 200});
+          } catch (e) {
+            return new Response("消息读取失败", {status: 500});
+          }
+        }
+
+        // 📌 置顶消息（v1.35）：按频道+时间戳取消置顶
+        case "/clear-pinned": {
+          let pinChannel = "" + (url.searchParams.get("channel") || "general");
+          let pinTs = parseInt(url.searchParams.get("timestamp"), 10);
+          if (!pinTs) return new Response("请提供消息时间戳", {status: 400});
+          await this.removePinnedMessage(pinChannel, pinTs);
+          return new Response("已取消置顶", {status: 200});
+        }
+
         case "/get-pinned": {
-          return new Response(JSON.stringify({pinned: this.pinnedMessage}), {
+          if (this._loadPinnedMessages) await this._loadPinnedMessages;
+          return new Response(JSON.stringify({pinned: this.pinnedMessages || {}}), {
             status: 200, headers: {"Content-Type": "application/json"}
           });
         }
@@ -602,6 +677,32 @@ export class ChatRoom {
           return new Response("未找到", {status: 404});
       }
     });
+  }
+
+  // 📌 置顶消息（v1.35）：新增一条置顶到某频道（去重按 timestamp，头部插入，超 3 条淘汰最旧），持久化 + 按频道广播
+  async addPinnedMessage(channel, pinObj) {
+    if (this._loadPinnedMessages) await this._loadPinnedMessages;
+    if (!this.pinnedMessages || typeof this.pinnedMessages !== "object") this.pinnedMessages = {};
+    let arr = Array.isArray(this.pinnedMessages[channel]) ? this.pinnedMessages[channel] : [];
+    arr = arr.filter(p => p && parseInt(p.timestamp) !== parseInt(pinObj.timestamp));
+    arr.unshift(pinObj);
+    if (arr.length > 3) arr.length = 3; // 每频道最多 3 条
+    this.pinnedMessages[channel] = arr;
+    await this.storage.put("pinnedMessages", this.pinnedMessages);
+    this.broadcastToChannel(channel, JSON.stringify({type: "pinned", channel, pinned: arr}));
+    return arr;
+  }
+
+  // 📌 置顶消息（v1.35）：移除某频道的指定置顶（按 timestamp），持久化 + 按频道广播
+  async removePinnedMessage(channel, ts) {
+    if (this._loadPinnedMessages) await this._loadPinnedMessages;
+    if (!this.pinnedMessages || typeof this.pinnedMessages !== "object") this.pinnedMessages = {};
+    let arr = Array.isArray(this.pinnedMessages[channel]) ? this.pinnedMessages[channel] : [];
+    arr = arr.filter(p => !p || parseInt(p.timestamp) !== parseInt(ts));
+    this.pinnedMessages[channel] = arr;
+    await this.storage.put("pinnedMessages", this.pinnedMessages);
+    this.broadcastToChannel(channel, JSON.stringify({type: "pinned", channel, pinned: arr}));
+    return arr;
   }
 
   async clearAllMessages() {
@@ -662,7 +763,8 @@ export class ChatRoom {
     for (let value of backlog) {
       try {
         let m = JSON.parse(value);
-        if ((m.channel || "general") === session.channel) chBacklog.push(value);
+        // 🔒 安全修复（v1.34）：backlog 推送前剔除 _anonOwner/fid，防匿名身份哈希经历史回放泄漏
+        if ((m.channel || "general") === session.channel) chBacklog.push(JSON.stringify(stripSensitiveMsg(m)));
       } catch (e) {}
       if (chBacklog.length >= 50) break;
     }
@@ -675,10 +777,12 @@ export class ChatRoom {
       session.blockedMessages.push(JSON.stringify({type: "announcement", text: this.announcement}));
     }
 
-    if (this._loadPinned) await this._loadPinned;
-    if (this.pinnedMessage) {
-      session.blockedMessages.push(JSON.stringify({type: "pinned", pinned: this.pinnedMessage}));
-    }
+    // 📌 置顶消息（v1.35）：加入时推送当前频道置顶列表（数组，可能为空）
+    if (this._loadPinnedMessages) await this._loadPinnedMessages;
+    session.blockedMessages.push(JSON.stringify({
+      type: "pinned", channel: session.channel,
+      pinned: (this.pinnedMessages && this.pinnedMessages[session.channel]) || []
+    }));
 
     if (this._loadPolls) await this._loadPolls;
     if (this.polls && this.polls.size > 0) {
@@ -1024,6 +1128,11 @@ export class ChatRoom {
           webSocket.send(JSON.stringify({error: "私聊格式错误"}));
           return;
         }
+        // 🔒 安全修复（v1.34）：私信仅限已登录用户（防游客冒名发私信骚扰/钓鱼）
+        if (!session.authenticated) {
+          webSocket.send(JSON.stringify({error: "请先登录后再发送私信"}));
+          return;
+        }
         let whisperMax = (session.vip && session.vip.features ? session.vip.features.maxMsgLen : 256);
         if (whisperMsg.length > whisperMax) {
           webSocket.send(JSON.stringify({error: "消息过长（VIP最高 " + whisperMax + " 字）"}));
@@ -1149,6 +1258,11 @@ export class ChatRoom {
           webSocket.send(JSON.stringify({error: "投票不存在"}));
           return;
         }
+        // 🔒 安全修复（v1.34）：投票仅限已登录用户（防游客换名换IP刷票，已注册用户按 name 去重 + votedIps 辅助）
+        if (!session.authenticated) {
+          webSocket.send(JSON.stringify({error: "请先登录后再投票"}));
+          return;
+        }
         if (poll.voters[session.name] !== undefined) {
           webSocket.send(JSON.stringify({error: "你已经投过票了"}));
           return;
@@ -1220,6 +1334,14 @@ export class ChatRoom {
           webSocket.send(JSON.stringify({error: "房间定时消息已达上限（50条）"}));
           return;
         }
+        // 🔒 安全修复（v1.34）：公告频道仅管理员可发定时消息（防游客 switch-channel 到 announcement 再 schedule 绕过公告只读检查）
+        if (this._loadChannels) await this._loadChannels;
+        let schedChanName = session.channel || "general";
+        let schedChanObj = this.channels.find(c => c.name === schedChanName);
+        if (schedChanObj && schedChanObj.type === "announcement" && !this.isAdminSession(session)) {
+          webSocket.send(JSON.stringify({error: "公告频道仅管理员可发"}));
+          return;
+        }
         let schedEntry = {
           id: "sched_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8),
           name: session.name,
@@ -1227,6 +1349,7 @@ export class ChatRoom {
           time: schedTime,
           createdAt: Date.now(),
           channel: session.channel || "general",
+          admin: this.isAdminSession(session),
           tag: session.tag || "",
           tagColor: session.tagColor || "",
           tagBorder: session.tagBorder || ""
@@ -1319,6 +1442,19 @@ export class ChatRoom {
         // 🔒 安全修复（W7）：接龙内容过敏感词过滤
         if (this.containsProfanity(content)) {
           webSocket.send(JSON.stringify({error: "接龙内容包含违规词汇，已拦截"}));
+          return;
+        }
+        // 🔒 安全修复（v1.34）：接龙每用户限频（2秒1条），防连发刷屏
+        if (!this.lastRelayAdd) this.lastRelayAdd = new Map();
+        let lastRelayAddAt = this.lastRelayAdd.get(session.name) || 0;
+        if (Date.now() - lastRelayAddAt < 2000) {
+          webSocket.send(JSON.stringify({error: "接龙操作太频繁，请稍后再试"}));
+          return;
+        }
+        this.lastRelayAdd.set(session.name, Date.now());
+        // 接龙条目总数上限，防无限堆积
+        if (relay.entries.length >= 500) {
+          webSocket.send(JSON.stringify({error: "接龙条目已达上限（500条）"}));
           return;
         }
         relay.entries.push({number, user: session.name, content, timestamp: Date.now()});
@@ -1425,6 +1561,12 @@ export class ChatRoom {
             if (result.ok) {
               let rp = result.redpacket;
               this.redpacketChannels.set(rp.id, session.channel || "general");
+              // 持久化并限容（红包为一次性，映射只保留最近300条）
+              if (this.redpacketChannels.size > 300) {
+                let oldestId = this.redpacketChannels.keys().next().value;
+                if (oldestId) this.redpacketChannels.delete(oldestId);
+              }
+              await this.storage.put("redpacketChannels", [...this.redpacketChannels]);
               let msg = {
                 type: "redpacket",
                 action: "new",
@@ -1457,6 +1599,7 @@ export class ChatRoom {
             let result = await r.json();
             if (result.ok) {
               // 抢到红包，按红包所在频道广播结果
+              if (this._loadRedpacketChannels) await this._loadRedpacketChannels; // 防 DO 重启后映射未加载完
               let rpCh = this.redpacketChannels.get(rpId) || "general";
               this.broadcastToChannel(rpCh, {
                 type: "redpacket",
@@ -1670,6 +1813,13 @@ export class ChatRoom {
         } catch (e) {
           webSocket.send(JSON.stringify({error: "机器人暂时不可用"}));
         }
+        return;
+      }
+
+      // 🚨 全屏入侵警告命令（公开功能，仿 /rollback 服务端透传）：/icco
+      // 服务端统一广播，所有在线用户（含发起者，任意频道）同时触发全屏警告动画
+      if (/^\/icco\b/i.test(data.message)) {
+        this.broadcast({type: "effect", effect: "icco"});
         return;
       }
 
@@ -2117,10 +2267,14 @@ export class ChatRoom {
 
   async alarm() {
     if (this._loadScheduled) await this._loadScheduled;
+    if (this._loadChannels) await this._loadChannels;
     let now = Date.now();
     let toSend = this.scheduledMessages.filter(s => s.time <= now);
     this.scheduledMessages = this.scheduledMessages.filter(s => s.time > now);
     for (let s of toSend) {
+      // 🔒 安全修复（v1.34）：公告频道定时消息仅管理员来源可投递（防御旧数据/绕过 schedule 创建校验）
+      let schedChanObj = this.channels.find(c => c.name === (s.channel || "general"));
+      if (schedChanObj && schedChanObj.type === "announcement" && !s.admin) continue;
       let data = {
         name: s.name,
         message: s.message,

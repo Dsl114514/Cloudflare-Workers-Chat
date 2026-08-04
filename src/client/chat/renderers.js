@@ -367,8 +367,50 @@ export function refreshReplyCounts() {
   });
 }
 
+// v1.40 Hacknet 主题：系统消息分流 hook。
+// Hacknet 布局注册后，系统指令/命令结果（name==null 的 addChatMessage）改道进右侧命令终端，
+// 不再在 chatlog 重复显示；非 Hacknet 主题下 hook 为 null，行为完全不变。
+export let systemMessageHook = null;
+export function setSystemMessageHook(fn) { systemMessageHook = fn; }
+
+// v1.40 Hacknet IRC 化：聊天消息按 IRC 客户端渲染（无气泡文本行 + 彩色昵称）
+export let hacknetIRC = false;
+export function setHacknetIRC(v) { hacknetIRC = !!v; }
+
+// Hacknet IRC 用户色板（IRCSystem UserColors，昵称按名字哈希取色）
+const IRC_PALETTE = ["#00A6EB", "#5FDC53", "#DEC918", "#FFC729", "#FF8E5E", "#FF5EA8", "#5EE8C0", "#C08BFF", "#8FBFE8", "#FFB45E"];
+function ircNameColor(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return IRC_PALETTE[h % IRC_PALETTE.length];
+}
+
+// IRC 消息行：`[昵称] 消息`（昵称彩色，消息白色，等宽无气泡）
+function renderIrcMessage(name, text, isSelf, timestamp) {
+  maybeDateDivider(timestamp);
+  let p = document.createElement("p");
+  p.className = "chat-msg irc-msg" + (isSelf ? " self" : "");
+  if (timestamp) p.dataset.timestamp = timestamp;
+  p.dataset.msgName = name || "";
+  let nick = document.createElement("span");
+  nick.className = "irc-name";
+  nick.textContent = "[" + name + "]";
+  nick.style.color = ircNameColor(name);
+  nick.style.cursor = "pointer";
+  nick.addEventListener("click", (e) => { e.stopPropagation(); showUserMenu(name, e.clientX, e.clientY); });
+  p.appendChild(nick);
+  let body = document.createElement("span");
+  body.className = "irc-text";
+  body.innerHTML = markdownToHtml(text);
+  p.appendChild(body);
+  trimChatlog();
+  state.chatlog.appendChild(p);
+  state.chatlog.scrollBy(0, 1e8);
+}
+
 export function addChatMessage(name, text, tag, tagColor, msgColor, timestamp, reply, tagBorder, msgId, atAll, avatar, level) {
   if (!name) {
+    if (systemMessageHook) { systemMessageHook(text); return; }
     let p = document.createElement("p");
     p.className = "system-msg";
     p.textContent = text;
@@ -378,6 +420,7 @@ export function addChatMessage(name, text, tag, tagColor, msgColor, timestamp, r
     return;
   }
   let isSelf = name === state.username;
+  if (hacknetIRC) { renderIrcMessage(name, text, isSelf, timestamp); return; }
   maybeDateDivider(timestamp); // 日期分组：跨天插入分隔线
   let wrapper = document.createElement("p");
   wrapper.className = "chat-msg" + (isSelf ? " self" : " other");
@@ -460,7 +503,7 @@ export function addChatMessage(name, text, tag, tagColor, msgColor, timestamp, r
   buildActionMenu(wrapper, {
     name, text, timestamp, msgId, tag, tagColor, tagBorder,
     isSelf,
-    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1 && getAdminKey() !== "",
+    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1,
     hasWs: !!state.currentWebSocket,
     roomname: state.roomname
   });
@@ -544,7 +587,7 @@ export function addChatImage(name, data, tag, tagColor, timestamp, tagBorder, re
   buildActionMenu(wrapper, {
     name, text: t("[图片]"), timestamp, msgId, tag, tagColor, tagBorder,
     isSelf,
-    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1 && getAdminKey() !== "",
+    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1,
     hasWs: !!state.currentWebSocket,
     roomname: state.roomname
   });
@@ -627,7 +670,7 @@ export function addChatVoice(name, data, duration, tag, tagColor, timestamp, tag
   buildActionMenu(wrapper, {
     name, text: t("[语音]"), timestamp, msgId, tag, tagColor, tagBorder,
     isSelf,
-    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1 && getAdminKey() !== "",
+    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1,
     hasWs: !!state.currentWebSocket,
     roomname: state.roomname
   });
@@ -706,7 +749,7 @@ export function addChatGhCard(name, data, tag, tagColor, timestamp, tagBorder, m
   buildActionMenu(wrapper, {
     name, text: "[" + repo + "] ", timestamp, msgId, tag, tagColor, tagBorder,
     isSelf,
-    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1 && getAdminKey() !== "",
+    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1,
     hasWs: !!state.currentWebSocket,
     roomname: state.roomname
   });
@@ -815,7 +858,7 @@ export function addChatFile(name, data, fileName, fileSize, tag, tagColor, times
   buildActionMenu(wrapper, {
     name, text: t("[文件]"), timestamp, msgId, tag, tagColor, tagBorder,
     isSelf,
-    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1 && getAdminKey() !== "",
+    isAdmin: document.cookie.indexOf("admin_logged=1") !== -1,
     hasWs: !!state.currentWebSocket,
     roomname: state.roomname
   });
@@ -927,10 +970,10 @@ function buildActionMenu(wrapper, opts) {
     });
   }
 
-  // Pin (admin)
+  // Pin (admin) — v1.35 按频道置顶（后端以 session.channel 为准，带上 channel 防多开错频）
   if (timestamp && isAdmin && hasWs) {
     addItem(t("📌 置顶"), () => {
-      state.currentWebSocket.send(JSON.stringify({type: "pin", text, timestamp, name: name || state.username}));
+      state.currentWebSocket.send(JSON.stringify({type: "pin", text, timestamp, name: name || state.username, channel: state.currentChannel}));
       showSuccess(t("消息已置顶"));
     });
   }
