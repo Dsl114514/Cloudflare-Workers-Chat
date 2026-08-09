@@ -44,6 +44,7 @@
           <input id="login-password" type="password" class="auth-input" placeholder="密码" data-i18n-placeholder="password">
           <button id="login-btn" class="auth-btn" type="button" data-i18n="login">登录</button>
           <div id="login-error" class="auth-error"></div>
+          <button type="button" id="oauth-github-btn" class="auth-btn" style="margin-top:8px;display:none">GitHub 登录</button>
           <p class="auth-skip"><a id="skip-auth" href="#" data-i18n="skipLogin">跳过，直接进入聊天</a></p>
         </div>
         <div id="auth-register" style="display:none">
@@ -82,11 +83,13 @@
       <div class="or-divider"><span data-i18n="or">或者</span></div>
       <button id="go-private" data-i18n="createPrivate">✨ 创建私人房间</button>
     </div>
-    <div style="display:flex;gap:8px;justify-content:center;max-width:400px;margin:12px auto 0">
+    <div style="display:flex;gap:8px;justify-content:center;max-width:460px;margin:12px auto 0">
       <button class="shop-entry-btn" onclick="openShop()" style="flex:1;margin:0" data-i18n="shop">🏪 商城</button>
       <button class="task-entry-btn" onclick="openLottery()" style="flex:1;margin:0" data-i18n="lottery">🎰 抽奖</button>
       <button class="task-entry-btn" onclick="openTasks()" style="flex:1;margin:0" data-i18n="tasks">📋 任务</button>
       <button class="game-entry-btn" onclick="openGames()" style="flex:1;margin:0" data-i18n="games">🎮 游戏</button>
+      <button class="game-entry-btn" onclick="openSeason()" style="flex:1;margin:0" title="赛季">🏆 赛季</button>
+      <button class="game-entry-btn" onclick="openMarket()" style="flex:1;margin:0" title="交易市场">💱 市场</button>
     </div>
     <div id="room-list-header" data-i18n="existingRooms">已有房间</div>
     <div id="room-list">
@@ -195,6 +198,11 @@
     <div class="user-menu-item" data-action="unblock" style="display:none">✅ 取消屏蔽</div>
     <div class="user-menu-item" data-action="profile"
       style="border-top:1px solid var(--border);margin-top:4px;padding-top:4px;">👤 用户主页</div>
+    <button class="menu-btn" data-action="rel-follow" style="display:none">关注</button>
+    <button class="menu-btn" data-action="rel-unfollow" style="display:none">取消关注</button>
+    <button class="menu-btn" data-action="rel-friend" style="display:none">加好友</button>
+    <button class="menu-btn" data-action="rel-block" style="display:none">拉黑</button>
+    <button class="menu-btn" data-action="rel-unblock" style="display:none">解除拉黑</button>
   </div>
   <!-- Profile Modal -->
   <div id="profile-modal">
@@ -295,9 +303,48 @@
       <div class="shop-tabs">
         <button class="shop-tab active" data-shop-tab="buy" onclick="switchShopTab('buy')">商品列表</button>
         <button class="shop-tab" data-shop-tab="inventory" onclick="switchShopTab('inventory')">我的背包</button>
+        <button class="shop-tab" data-shop-tab="honor" onclick="switchShopTab('honor')">🪙 荣誉</button>
       </div>
       <div class="shop-content" id="shop-content">
         <div class="shop-empty" id="shop-loading">加载中...</div>
+      </div>
+    </div>
+  </div>
+  <!-- 💱 v1.47 交易市场弹窗 -->
+  <div id="market-overlay">
+    <div class="shop-card">
+      <div class="shop-header"><span>💱 交易市场</span><span class="shop-points" id="market-points-display">0 积分</span><button class="shop-close" onclick="closeMarket()">&times;</button></div>
+      <div class="shop-tabs">
+        <button class="shop-tab active" data-market-tab="list" onclick="switchMarketTab('list')">市场</button>
+        <button class="shop-tab" data-market-tab="mine" onclick="switchMarketTab('mine')">我的挂单</button>
+        <button class="shop-tab" data-market-tab="sell" onclick="switchMarketTab('sell')">我的背包</button>
+      </div>
+      <div class="shop-content" id="market-content"><div class="shop-empty">加载中...</div></div>
+    </div>
+  </div>
+  <!-- 👥 v1.48 关系链弹窗 -->
+  <div id="relation-overlay" style="display:none">
+    <div class="shop-card">
+      <div class="shop-header"><span>👥 关系链</span><button class="shop-close" onclick="closeRelations()">&times;</button></div>
+      <div class="relation-tabs">
+        <button data-tab="following" class="relation-tab">关注</button>
+        <button data-tab="followers" class="relation-tab">粉丝</button>
+        <button data-tab="friends" class="relation-tab">好友</button>
+        <button data-tab="blocked" class="relation-tab">拉黑</button>
+        <button data-tab="requests" class="relation-tab">申请</button>
+      </div>
+      <div id="relation-list"></div>
+    </div>
+  </div>
+  <!-- 🏆 v1.45 赛季弹窗 -->
+  <div id="season-overlay">
+    <div class="season-card">
+      <div class="season-header">
+        <span>🏆 赛季</span>
+        <button class="season-close" onclick="closeSeason()">&times;</button>
+      </div>
+      <div class="season-content" id="season-content">
+        <div class="season-empty" id="season-loading">加载中...</div>
       </div>
     </div>
   </div>

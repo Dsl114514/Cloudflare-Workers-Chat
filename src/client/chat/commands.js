@@ -5,8 +5,15 @@ import { renderTextToAsciiCanvas } from './ascii.js';
 import { showToast, showSuccess, showError, showInfo } from './state.js';
 import { switchChannel } from './channels.js';
 import { getAdminKey } from './ui.js';
+import { switchRoom, loadRoomList } from './rooms.js';
 
 export async function handleCommand(text) {
+  // 🧪 v1.49 LuckPerms 权限系统命令：透传给服务端处理（门控/执行均在服务端）
+  if (/^\/lp\b/i.test(text)) {
+    if (state.currentWebSocket) state.currentWebSocket.send(JSON.stringify({message: text}));
+    else showError(t("请先加入聊天室后再使用 /lp"));
+    return;
+  }
   // 应急回滚命令（公开管理功能）：透传给服务端处理，不拦截为前端命令
   if (/^\/rollback\s+\S+\s+\S+/i.test(text)) {
     if (state.currentWebSocket) state.currentWebSocket.send(JSON.stringify({message: text}));
@@ -34,7 +41,7 @@ export async function handleCommand(text) {
 
   switch (cmd) {
     case "/help":
-      addChatMessage(null, t("* 可用命令: /pay <用户> <数量> 转积分 | /ledger 查看积分流水 | /w <用户> <消息> 私聊 | /color <颜色> 字体颜色 | /kick <用户> 踢出 | /ban <用户> 封禁(含IP) | /unban <用户> 解封 | /tag <用户> <标签> [颜色] [边框] 设置标签(支持[color]多色) | /untag <用户> 移除标签 | /redpacket <总积分> <份数> [fixed] 发红包 | /gh <owner>/<repo> 查GitHub仓库卡片 | /icco 全员触发入侵警告特效 | /destroy <口令> 销毁当前房间 | /clear 清空(需管理) | /clean 本地清屏 | /zifu <文字> 生成字符画 | 发送 @所有人 可@全体成员 | /help 帮助"));
+      addChatMessage(null, t("* 可用命令: /pay <用户> <数量> 转积分 | /ledger 查看积分流水 | /w <用户> <消息> 私聊 | /color <颜色> 字体颜色 | /connect #房间 切换房间 | /dc 退出当前房间 | /kick <用户> 踢出 | /kickall 踢出本房间其他人(自己留下) | /ban <用户> 封禁(含IP) | /unban <用户> 解封 | /tag <用户> <标签> [颜色] [边框] 设置标签(支持[color]多色) | /untag <用户> 移除标签 | /redpacket <总积分> <份数> [fixed] 发红包 | /gh <owner>/<repo> 查GitHub仓库卡片 | /icco 全员触发入侵警告特效 | /destroy <口令> 销毁当前房间 | /clear 清空(需管理) | /clean 本地清屏 | /zifu <文字> 生成字符画 | 发送 @所有人 可@全体成员 | /help 帮助"));
       break;
 
     case "/kick": {
@@ -43,6 +50,19 @@ export async function handleCommand(text) {
       if (document.cookie.indexOf("admin_logged=1") === -1) { showError(t("请先登录管理后台（访问 /admin）")); break; }
       try {
         let r = await fetch("/api/admin/kick-user/" + encodeURIComponent(state.roomname) + "?key=" + encodeURIComponent(adminKey) + "&name=" + encodeURIComponent(arg) + "&caller=" + encodeURIComponent(state.username));
+        addChatMessage(null, "* " + await r.text());
+      } catch (e) { addChatMessage(null, t("* 操作失败: ") + e.message); }
+      break;
+    }
+
+    case "/kickall": {
+      // 一键踢出本房间其他所有人（触发者自己留下）—— 管理专用（admin_logged + 服务端 admin.mjs 鉴权 + /do-kick-all 密钥校验三层）
+      if (!state.roomname) { showError(t("未在聊天室中")); break; }
+      if (document.cookie.indexOf("admin_logged=1") === -1) { showError(t("请先登录管理后台（访问 /admin）后使用 /kickall")); break; }
+      if (!confirm(t("确定要踢出本房间其他所有人吗？（你自己留在房间）"))) break;
+      try {
+        let r = await fetch("/api/admin/room-kick-all?room=" + encodeURIComponent(state.roomname) + "&except=" + encodeURIComponent(state.username || ""));
+        if (r.status === 401 || r.status === 403) { addChatMessage(null, "* " + t("无权限：请以管理员身份登录 /admin")); break; }
         addChatMessage(null, "* " + await r.text());
       } catch (e) { addChatMessage(null, t("* 操作失败: ") + e.message); }
       break;
@@ -58,7 +78,7 @@ export async function handleCommand(text) {
       let results = [];
       for (let n of names) {
         try {
-          let r = await fetch("/api/admin/kick-user/" + encodeURIComponent(state.roomname) + "?key=" + encodeURIComponent(adminKeyK) + "&name=" + encodeURIComponent(n));
+          let r = await fetch("/api/admin/kick-user/" + encodeURIComponent(state.roomname) + "?key=" + encodeURIComponent(adminKeyK) + "&name=" + encodeURIComponent(n) + "&caller=" + encodeURIComponent(state.username || ""));
           results.push(n + ": " + await r.text());
         } catch (e) { results.push(n + t(": 失败 - ") + e.message); }
       }
@@ -267,6 +287,12 @@ export async function handleCommand(text) {
       break;
     }
 
+    case "/hn":
+    case "/hacknet":
+      // v1.43 hacknet 对战游戏：命令转发给游戏模块
+      import('./hacknet-game.js').then(m => m.hnCommand(arg));
+      break;
+
     case "/wave": {
       applyWaveEffect();
       if (state.currentWebSocket) state.currentWebSocket.send(JSON.stringify({type: "effect", effect: "wave"}));
@@ -319,6 +345,43 @@ export async function handleCommand(text) {
       else showError(t("用法: /switch <频道名>"));
       break;
     }
+
+    // 🔗 连接房间：/connect #abc 或 /connect abc，进入/切换到指定聊天室
+    case "/connect": {
+      let name = (arg || "").replace(/^#/, "").trim();
+      if (!name) { showError(t("用法: /connect #房间名")); break; }
+      // 房间名规范化（与 startChat 一致：仅字母数字连字符、下划线转连字符、小写）
+      name = name.replace(/[^a-zA-Z0-9_-]/g, "").replace(/_/g, "-").toLowerCase();
+      if (!name) { showError(t("无效的房间名")); break; }
+      // v1.43 hacknet 对战游戏：若已注册游戏会话则让游戏接管切房
+      if (window.__hn && await window.__hn.tryConnect(name)) break;
+      showInfo(t("正在连接到 #") + name + " ...");
+      switchRoom(name);
+      break;
+    }
+
+    // 📤 退出当前房间：断开连接并回到房间列表
+    case "/dc":
+    case "/disconnect": {
+      // v1.43 hacknet 对战游戏：若在游戏会话中则让游戏先退出
+      if (window.__hn && await window.__hn.tryDisconnect()) break;
+      if (!window._chatStarted) { showInfo(t("当前未在聊天室中")); break; }
+      state._manualDisconnect = true; // 手动退出：抑制 websocket rejoin 自动重连
+      if (state.currentWebSocket) { try { state.currentWebSocket.close(); } catch (e) {} }
+      state.currentWebSocket = null;
+      state.chatlog.innerHTML = "";
+      state.roster.querySelectorAll("[data-name]").forEach(el => el.remove());
+      state.chatroom.style.display = "none";
+      let roomListForm = document.querySelector("#room-list-form");
+      if (roomListForm) roomListForm.style.display = "block";
+      try { history.replaceState(null, "", window.location.pathname + window.location.search); } catch (e) {}
+      loadRoomList();
+      if (state.roomListInterval) { clearInterval(state.roomListInterval); state.roomListInterval = null; }
+      state.roomListInterval = setInterval(loadRoomList, 5000);
+      showSuccess(t("已退出当前房间"));
+      break;
+    }
+
     default:
       showError(t("未知命令: ") + cmd + t("，输入 /help 查看可用命令"));
   }

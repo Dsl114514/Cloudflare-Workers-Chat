@@ -38,6 +38,9 @@ import { loadRedeemSection, generateRedeemCodes, addRedeemCode, deleteRedeemCode
 import { loadKickProtected, kickProtectAdd, kickProtectRemove } from './kickprotect.js';
 import { loadLogSection, clearLog } from './log.js';
 import { loadWebhooksSection, genWebhook, delWebhook } from './webhooks.js';
+import { loadSeasonSection, seasonAddGoalRow, seasonCreate, seasonStart, seasonEnd } from './season.js';
+import { loadHonorSection, honorAddItem, honorToggleItem, honorDeleteItem, honorManualAdd } from './honor.js';
+import { loadMarketSection, saveMarketConfig, delistOrder } from './market.js';
 
 // ======== 暴露到 window 供 onclick 调用 ========
 
@@ -165,6 +168,23 @@ window.loadKickProtected = loadKickProtected;
 // 操作日志
 window.loadLogSection = loadLogSection;
 window.clearLog = clearLog;
+
+// 🏆 v1.45 赛季 / 荣誉管理
+window.loadSeasonSection = loadSeasonSection;
+window.seasonAddGoalRow = seasonAddGoalRow;
+window.seasonCreate = seasonCreate;
+window.seasonStart = seasonStart;
+window.seasonEnd = seasonEnd;
+window.loadHonorSection = loadHonorSection;
+window.honorAddItem = honorAddItem;
+window.honorToggleItem = honorToggleItem;
+window.honorDeleteItem = honorDeleteItem;
+window.honorManualAdd = honorManualAdd;
+
+// 💱 市场管理
+window.loadMarketSection = loadMarketSection;
+window.saveMarketConfig = saveMarketConfig;
+window.delistOrder = delistOrder;
 
 // ======== 事件绑定 ========
 

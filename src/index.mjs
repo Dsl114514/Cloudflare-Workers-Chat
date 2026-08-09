@@ -2,6 +2,8 @@ import HTML from "./chat.html";
 import ADMIN from "./admin.html";
 import TASKS from "./tasks.html";
 import CHANGELOG from "./changelog.html";
+import BUGS from "./bugs.html";
+import LP from "./lp.html";
 import FAVICON_B64 from "./favicon-data.mjs";
 import HELP from "./help.html";
 import ABOUT from "./about.html";
@@ -51,6 +53,16 @@ import CHAT_ACHIEVEMENTS from "./client/chat/achievements.js";
 import CHAT_ICCO from "./client/chat/icco.js";
 import CHAT_ICCO_ASSETS from "./client/chat/icco-assets.js";
 import CHAT_HACKNET from "./client/chat/hacknet.js";
+import CHAT_HACKNET_GAME from "./client/chat/hacknet-game.js";
+import CHAT_UPLOAD from "./client/chat/upload.js";
+import CHAT_IMAGE_UPLOAD from "./client/chat/image-upload.js";
+import CHAT_VOICE_RECORD from "./client/chat/voice-record.js";
+import CHAT_FILE_UPLOAD from "./client/chat/file-upload.js";
+import CHAT_MENTION from "./client/chat/mention.js";
+import CHAT_EMOJI_PANEL from "./client/chat/emoji-panel.js";
+import CHAT_SEASON from "./client/chat/season.js";
+import CHAT_MARKET from "./client/chat/market.js";
+import CHAT_RELATION from "./client/chat/relation.js";
 import CHAT_STYLE from "./client/chat/style.css";
 import CHAT_GAME_STYLE from "./client/chat/game-style.css";
 import ALL_STYLES from "./client/styles/all-styles.css";
@@ -82,6 +94,10 @@ import ADMIN_REDEEM from "./client/admin/redeem.js";
 import ADMIN_KICKPROTECT from "./client/admin/kickprotect.js";
 import ADMIN_LOG from "./client/admin/log.js";
 import ADMIN_WEBHOOKS from "./client/admin/webhooks.js";
+import ADMIN_SEASON from "./client/admin/season.js";
+import ADMIN_HONOR from "./client/admin/honor.js";
+import ADMIN_MARKET from "./client/admin/market.js";
+import ADMIN_LP from "./client/admin/lp.js";
 
 // i18n 已内联进 state.js；此 re-export 兼容仍引用 ./i18n.js 的旧前端缓存，避免登录模块加载失败
 const CHAT_I18N = 'export { t, getLang, setLang, applyI18n, LANG_KEY } from "./state.js";';
@@ -125,6 +141,16 @@ const CHAT_MODULES = {
   "chat/icco.js": CHAT_ICCO,
   "chat/icco-assets.js": CHAT_ICCO_ASSETS,
   "chat/hacknet.js": CHAT_HACKNET,
+  "chat/hacknet-game.js": CHAT_HACKNET_GAME,
+  "chat/upload.js": CHAT_UPLOAD,
+  "chat/image-upload.js": CHAT_IMAGE_UPLOAD,
+  "chat/voice-record.js": CHAT_VOICE_RECORD,
+  "chat/file-upload.js": CHAT_FILE_UPLOAD,
+  "chat/mention.js": CHAT_MENTION,
+  "chat/emoji-panel.js": CHAT_EMOJI_PANEL,
+  "chat/season.js": CHAT_SEASON,
+  "chat/market.js": CHAT_MARKET,
+  "chat/relation.js": CHAT_RELATION,
 };
 
 const ADMIN_MODULES = {
@@ -154,6 +180,10 @@ const ADMIN_MODULES = {
   "admin/kickprotect.js": ADMIN_KICKPROTECT,
   "admin/log.js": ADMIN_LOG,
   "admin/webhooks.js": ADMIN_WEBHOOKS,
+  "admin/season.js": ADMIN_SEASON,
+  "admin/honor.js": ADMIN_HONOR,
+  "admin/market.js": ADMIN_MARKET,
+  "admin/lp.js": ADMIN_LP,
 };
 
 import { handleErrors } from "./utils.mjs";
@@ -169,6 +199,12 @@ import { handlePreview } from "./api/preview.mjs";
 import { handleArchive } from "./api/archive.mjs";
 import { handleRedeemApi } from "./api/redeem.mjs";
 import { handleGame } from "./api/game.mjs";
+import { handleHacknetApi } from "./api/hacknet.mjs";
+import { handleSeasonApi } from "./api/season.mjs";
+import { handleHonorApi } from "./api/honor.mjs";
+import { handleMarket } from "./api/market.mjs";
+import { handleOauthApi } from "./api/oauth.mjs";
+import { handleRelation } from "./api/relation.mjs";
 import ARCHIVE from "./archive.html";
 
 // Re-export Durable Object 类供 wrangler 识别
@@ -313,6 +349,9 @@ self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWi
         case "changelog":
           return new Response(CHANGELOG, {headers: {"Content-Type": "text/html;charset=UTF-8", "Cache-Control": "no-cache, must-revalidate", "X-Frame-Options": "DENY", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "same-origin"}});
 
+        case "bugs":
+          return new Response(BUGS, {headers: {"Content-Type": "text/html;charset=UTF-8", "Cache-Control": "no-cache, must-revalidate", "X-Frame-Options": "DENY", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "same-origin"}});
+
         case "help":
           return new Response(HELP, {headers: {"Content-Type": "text/html;charset=UTF-8", "Cache-Control": "no-cache, must-revalidate", "X-Frame-Options": "DENY", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "same-origin"}});
 
@@ -339,6 +378,10 @@ self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWi
 
         case "redeem":
           return new Response(REDEEM, {headers: {"Content-Type": "text/html;charset=UTF-8", "Cache-Control": "no-cache, must-revalidate", "X-Frame-Options": "DENY", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "same-origin"}});
+
+        // 🧪 v1.50 LuckPerms 独立权限编辑器（全屏应用，仿 LuckPermsWeb；数据仍走 super-only /api/admin/lp）
+        case "lp":
+          return new Response(LP, {headers: {"Content-Type": "text/html;charset=UTF-8", "Cache-Control": "no-cache, must-revalidate", "X-Frame-Options": "DENY", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "same-origin"}});
 
         default:
           return new Response("未找到", {status: 404});
@@ -414,6 +457,24 @@ async function handleApi(apiPath, request, env) {
 
     case "game":
       return handleGame(apiPath, request, env);
+
+    case "hn":
+      return handleHacknetApi(apiPath, request, env);
+
+    case "season":
+      return handleSeasonApi(apiPath, request, env);
+
+    case "honor":
+      return handleHonorApi(apiPath, request, env);
+
+    case "market":
+      return handleMarket(apiPath, request, env);
+
+    case "oauth":
+      return handleOauthApi(apiPath, request, env);
+
+    case "rel":
+      return handleRelation(apiPath, request, env);
 
     // 🔗 通用 Webhook 入站：POST /api/webhook/<room>?secret=xxx&channel=xxx
     // body: {content, sender?, channel?}；secret 也可放 X-Webhook-Secret header
@@ -534,6 +595,12 @@ async function handleApi(apiPath, request, env) {
       let url = new URL(request.url); // 🔒 修复: handleApi 作用域无 url, 补定义防 ReferenceError → 用户主页500
       let rid = env.registry.idFromName("global");
       let stub = env.registry.get(rid);
+      // v1.46 修改密码：转发 registry /user-password（body 透传 name/token/oldPassword/newPassword）
+      if (apiPath[1] === "password" && request.method === "POST") {
+        let body = await request.json();
+        let r = await stub.fetch(new URL("https://dummy-url/user-password"), {method: "POST", body: JSON.stringify(body), headers: {"Content-Type": "application/json"}});
+        return new Response(await r.text(), {status: r.status, headers: {"Content-Type": "application/json"}});
+      }
       let name = url.searchParams.get("name");
       if (!name) return new Response(JSON.stringify({error: "no name"}), {status: 400});
 

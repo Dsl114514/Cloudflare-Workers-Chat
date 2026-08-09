@@ -62,8 +62,15 @@ function renderPinnedBar() {
   bar.style.display = "flex";
 }
 
-export function join() {
+export async function join() {
+  state._manualDisconnect = false; // 新的连接请求复位手动断开标志（/dc 或切房后由新 join 接管）
   if (typeof Notification !== "undefined" && Notification.permission === "default") Notification.requestPermission();
+
+  // v1.43 hacknet 对战游戏：入房前刷新游戏房间 ticket（若在游戏会话中则由游戏提供房间密码）
+  if (window.__hn) {
+    const hnPwd = await window.__hn.refreshTicket(state.roomname);
+    if (hnPwd) state.roomPassword = hnPwd;
+  }
 
   const wss = document.location.protocol === "http:" ? "ws://" : "wss://";
   let wsUrl = wss + state.hostname + "/api/room/" + state.roomname + "/websocket";
@@ -76,6 +83,7 @@ export function join() {
   let rejoin = async () => {
     if (!rejoined) {
       rejoined = true;
+      if (state._manualDisconnect) return; // 手动退出(/dc)或切房：不自动重连，由新连接接管
       state.currentWebSocket = null;
       document.getElementById("reconnect-banner").classList.add("show");
       state.roster.querySelectorAll('[data-name]').forEach(el => el.remove());

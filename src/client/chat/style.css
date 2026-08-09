@@ -1605,6 +1605,8 @@ body::after {
   padding: 4px;
   min-width: 155px;
   overflow: hidden;
+  max-height: 70vh;
+  overflow-y: auto;
   border: 1px solid #e4e6eb;
 }
 
@@ -1644,6 +1646,27 @@ body::after {
 
 #user-menu .user-menu-item.danger:hover {
   background: #fdecea;
+}
+
+/* 👥 v1.48 关系链：菜单内关系按钮（关注/加好友/拉黑），默认隐藏由 relation.js 按 status 显隐 */
+#user-menu .menu-btn {
+  display: none;
+  width: 100%;
+  padding: 7px 12px;
+  margin: 1px 0;
+  font-size: 13px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #1a1a2e;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+#user-menu .menu-btn:hover {
+  background: #f0f2f5;
 }
 
 .dm-badge {
@@ -3105,7 +3128,7 @@ body.dark .poll-option {
 }
 
 /* ---- Shop Overlay ---- */
-#shop-overlay {
+#shop-overlay, #market-overlay, #relation-overlay {
   display: none;
   position: fixed;
   z-index: 999;
@@ -3118,11 +3141,11 @@ body.dark .poll-option {
   justify-content: center;
 }
 
-#shop-overlay.show {
+#shop-overlay.show, #market-overlay.show, #relation-overlay.show {
   display: flex;
 }
 
-#shop-overlay .shop-card {
+#shop-overlay .shop-card, #market-overlay .shop-card, #relation-overlay .shop-card {
   background: var(--surface-2);
   border: 1px solid var(--frosted-border);
   backdrop-filter: var(--frosted-blur);
@@ -3137,7 +3160,7 @@ body.dark .poll-option {
   overflow: hidden;
 }
 
-#shop-overlay .shop-header {
+#shop-overlay .shop-header, #market-overlay .shop-header, #relation-overlay .shop-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3148,7 +3171,7 @@ body.dark .poll-option {
   flex-shrink: 0;
 }
 
-#shop-overlay .shop-header .shop-close {
+#shop-overlay .shop-header .shop-close, #market-overlay .shop-header .shop-close, #relation-overlay .shop-header .shop-close {
   font-size: 24px;
   cursor: pointer;
   color: var(--text-secondary);
@@ -3158,24 +3181,24 @@ body.dark .poll-option {
   padding: 0 4px;
 }
 
-#shop-overlay .shop-header .shop-close:hover {
+#shop-overlay .shop-header .shop-close:hover, #market-overlay .shop-header .shop-close:hover, #relation-overlay .shop-header .shop-close:hover {
   color: var(--text);
 }
 
-#shop-overlay .shop-points {
+#shop-overlay .shop-points, #market-overlay .shop-points {
   font-size: 13px;
   font-weight: 600;
   color: #e67e22;
   margin-left: 12px;
 }
 
-#shop-overlay .shop-tabs {
+#shop-overlay .shop-tabs, #market-overlay .shop-tabs {
   display: flex;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
-#shop-overlay .shop-tab {
+#shop-overlay .shop-tab, #market-overlay .shop-tab {
   flex: 1;
   padding: 10px;
   text-align: center;
@@ -3189,25 +3212,25 @@ body.dark .poll-option {
   transition: all 0.2s;
 }
 
-#shop-overlay .shop-tab.active {
+#shop-overlay .shop-tab.active, #market-overlay .shop-tab.active {
   color: var(--primary);
   border-bottom-color: var(--primary);
 }
 
-#shop-overlay .shop-content {
+#shop-overlay .shop-content, #market-overlay .shop-content {
   flex: 1;
   overflow-y: auto;
   padding: 16px 20px;
 }
 
-#shop-overlay .shop-empty {
+#shop-overlay .shop-empty, #market-overlay .shop-empty {
   text-align: center;
   padding: 40px 16px;
   color: var(--text-secondary);
   font-size: 14px;
 }
 
-#shop-overlay .shop-item {
+#shop-overlay .shop-item, #market-overlay .shop-item {
   display: flex;
   align-items: center;
   padding: 14px 16px;
@@ -3217,7 +3240,7 @@ body.dark .poll-option {
   border-radius: 12px;
 }
 
-#shop-overlay .shop-item-tag {
+#shop-overlay .shop-item-tag, #market-overlay .shop-item-tag {
   display: inline-block;
   font-size: 12px;
   font-weight: 700;
@@ -3230,23 +3253,23 @@ body.dark .poll-option {
   flex-shrink: 0;
 }
 
-#shop-overlay .shop-item-info {
+#shop-overlay .shop-item-info, #market-overlay .shop-item-info {
   flex: 1;
   min-width: 0;
 }
 
-#shop-overlay .shop-item-name {
+#shop-overlay .shop-item-name, #market-overlay .shop-item-name {
   font-weight: 600;
   font-size: 15px;
 }
 
-#shop-overlay .shop-item-desc {
+#shop-overlay .shop-item-desc, #market-overlay .shop-item-desc {
   font-size: 12px;
   color: var(--text-secondary);
   margin-top: 2px;
 }
 
-#shop-overlay .shop-item-price {
+#shop-overlay .shop-item-price, #market-overlay .shop-item-price {
   font-size: 14px;
   font-weight: 700;
   color: #e67e22;
@@ -3254,7 +3277,7 @@ body.dark .poll-option {
   white-space: nowrap;
 }
 
-#shop-overlay .shop-btn {
+#shop-overlay .shop-btn, #market-overlay .shop-btn {
   border: none;
   border-radius: 8px;
   padding: 8px 16px;
@@ -3266,40 +3289,40 @@ body.dark .poll-option {
   font-family: inherit;
 }
 
-#shop-overlay .shop-btn-buy {
+#shop-overlay .shop-btn-buy, #market-overlay .shop-btn-buy {
   background: var(--primary);
   color: #fff;
 }
 
-#shop-overlay .shop-btn-buy:hover {
+#shop-overlay .shop-btn-buy:hover, #market-overlay .shop-btn-buy:hover {
   background: var(--primary-dark);
 }
 
-#shop-overlay .shop-btn-equip {
+#shop-overlay .shop-btn-equip, #market-overlay .shop-btn-equip {
   background: #2ecc71;
   color: #fff;
 }
 
-#shop-overlay .shop-btn-equip:hover {
+#shop-overlay .shop-btn-equip:hover, #market-overlay .shop-btn-equip:hover {
   background: #27ae60;
 }
 
-#shop-overlay .shop-btn-unequip {
+#shop-overlay .shop-btn-unequip, #market-overlay .shop-btn-unequip {
   background: #95a5a6;
   color: #fff;
 }
 
-#shop-overlay .shop-btn-unequip:hover {
+#shop-overlay .shop-btn-unequip:hover, #market-overlay .shop-btn-unequip:hover {
   background: #7f8c8d;
 }
 
-#shop-overlay .shop-btn-owned {
+#shop-overlay .shop-btn-owned, #market-overlay .shop-btn-owned {
   background: #ecf0f1;
   color: #95a5a6;
   cursor: default;
 }
 
-#shop-overlay .shop-btn-login {
+#shop-overlay .shop-btn-login, #market-overlay .shop-btn-login {
   background: var(--primary);
   color: #fff;
   padding: 10px 24px;
@@ -3310,7 +3333,7 @@ body.dark .poll-option {
   border: none;
 }
 
-#shop-overlay .shop-equip-badge {
+#shop-overlay .shop-equip-badge, #market-overlay .shop-equip-badge {
   display: inline-block;
   font-size: 10px;
   font-weight: 700;
@@ -3319,6 +3342,228 @@ body.dark .poll-option {
   padding: 2px 6px;
   border-radius: 4px;
   margin-left: 8px;
+}
+
+/* ---- 💱 v1.47 Market Overlay（复用 shop 样式） ---- */
+#market-overlay .market-fee {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+#market-overlay .market-sell-input {
+  width: 88px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  background: var(--bg);
+  color: var(--text);
+  margin-right: 8px;
+  box-sizing: border-box;
+}
+
+#market-overlay .market-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#market-overlay .market-badge-open {
+  background: #2ecc71;
+}
+
+#market-overlay .market-badge-sold {
+  background: #95a5a6;
+}
+
+#market-overlay .market-badge-cancel {
+  background: #e74c3c;
+}
+
+#market-overlay .market-badge-equip {
+  background: #3498db;
+}
+
+#market-overlay .market-badge-honor {
+  background: #e67e22;
+}
+
+/* ---- 👥 v1.48 Relation Overlay（卡片/头部/关闭复用上方 #relation-overlay .shop-card/.shop-header/.shop-close 组） ---- */
+#relation-overlay .relation-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+#relation-overlay .relation-tab {
+  flex: 1;
+  padding: 10px 4px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  border: none;
+  background: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+#relation-overlay .relation-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+#relation-overlay #relation-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+}
+
+#relation-overlay .relation-counts {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+#relation-overlay .relation-empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+#relation-overlay .relation-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: #f8f9fa;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+#relation-overlay .relation-name {
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#relation-overlay .relation-name:hover {
+  color: var(--primary);
+}
+
+#relation-overlay .relation-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+#relation-overlay .relation-btn {
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+#relation-overlay .relation-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* ---- 🏆 v1.45 Season Overlay（仿 shop-overlay 布局） ---- */
+#season-overlay {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  align-items: center;
+  justify-content: center;
+}
+
+#season-overlay.show {
+  display: flex;
+}
+
+#season-overlay .season-card {
+  background: var(--surface-2);
+  border: 1px solid var(--frosted-border);
+  backdrop-filter: var(--frosted-blur);
+  -webkit-backdrop-filter: var(--frosted-blur);
+  border-radius: 16px;
+  max-width: 560px;
+  width: 92%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+#season-overlay .season-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+  color: var(--text);
+}
+
+#season-overlay .season-header .season-close {
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  line-height: 1;
+  background: none;
+  border: none;
+  padding: 0 4px;
+}
+
+#season-overlay .season-header .season-close:hover {
+  color: var(--text);
+}
+
+#season-overlay .season-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+#season-overlay .season-empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
 }
 
 /* ---- Settings Overlay ---- */
@@ -4817,3 +5062,33 @@ body.theme-hacknet ::-webkit-scrollbar-track {
     line-height: 44px;
   }
 }
+
+/* ---- v1.43 hacknet 对战游戏 ---- */
+#hacknet-game-panel {
+  position: fixed; left: 12px; bottom: 12px; width: 300px; max-height: 46vh;
+  background: rgba(8,14,8,0.92); border: 1px solid #26ff5e55; border-radius: 8px;
+  color: #26ff5e; font-family: monospace; font-size: 12px; z-index: 999;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+#hacknet-game-panel .hn-head { padding: 6px 10px; border-bottom: 1px solid #26ff5e33; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: default; }
+#hacknet-game-panel .hn-body { padding: 6px 10px; overflow-y: auto; flex: 1; }
+#hacknet-game-panel .hn-msg { padding: 6px 10px; border-top: 1px solid #26ff5e33; max-height: 90px; overflow-y: auto; white-space: pre-wrap; color: #9affb0; }
+#hacknet-game-panel .hn-sec { margin-bottom: 8px; }
+#hacknet-game-panel .hn-sec--mine .hn-sec-title { color: #26ff5e; }
+#hacknet-game-panel .hn-sec--enemy .hn-sec-title { color: #ff5e26; }
+#hacknet-game-panel .hn-room { border: 1px solid #26ff5e44; border-radius: 4px; padding: 4px 6px; margin-bottom: 4px; font-size: 11px; }
+#hacknet-game-panel .hn-room-name { font-weight: bold; }
+#hacknet-game-panel .hn-port { display: inline-block; margin: 1px 3px 1px 0; padding: 0 4px; border: 1px solid #26ff5e66; border-radius: 3px; font-size: 11px; }
+#hacknet-game-panel .hn-port--cracked { background: #26ff5e22; }
+#hacknet-game-panel .hn-proxy, #hacknet-game-panel .hn-firewall { margin: 1px 3px 1px 0; font-size: 11px; }
+#hacknet-game-panel .hn-bar-wrap { height: 5px; background: #26ff5e22; border-radius: 3px; margin-top: 2px; overflow: hidden; }
+#hacknet-game-panel .hn-bar-fill { height: 100%; background: #26ff5e; width: 0%; transition: width .4s linear; }
+#hacknet-game-panel .hn-heart { margin-right: 4px; }
+#hacknet-game-panel .hn-heart-captured { color: #ff5e26; text-decoration: line-through; }
+#hacknet-game-panel .hn-pwd { color: #ffd75e; }
+#hacknet-trace-bar {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 12px;
+  color: #AA0000; font-weight: bold; font-size: 15px; text-shadow: 0 0 6px #AA0000;
+  font-family: monospace; z-index: 1000; letter-spacing: 1px;
+}
+@media (max-width: 1100px) { #hacknet-game-panel, #hacknet-trace-bar { display: none !important; } }
