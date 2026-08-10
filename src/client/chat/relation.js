@@ -23,7 +23,16 @@ function btn(text, onClick) {
   return b;
 }
 
+// v1.53 双轨：默认走 Vue3 弹窗管理器（modals/relation.js）；localStorage.chatLegacyModals=1 时回退旧 overlay
 export function openRelations(tab) {
+  if (localStorage.getItem("chatLegacyModals") === "1") {
+    openRelationsLegacy(tab);
+    return;
+  }
+  import('./modal-manager.js').then(m => m.openModal('relation', { tab })).catch(() => openRelationsLegacy(tab));
+}
+
+function openRelationsLegacy(tab) {
   let overlay = document.getElementById("relation-overlay");
   if (!overlay) return;
   overlay.classList.add("show");
@@ -32,6 +41,14 @@ export function openRelations(tab) {
 }
 
 export function closeRelations() {
+  if (localStorage.getItem("chatLegacyModals") === "1") {
+    closeRelationsLegacy();
+    return;
+  }
+  import('./modal-manager.js').then(m => m.closeModal('relation')).catch(() => closeRelationsLegacy());
+}
+
+function closeRelationsLegacy() {
   let overlay = document.getElementById("relation-overlay");
   if (!overlay) return;
   overlay.classList.remove("show");
@@ -160,10 +177,17 @@ export function unblock(target) { return postAction("unblock", target); }
 
 // 菜单关系按钮显隐（按 status 优先级：blockedBy 全隐 → blocked 只显解拉黑 → friends 全隐 → 常规）
 export async function loadRelationMenuButtons(targetName) {
+  let legacy = localStorage.getItem("chatLegacyModals") === "1";
   let menu = document.getElementById("user-menu");
-  if (!menu || !targetName) return;
-  let btns = menu.querySelectorAll('[data-action^="rel-"]');
+  if (!targetName) return;
+  if (legacy && !menu) return;
+  // v1.53 批3B 双轨：Vue 用户菜单（nav.js）下关系按钮写在响应式 userMenuState.relButtons；
+  // legacy 下操作旧 #user-menu 的 .menu-btn DOM。
+  let btns = legacy ? menu.querySelectorAll('[data-action^="rel-"]') : [];
   btns.forEach(b => { b.style.display = "none"; });
+  let resetVue = () => { if (window.__navSetUserMenu) window.__navSetUserMenu({ relButtons: {} }); };
+  if (legacy) resetVue = () => {};
+  resetVue();
   if (!isAuthenticated() || targetName === getAuthName()) return;
   let st = null;
   try {
@@ -185,7 +209,11 @@ export async function loadRelationMenuButtons(targetName) {
     if (!st.pendingOut && !st.pendingIn) show["rel-friend"] = true;
     show["rel-block"] = true;
   }
-  btns.forEach(b => { if (show[b.dataset.action]) b.style.display = "block"; });
+  if (legacy) {
+    btns.forEach(b => { if (show[b.dataset.action]) b.style.display = "block"; });
+  } else if (window.__navSetUserMenu) {
+    window.__navSetUserMenu({ relButtons: show });
+  }
 }
 
 // 事件委托：#user-menu 内关系按钮（主入口若未把 .menu-btn 路由到 handleMenuAction 时的兜底；_relBusy 防重复）

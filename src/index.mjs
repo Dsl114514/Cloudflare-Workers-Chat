@@ -1,5 +1,8 @@
 import HTML from "./chat.html";
 import ADMIN from "./admin.html";
+// v1.52 管理后台 Vue3 迁移 - 收尾切换：/admin 已正式指向 Vue3 新后台。
+// 旧后台代码与注册全部保留，保底入口 /admin-legacy（routing.js 前缀归一化兼容）。
+import ADMIN_VUE_HTML from "./admin-vue.html";
 import TASKS from "./tasks.html";
 import CHANGELOG from "./changelog.html";
 import BUGS from "./bugs.html";
@@ -63,6 +66,29 @@ import CHAT_EMOJI_PANEL from "./client/chat/emoji-panel.js";
 import CHAT_SEASON from "./client/chat/season.js";
 import CHAT_MARKET from "./client/chat/market.js";
 import CHAT_RELATION from "./client/chat/relation.js";
+import CHAT_MODAL_MANAGER from "./client/chat/modal-manager.js";
+import CHAT_MODAL_SETTINGS from "./client/chat/modals/settings.js";
+import CHAT_DOC_STORE from "./client/chat/doc-store.js";
+import CHAT_MODAL_KB from "./client/chat/modals/kb.js";
+// 🧪 v1.53 批1 经济域弹窗 Vue 化
+import CHAT_MODAL_SHOP from "./client/chat/modals/shop.js";
+import CHAT_MODAL_MARKET from "./client/chat/modals/market.js";
+import CHAT_MODAL_LOTTERY from "./client/chat/modals/lottery.js";
+import CHAT_MODAL_TASKS from "./client/chat/modals/tasks.js";
+import CHAT_MODAL_SEASON from "./client/chat/modals/season.js";
+import CHAT_MODAL_RELATION from "./client/chat/modals/relation.js";
+// 🧪 v1.53 批2 工具域弹窗/面板 Vue 化
+import CHAT_MODAL_MUSIC from "./client/chat/modals/music.js";
+import CHAT_MODAL_DM from "./client/chat/modals/dm.js";
+import CHAT_MODAL_FAVORITES from "./client/chat/modals/favorites.js";
+import CHAT_MODAL_ACHIEVEMENTS from "./client/chat/modals/achievements.js";
+import CHAT_MODAL_HIGHLIGHTS from "./client/chat/modals/highlights.js";
+import CHAT_MODAL_ROOMINFO from "./client/chat/modals/roominfo.js";
+import CHAT_MODAL_FILESPANEL from "./client/chat/modals/filespanel.js";
+import CHAT_MODAL_SEARCH from "./client/chat/modals/search.js";
+import CHAT_MODAL_SESSIONS from "./client/chat/modals/sessions.js";
+// 🧪 v1.53 批3 游戏宿主 + 导航壳（Vue 导航组件 nav.js）
+import CHAT_NAV from "./client/chat/nav.js";
 import CHAT_STYLE from "./client/chat/style.css";
 import CHAT_GAME_STYLE from "./client/chat/game-style.css";
 import ALL_STYLES from "./client/styles/all-styles.css";
@@ -98,6 +124,39 @@ import ADMIN_SEASON from "./client/admin/season.js";
 import ADMIN_HONOR from "./client/admin/honor.js";
 import ADMIN_MARKET from "./client/admin/market.js";
 import ADMIN_LP from "./client/admin/lp.js";
+// 🧪 v1.51 Vue3 运行时（esm-browser.prod，含编译器），供 /static/admin/lp.js 使用
+import ADMIN_VUE from "./client/admin/vendor/vue.js";
+// 🧪 v1.52 管理后台 Vue3 迁移 - 新后台模块
+import ADMIN_VUE_APP from "./client/admin/app.js";
+import ADMIN_VUE_STORE from "./client/admin/store.js";
+import ADMIN_VUE_SEC_DASHBOARD from "./client/admin/sections/dashboard.js";
+import ADMIN_VUE_SEC_ROOMS from "./client/admin/sections/rooms.js";
+import ADMIN_VUE_SEC_USERS from "./client/admin/sections/users.js";
+import ADMIN_VUE_SEC_BANS from "./client/admin/sections/bans.js";
+import ADMIN_VUE_SEC_IPBANS from "./client/admin/sections/ipbans.js";
+import ADMIN_VUE_SEC_BLACKLIST from "./client/admin/sections/blacklist.js";
+import ADMIN_VUE_SEC_HISTORY from "./client/admin/sections/history.js";
+import ADMIN_VUE_SEC_TAGS from "./client/admin/sections/tags.js";
+import ADMIN_VUE_SEC_POINTS from "./client/admin/sections/points.js";
+import ADMIN_VUE_SEC_MARKET from "./client/admin/sections/market.js";
+import ADMIN_VUE_SEC_EXP from "./client/admin/sections/exp.js";
+import ADMIN_VUE_SEC_LEVELSTYLE from "./client/admin/sections/levelstyle.js";
+import ADMIN_VUE_SEC_SHOP from "./client/admin/sections/shop.js";
+import ADMIN_VUE_SEC_TASKS from "./client/admin/sections/tasks.js";
+import ADMIN_VUE_SEC_LOTTERY from "./client/admin/sections/lottery.js";
+import ADMIN_VUE_SEC_REDEEM from "./client/admin/sections/redeem.js";
+import ADMIN_VUE_SEC_IPGROUP from "./client/admin/sections/ipgroup.js";
+import ADMIN_VUE_SEC_WEBHOOKS from "./client/admin/sections/webhooks.js";
+import ADMIN_VUE_SEC_BOT from "./client/admin/sections/bot.js";
+import ADMIN_VUE_SEC_SENDMESSAGE from "./client/admin/sections/sendmessage.js";
+import ADMIN_VUE_SEC_KICKPROTECT from "./client/admin/sections/kickprotect.js";
+import ADMIN_VUE_SEC_ADMINKEY from "./client/admin/sections/adminkey.js";
+import ADMIN_VUE_SEC_LOG from "./client/admin/sections/log.js";
+import ADMIN_VUE_SEC_SEASON from "./client/admin/sections/season.js";
+import ADMIN_VUE_SEC_HONOR from "./client/admin/sections/honor.js";
+import ADMIN_VUE_SEC_EMOJI from "./client/admin/sections/emoji.js";
+import ADMIN_VUE_SEC_USERMODAL from "./client/admin/sections/usermodal.js";
+import ADMIN_VUE_SEC_STATS from "./client/admin/sections/stats.js";
 
 // i18n 已内联进 state.js；此 re-export 兼容仍引用 ./i18n.js 的旧前端缓存，避免登录模块加载失败
 const CHAT_I18N = 'export { t, getLang, setLang, applyI18n, LANG_KEY } from "./state.js";';
@@ -151,6 +210,29 @@ const CHAT_MODULES = {
   "chat/season.js": CHAT_SEASON,
   "chat/market.js": CHAT_MARKET,
   "chat/relation.js": CHAT_RELATION,
+  // 🧪 v1.53 聊天室 Vue3 弹窗管理器（复用 ADMIN_VUE，零重复下载）
+  "chat/vendor/vue.js": ADMIN_VUE,
+  "chat/modal-manager.js": CHAT_MODAL_MANAGER,
+  "chat/modals/settings.js": CHAT_MODAL_SETTINGS,
+  // v1.56 内容沉淀：房间知识库
+  "chat/doc-store.js": CHAT_DOC_STORE,
+  "chat/modals/kb.js": CHAT_MODAL_KB,
+  "chat/modals/shop.js": CHAT_MODAL_SHOP,
+  "chat/modals/market.js": CHAT_MODAL_MARKET,
+  "chat/modals/lottery.js": CHAT_MODAL_LOTTERY,
+  "chat/modals/tasks.js": CHAT_MODAL_TASKS,
+  "chat/modals/season.js": CHAT_MODAL_SEASON,
+  "chat/modals/relation.js": CHAT_MODAL_RELATION,
+  "chat/modals/music.js": CHAT_MODAL_MUSIC,
+  "chat/modals/dm.js": CHAT_MODAL_DM,
+  "chat/modals/favorites.js": CHAT_MODAL_FAVORITES,
+  "chat/modals/achievements.js": CHAT_MODAL_ACHIEVEMENTS,
+  "chat/modals/highlights.js": CHAT_MODAL_HIGHLIGHTS,
+  "chat/modals/roominfo.js": CHAT_MODAL_ROOMINFO,
+  "chat/modals/filespanel.js": CHAT_MODAL_FILESPANEL,
+  "chat/modals/search.js": CHAT_MODAL_SEARCH,
+  "chat/modals/sessions.js": CHAT_MODAL_SESSIONS,
+  "chat/nav.js": CHAT_NAV,
 };
 
 const ADMIN_MODULES = {
@@ -184,6 +266,38 @@ const ADMIN_MODULES = {
   "admin/honor.js": ADMIN_HONOR,
   "admin/market.js": ADMIN_MARKET,
   "admin/lp.js": ADMIN_LP,
+  "admin/vendor/vue.js": ADMIN_VUE,
+  // 🧪 v1.52 管理后台 Vue3 迁移
+  "admin/app.js": ADMIN_VUE_APP,
+  "admin/store.js": ADMIN_VUE_STORE,
+  "admin/sections/dashboard.js": ADMIN_VUE_SEC_DASHBOARD,
+  "admin/sections/rooms.js": ADMIN_VUE_SEC_ROOMS,
+  "admin/sections/users.js": ADMIN_VUE_SEC_USERS,
+  "admin/sections/bans.js": ADMIN_VUE_SEC_BANS,
+  "admin/sections/ipbans.js": ADMIN_VUE_SEC_IPBANS,
+  "admin/sections/blacklist.js": ADMIN_VUE_SEC_BLACKLIST,
+  "admin/sections/history.js": ADMIN_VUE_SEC_HISTORY,
+  "admin/sections/tags.js": ADMIN_VUE_SEC_TAGS,
+  "admin/sections/points.js": ADMIN_VUE_SEC_POINTS,
+  "admin/sections/market.js": ADMIN_VUE_SEC_MARKET,
+  "admin/sections/exp.js": ADMIN_VUE_SEC_EXP,
+  "admin/sections/levelstyle.js": ADMIN_VUE_SEC_LEVELSTYLE,
+  "admin/sections/shop.js": ADMIN_VUE_SEC_SHOP,
+  "admin/sections/tasks.js": ADMIN_VUE_SEC_TASKS,
+  "admin/sections/lottery.js": ADMIN_VUE_SEC_LOTTERY,
+  "admin/sections/redeem.js": ADMIN_VUE_SEC_REDEEM,
+  "admin/sections/ipgroup.js": ADMIN_VUE_SEC_IPGROUP,
+  "admin/sections/webhooks.js": ADMIN_VUE_SEC_WEBHOOKS,
+  "admin/sections/bot.js": ADMIN_VUE_SEC_BOT,
+  "admin/sections/sendmessage.js": ADMIN_VUE_SEC_SENDMESSAGE,
+  "admin/sections/kickprotect.js": ADMIN_VUE_SEC_KICKPROTECT,
+  "admin/sections/adminkey.js": ADMIN_VUE_SEC_ADMINKEY,
+  "admin/sections/log.js": ADMIN_VUE_SEC_LOG,
+  "admin/sections/season.js": ADMIN_VUE_SEC_SEASON,
+  "admin/sections/honor.js": ADMIN_VUE_SEC_HONOR,
+  "admin/sections/emoji.js": ADMIN_VUE_SEC_EMOJI,
+  "admin/sections/usermodal.js": ADMIN_VUE_SEC_USERMODAL,
+  "admin/sections/stats.js": ADMIN_VUE_SEC_STATS,
 };
 
 import { handleErrors } from "./utils.mjs";
@@ -240,7 +354,7 @@ export default {
       let path = url.pathname.slice(1).split('/');
 
       // IP 封禁检查
-      if (path[0] !== "admin" && path[0] !== "tasks" && path[0] !== "help" && path[0] !== "about" && path[0] !== "leaderboard" && path[0] !== "user" && path[0] !== "rooms" && path[0] !== "online" && path[0] !== "stats" && path[0] !== "redeem" && !(path[0] === "api" && path[1] === "admin")) {
+      if (path[0] !== "admin" && path[0] !== "admin-vue" && path[0] !== "admin-legacy" && path[0] !== "tasks" && path[0] !== "help" && path[0] !== "about" && path[0] !== "leaderboard" && path[0] !== "user" && path[0] !== "rooms" && path[0] !== "online" && path[0] !== "stats" && path[0] !== "redeem" && !(path[0] === "api" && path[1] === "admin")) {
         let clientIp = request.headers.get("CF-Connecting-IP") || "";
         if (clientIp) {
           try {
@@ -340,7 +454,13 @@ self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWi
         case "api":
           return handleApi(path.slice(1), request, env);
 
+        // v1.52 收尾切换：/admin 正式指向 Vue3 新后台（AdminApp）
         case "admin":
+        case "admin-vue":
+          return new Response(ADMIN_VUE_HTML, {headers: {"Content-Type": "text/html;charset=UTF-8", "Cache-Control": "no-cache, must-revalidate", "X-Frame-Options": "DENY", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "same-origin"}});
+
+        // v1.52 收尾：旧后台保底入口（代码/注册全保留，routing.js 前缀归一化兼容）
+        case "admin-legacy":
           return new Response(ADMIN, {headers: {"Content-Type": "text/html;charset=UTF-8", "Cache-Control": "no-cache, must-revalidate", "X-Frame-Options": "DENY", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "same-origin"}});
 
         case "tasks":
@@ -438,6 +558,7 @@ async function handleApi(apiPath, request, env) {
     case "login":
     case "logout":
     case "check-auth":
+    case "user-sessions":
       return handleAuth(apiPath, request, env);
 
     case "recall":

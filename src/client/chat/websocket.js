@@ -9,7 +9,7 @@ import { showWelcomeBanner } from './banner.js';
 import { checkKeywords } from './keywords.js';
 import { applyWaveEffect, applyCrashEffect } from './commands.js';
 import { applyIccoEffect } from './icco.js';
-import { buildChannelBar, updateChannelBadges, renderChannelMessage, pushToChannelCache, bumpChannelUnread, updateCachedMessage } from './channels.js';
+import { buildChannelBar, updateChannelBadges, renderChannelMessage, renderChannelBatch, pushToChannelCache, bumpChannelUnread, updateCachedMessage } from './channels.js';
 
 // 📌 置顶消息（v1.35）：渲染当前频道的置顶条（每频道最多 3 条，管理员显示取消按钮）
 // 全部用 createElement + textContent 渲染，杜绝 XSS
@@ -139,8 +139,7 @@ export async function join() {
       state.chatlog.innerHTML = '<div id="spacer"></div>';
       state.lastSeenTimestamp = 0;
       resetMsgDate(); // 日期分组重新计数
-      (data.messages || []).forEach(m => renderChannelMessage(m));
-      refreshReplyCounts();
+      renderChannelBatch(data.messages); // 批量：DocumentFragment 一次上屏 + 一次滚动（替代逐条 appendChild+scrollBy）
       state.chatlog.scrollBy(0, 1e8);
       state.channelUnread[data.channel] = 0;
       updateChannelBadges();
@@ -439,6 +438,9 @@ export async function join() {
       if (data.effect === "wave") applyWaveEffect();
       else if (data.effect === "crash") applyCrashEffect();
       else if (data.effect === "icco") applyIccoEffect();
+    } else if (data.type === "doc") {
+      // v1.56 房间知识库：路由到 doc-store（请求响应 + 广播刷新列表）；显式分支避免落入 else 兜底显示 undefined
+      import('./doc-store.js').then(m => m.applyServerEvent(data)).catch(() => {});
     } else if (data.type === "redpacket") {
       if (data.action === "new") {
         // 新红包（按频道隔离）
