@@ -7,7 +7,7 @@ workers_dev = true
 
 # v2 custom domain — DNS CNAME pointed here separately
 routes = [
-  { pattern = "chatnew.dslirc.indevs.in/*", zone_name = "dslirc.indevs.in", custom_domain = true, enabled = true, previews_enabled = false },
+  { pattern = "chatnew.liuxiyu.cn/*", zone_name = "liuxiyu.cn", custom_domain = true, enabled = true, previews_enabled = false },
 ]
 
 [durable_objects]
