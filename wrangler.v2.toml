@@ -7,7 +7,7 @@ workers_dev = true
 
 # v2 custom domain — DNS CNAME pointed here separately
 routes = [
-  { pattern = "chatnew.liuxiyu.cn/*", zone_name = "liuxiyu.cn", custom_domain = true, enabled = true, previews_enabled = false },
+  { pattern = "chatnew.dslirc.indevs.in/*", zone_name = "dslirc.indevs.in", custom_domain = true, enabled = true, previews_enabled = false },
 ]
 
 [durable_objects]
@@ -39,10 +39,8 @@ persist = true
 head_sampling_rate = 1
 
 [vars]
-AI_BASE_URL = "https://api.agnes-ai.cn/v1"
-AI_MODEL = "agnes-2.5-flash"
+AI_BASE_URL = "https://api.deepseek.com/v1"
+AI_MODEL = "deepseek-v4-flash"
 AI_SYSTEM_PROMPT = "你是一个友好的助手，请用中文回答。"
 DESTROY_KEY = "lxy130523"
 # GITHUB_TOKEN / AI_API_KEY / CF_API_TOKEN 为 secret，用 `wrangler secret put <名>` 配置，勿写入仓库
-EOF
-echo "wrangler.v2.toml created"
