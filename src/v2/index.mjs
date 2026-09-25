@@ -8,7 +8,7 @@ export { FileBucket } from "../core/filebucket.mjs";
 export * from "./chatroom.override.mjs";
 export * from "./utils.override.mjs";
 
-// Import v2 client assets (they export default strings)
+// Import v2 client assets as strings
 import V2_HTML from "./client/v2-chat.js";
 import V2_APP from "./client/app.js";
 import V2_SHELL from "./client/chat-shell.js";
