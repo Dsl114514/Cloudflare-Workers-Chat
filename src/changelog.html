@@ -94,6 +94,74 @@ body {
 
 <div class="version-group">
   <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.60</span>
+    <span class="version-date">2026-08-11</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-fix">修复</span><b>敏感词 leetspeak 误伤纯数字「58」</b> — 排查"快速连发丢消息"根因（Observability 日志+内容/计数分离实验）：<code>sb→[s5][b8]</code> 字符类使任何含 58 的文本（5→s 8→b）被当"傻逼"拦截。修复：leetspeak 匹配段须含 ≥1 字母才命中，纯数字 58/msg58/我今年58岁 放行，sh1t/f0ck/sb/5b/s8/中文脏词仍拦；线上 60/60 消息无丢失 + 回归测试 16/16</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-fix">加固</span><b>敏感词 leetspeak 三类绕过全拦</b> — ①<code>i</code> 字变体补 <code>2</code>（堵 5h2t=shit）；②词根字母间允许插入 ≤2 个标点/空格 + 3 字母以上词根字母可被 1-2 个标点代替（堵 f*ck / f--ck / F*Ck 删字母+插符号绕过）；③旋转同形映射 c↔u、m↔w（堵 wunw=wcnm 视觉仿形）；④新增词根 wcnm。顺带修跨词误伤：拼音缩写词根（sb/cnm 等）独立成词才拦（is by/usb/isby 放行），英文词根容忍派生词（fucking/shits 仍拦）；回归测试 56/56</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-fix">修复</span><b>/lp 命令容忍 permissions 复数写法</b> — <code>/lp user 某名 permissions set 节点</code> 误写复数会被拒为"未知子命令"，现兼容 <code>permission</code>/<code>permissions</code>（命令实际未被敏感词拦截，纯语法容错）；LP 测试 34/34</span></div>
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-fix">修复</span><b>命令不再被敏感词误拦</b> — 定位到用户报"命令提示敏感词"的真根因：敏感词检查在命令处理之前，<code>nmb</code> 的 leetspeak 模式把 <code>/w 游客9933</code> 的 <code>/</code>+<code>w</code>+空格+<code>游</code> 拼成 nmb 命中（<code>\W</code> 把中文"游"当可顶替字母的标点）。双修：①<code>/</code> 开头的命令消息跳过敏感词检查（命令参数含任意用户名/节点，非聊天内容；未知命令不广播无漏检风险）；②leetspeak 标点顶替改用排除中文的 <code>[^\w一-鿿]</code>，且 3 字母以下短词根（cnm/nmb/qnmd/sb）不再做字母顶替（防 <code>/w </code> 拼词）；敏感词回归 61/61</span></div>
+    <div class="feature-item"><span class="icon">⭐</span><span class="text"><span class="tag tag-feature">特性</span><b>LP 权限系统 default 组</b> — 新用户/无继承组的用户默认继承 <code>default</code> 组（LuckPerms 语义）：系统预置空 default 组，管理员 <code>/lp group default permission set 节点</code> 即可给全部无组用户批量授权；用户加入任意组后自动脱离 default；无 LP 记录用户不受影响；<code>/lp user X info</code> 无组时提示"默认继承 default"；LP 测试 44/44 + 线上验证</span></div>
+    <div class="feature-item"><span class="icon">📱</span><span class="text"><span class="tag tag-feature">安卓</span><b>App 批B-F：markdown 链接可点 / 语音统一 m4a / /conpwd / 管理员命令 / 通知保活</b> — ①markdown 链接点击用系统浏览器打开（renderWithLinks 记录区间 + ClickableText）；②语音统一 m4a：网页录音优先 <code>audio/mp4</code> 回退 webm，App 按 MIME 选扩展名跨端可播；③<code>/conpwd #房间 密码</code> 带密码切房；④<code>/kick /kickall /ban /unban /tag /untag /clear</code> 管理员命令（我的页设管理密钥）；⑤进房启动前台服务保活 WS，退后台不丢连、消息照常通知</span></div>
+    <div class="feature-item"><span class="icon">🧪</span><span class="text"><span class="tag tag-fix">验证</span><b>Robolectric UI 测试落地</b> — JVM 上渲染 Compose 冒烟 2/2（模拟器不可用时的替代方案），App 全量 38/38（ChatManager 11 + CommandHandler 13 + Markdown 12 + Robolectric 2）+ 服务端 test-offline 5/5 + test-profanity 16/16</span></div>
+  </div>
+</div>
+
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.61</span>
+    <span class="version-date">2026-09-25</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-fix">修复</span><b>@AI / /ai 命令完全失效</b> — 定位根因：<code>chatroom/http.mjs</code> 的 <code>/websocket</code> 端点建立了 WebSocketPair 但只调了 <code>handleSession(pair[1])</code>，从未给服务端端点 <code>pair[1]</code> 绑定 <code>onmessage</code>，导致所有 WS 入站消息（含 /ai /gh /lp 等命令）完全不经过 <code>webSocketMessage</code> 处理。修复：在 pair[1] accept 后增加 <code>pair[1].onmessage = e => room.webSocketMessage(pair[1], e.data)</code>；部署 9d824c00</span></div>
+  </div>
+</div>
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.59</span>
+    <span class="version-date">2026-08-11</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">📦</span><span class="text"><span class="tag tag-feature">功能</span><b>VersionArchive 单文件资源存储</b> — <code>POST /api/archive/file?path=Content/fonts/Font12.xnb</code> 上传单个文件（超管密钥鉴权，≤50MB，base64 分块存绕过 128KB 单值上限）；<code>GET /api/archive/file?path=…</code> 浏览器按路径公开拉取（按扩展名给 Content-Type + <code>Cache-Control: public, max-age=3600</code> + CORS）；附带 <code>file-list</code>（列文件）/ <code>file-delete</code>（删文件，均超管）；路径规范化防穿越（拒绝 <code>..</code>/绝对路径/非法字符，只允许字母数字 <code>._+-/空格</code>）；根目录脚本 <code>archive-file-upload.mjs</code>（上传/列表/删除三合一）</span></div>
+    <div class="feature-item"><span class="icon">🧪</span><span class="text"><span class="tag tag-fix">验证</span>端到端：200KB 随机二进制当 <code>.xnb</code> 上传→拉回 SHA-256 一致（3 chunks 跨块无损）、PNG Content-Type <code>image/png</code>、404 不存在、400 路径穿越、401 无密钥，全过</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.58</span>
+    <span class="version-date">2026-08-11</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">📥</span><span class="text"><span class="tag tag-feature">功能</span><b>离线消息补发</b> — 用户不在线期间房间里错过的消息，重新上线后自动补发（<code>chatroom/offline.mjs</code>）：每个房间按用户记录 <code>lastSeen</code>（join 与断开时各写一次，确保离线窗口只覆盖真实离线时段，不重复补发已看过的消息）；上线时读取上次 lastSeen 之后、当前频道的最近消息逐条补发并标记 <code>offline:true</code>，末尾发 <code>offline-marker</code> 计数；lastSeen 用 <code>1:</code> 前缀存储键（字典序早于 ISO 时间戳，不污染入房 backlog 的 reverse-limit 窗口）；补发上限 200 条，剔除 <code>_anonOwner/fid</code> 防匿名指纹泄漏；网页端与安卓 App 均显示「📥 你离线期间收到 N 条消息」+ 离线消息角标</span></div>
+    <div class="feature-item"><span class="icon">📱</span><span class="text"><span class="tag tag-feature">安卓</span><b>CloudChat 安卓客户端批5 全量增强（独立仓 Cloudflare-Chat-Android）</b> — Markdown 渲染（块级+行内+@提及高亮）、图片/文件/语音全类型渲染与发送、消息长按（复制/撤回/删除）、日期分组+自动滚动+历史翻页、知识库 /kb、命令面板、后台消息通知；本地 JVM 冒烟 33/33（MockWebServer 模拟 WS 协议全链路 + 命令 + markdown），真机与网页端互通验证通过</span></div>
+    <div class="feature-item"><span class="icon">🧪</span><span class="text"><span class="tag tag-fix">验证</span>离线消息逻辑 node 单测 4/4（补发窗口/marker/频道过滤/敏感字段剔除/lastSeen 更新/重复上线不重复补发）+ 全量 lint 0 errors + typecheck 0 errors + App 33/33 回归</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
+    <span class="version-tag">v1.57</span>
+    <span class="version-date">2026-08-10</span>
+    <span class="version-arrow open">▶</span>
+  </div>
+  <div class="version-body open">
+    <div class="feature-item"><span class="icon">🔧</span><span class="text"><span class="tag tag-feature">工具链</span><b>补全 ESLint + Prettier + TypeScript 静态检查</b> — 新增 eslint 9 flat config（<b>温和模式</b>：只开真 bug 类规则 no-undef/no-redeclare/no-dupe-keys/use-isnan/valid-typeof 等，风格全关交给 prettier；基线 <b>0 errors</b>，全仓扫描即抓到真实 bug——state.js en 词典重复 key「 积分」已修）+ prettier 3（绿区 18 文件统一格式，其余 190 文件不碰避免海量 diff）+ tsc 5（<code>checkJs</code> 温和模式，带 <code>// @ts-check</code> 的文件静态检查，<b>项目级 0 errors</b>）；npm scripts：<code>npm run lint / format / typecheck</code></span></div>
+    <div class="feature-item"><span class="icon">📐</span><span class="text"><span class="tag tag-feature">类型</span><b>JSDoc 类型契约（TS 思想零迁移落地）</b> — 新建 <code>src/types.js</code> 单点契约源：<code>WsSession/SessionEntry/User/ChatMessage/Doc/Channel/VipInfo/WsCommandData/Env</code> 9 个跨模块类型；S/A/B 三层 <b>18+ 核心文件</b>（utils/chatroom 全模块/registry/index/state/renderers/websocket/core/commands/doc-store/nav/modal-manager/main/kb）加 <code>// @ts-check</code> + 全量 JSDoc（export 函数签名 + 数据模型 + 跨模块契约），获得编辑器提示与静态检查；<code>src/ambient.d.ts</code> 声明 CF 特有全局（WebSocketPair/katex/hljs）；新增 types.d.ts 改 ambient.d.ts 避免与 types.js 同基名拦截解析</span></div>
+    <div class="feature-item"><span class="icon">✂️</span><span class="text"><span class="tag tag-feature">重构</span><b>拆分 chatroom.mjs（2586 → 1194 行）</b> — DO 主体拆出 6 个模块，全部沿用 <code>handleXxx(room, session, data, webSocket)</code> 短路范式：<b>http.mjs</b>（-579 行，全部 fetch 端点，SAFE_COLOR_RE 上移 utils 共享）、<b>activity.mjs</b>（-364 行，投票/接龙/表情/红包）、<b>permissions.mjs</b>（权限/敏感词/长度，类上留薄包装）、<b>schedule.mjs</b>（定时创建/取消 + alarm 投递）、<b>conn.mjs</b>（handleSession 入房 + close 清理）、<b>rollback.mjs</b>（应急回滚 + multipart/zip）；部署冒烟 13/13 行为无损</span></div>
+    <div class="feature-item"><span class="icon">🧹</span><span class="text"><span class="tag tag-fix">清理</span><b>renderers.js 二进制污染修复</b> — v1.56 markdown 占位符遗留 10 个 NUL 字节 + CRLF，阻塞 eslint/prettier/tsc 三件套；统一清理为可打印哨兵 <code>~T&lt;n&gt;~</code> + 统一 LF，46/46 jsdom 回归无损</span></div>
+    <div class="feature-item"><span class="icon">🧪</span><span class="text"><span class="tag tag-fix">验证</span>tsc 项目级 0 errors（21 处 <code>@ts-ignore</code> 均带中文理由注释，限运行时挂载 window 字段/CDN 全局）+ jsdom 46/46 + eslint 0 errors + 线上冒烟 13/13（拆分后 WS join/长消息/doc CRUD 全回归）</span></div>
+  </div>
+</div>
+
+<div class="version-group">
+  <div class="version-header" onclick="toggle(this)">
     <span class="version-tag">v1.56</span>
     <span class="version-date">2026-08-10</span>
     <span class="version-arrow open">▶</span>
