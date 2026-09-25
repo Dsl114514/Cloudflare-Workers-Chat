@@ -98,7 +98,11 @@ export default {
     // Root path — serve v2 chat UI
     if (path === "" || path === "index.html") {
       return new Response(V2_HTML, {
-        headers: { "Content-Type": HTML_CT },
+        headers: {
+          "Content-Type": HTML_CT,
+          "Cache-Control": "no-cache, must-revalidate",
+          "X-Content-Type-Options": "nosniff",
+        },
       });
     }
 
