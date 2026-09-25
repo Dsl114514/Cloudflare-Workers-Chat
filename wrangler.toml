@@ -59,3 +59,8 @@ DESTROY_KEY = "lxy130523"
 #   new_sqlite_classes = ["ChatRoom", "RoomRegistry", "VersionArchive", "FileBucket"]
 # v1.46 OAuth：GITHUB_CLIENT_SECRET 用 wrangler secret put 配置（勿写入仓库）；GITHUB_CLIENT_ID 填入 provider 后台的 Client ID
 GITHUB_CLIENT_ID = "Iv23liTJ48MDY1UwtE5m"
+
+# ── v2 worker instance ──
+# Deploy separately: wrangler deploy --config wrangler.v2.toml
+# Route: chatnew.dslirc.indevs.in → this worker
+# Shared DOs: same class names = same DO instances = data transparently shared
