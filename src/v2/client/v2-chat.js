@@ -36,7 +36,7 @@ export default `<!DOCTYPE html>
     </div>
   </div>
   <script type="module">
-    import { initV2Client } from '../app.js';
+    import { initV2Client } from './app.js';
     import { renderChatShell } from './chat-shell.js';
     const app = document.getElementById('v2-app');
     renderChatShell(app);
